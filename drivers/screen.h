@@ -50,7 +50,6 @@ enum VGA_BG {
 };
 
 void clear_screen();
-void set_screen_color(enum VGA_FG fg, enum VGA_BG bg);
 void kput_at(char c, int col, int row);
 void kprint_at(char * message, int col, int row);
 void kprint(char * message);
