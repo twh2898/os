@@ -13,12 +13,12 @@ call load_kernel
 call switch_to_pm
 jmp $
 
-%include "boot_sect_print.asm"
-%include "boot_sect_print_hex.asm"
-%include "boot_sect_disk.asm"
-%include "32bit-gdt.asm"
-%include "32bit-print.asm"
-%include "32bit-switch.asm"
+%include "boot/boot_sect_print.asm"
+%include "boot/boot_sect_print_hex.asm"
+%include "boot/boot_sect_disk.asm"
+%include "boot/gdt.asm"
+%include "boot/32bit_print.asm"
+%include "boot/switch.asm"
 
 [bits 16]
 load_kernel:
