@@ -1,11 +1,8 @@
 #include "screen.h"
 #include "ports.h"
 
-static unsigned char color = VGA_FG_WHITE | VGA_BG_BLACK;
-//static unsigned char color = BLACK_ON_WHITE;
-
-static int offset = 0;
-
+static int put_char(char c, int row, int col);
+static int put_char(char c, int row, int col, char color);
 static int get_cursor_offset();
 static void set_cursor_offset(int offset);
 static int get_offset(int row, int col);
@@ -24,7 +21,6 @@ void clear_screen() {
     }
 
     set_cursor_offset(0);
-    color = WHITE_ON_BLACK;
 }
 
 void set_screen_color(enum VGA_FG fg, enum VGA_BG bg) {
@@ -62,6 +58,32 @@ void kprint(char * message) {
 }
 
 // LOCAL FUNCTIONS
+
+static int put_char(char c, int row, int col) {
+    return put_char(c, row, col, WHITE_ON_BLACK);
+}
+
+static int put_char(char c, int row, int col, char attr) {
+    char * screen = (char *) VIDEO_ADDRESS;
+
+    if (!attr)
+        attr = WHITE_ON_BLACK;
+    
+    if (row >= MAX_ROWS || col >= MAX_COLS) {
+        screen[2*(MAX_COLS)*(MAX_ROWS)-2] = 'E';
+        screen[2*(MAX_COLS)*(MAX_ROWS)] = RED_ON_WHITE;
+        return get_offset(col, row);
+    }
+
+    int offset;
+    if (col >= 0 && row >= 0)
+        offset = get_offset(col, row);
+    else
+        offset = get_cursor_offset();
+
+    screen[offset * 2] = c;
+    screen[offset * 2 + 1] = attr;
+}
 
 static int get_cursor_offset() {
     port_byte_out(REG_SCREEN_CTRL, 14);
