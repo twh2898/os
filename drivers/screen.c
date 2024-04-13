@@ -31,14 +31,14 @@ void kprint_at(char * message, int row, int col) {
     unsigned char * screen = (unsigned char *)VIDEO_ADDRESS;
 
     int offset;
-    if (col >= 0 && row >= 0) {
+    if (row >= 0 && col >= 0) {
         offset = get_offset(row, col);
     }
     else {
         offset = get_cursor_offset();
     }
 
-    int i;
+    int i = 0;
     while (message[i] != 0) {
         offset = put_char(message[i++], row, col, WHITE_ON_BLACK);
         row = get_offset_row(offset);

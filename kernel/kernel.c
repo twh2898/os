@@ -4,7 +4,7 @@ void main() {
     clear_screen();
     kput_at('X', 0, 0);
     kput_at('X', 0, 1);
-    kprint_at("YY\nZZ", 0, 2);
+    kprint_at("YY\nZZ", 1, 0);
     //kprint("Hello\nWorld");
     //kprint_at("Hi", 3, 3);
     //kput_at('H', 5, 5);
