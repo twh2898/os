@@ -4,6 +4,8 @@
 static unsigned char color = VGA_FG_WHITE | VGA_BG_BLACK;
 //static unsigned char color = BLACK_ON_WHITE;
 
+static int offset = 0;
+
 static int get_cursor_offset();
 static void set_cursor_offset(int offset);
 static int get_offset(int row, int col);
@@ -13,7 +15,7 @@ static int get_offset_col(int offset);
 // PUBLIC FUNCTIONS
 
 void clear_screen() {
-    char * screen = VIDEO_ADDRESS;
+    char * screen = (char *)VIDEO_ADDRESS;
     int screen_size = MAX_ROWS * MAX_COLS;
 
     for (int i = 0; i < screen_size; i++) {
@@ -22,15 +24,22 @@ void clear_screen() {
     }
 
     set_cursor_offset(0);
+    color = WHITE_ON_BLACK;
 }
 
 void set_screen_color(enum VGA_FG fg, enum VGA_BG bg) {
     color = fg | bg;
 }
 
+void kput_at(char c, int row, int col) {
+    int offset = get_offset(row, col);
+    char * screen = (char *) VIDEO_ADDRESS;
+    screen[offset * 2] = c;
+    screen[offset * 2 + 1] = WHITE_ON_BLACK;
+}
+
 void kprint_at(char * message, int col, int row) {
-    char * screen = VIDEO_ADDRESS;
-    int offset = 0;
+    char * screen = (char *)VIDEO_ADDRESS;
 
     if (col >= 0 && row >= 0) {
         offset = get_offset(row, col);
