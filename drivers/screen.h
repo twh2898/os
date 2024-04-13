@@ -49,7 +49,7 @@ enum VGA_BG {
 };
 
 void clear_screen();
-void set_screen_color(enum VGA_FG fg, enum VGA_BG bg)
+void set_screen_color(enum VGA_FG fg, enum VGA_BG bg);
 void kprint_at(char * message, int col, int row);
 void kprint(char * message);
 
