@@ -27,7 +27,7 @@ void kput_at(char c, int row, int col) {
     put_char(c, row, col, WHITE_ON_BLACK);
 }
 
-void kprint_at(char * message, int col, int row) {
+void kprint_at(char * message, int row, int col) {
     unsigned char * screen = (unsigned char *)VIDEO_ADDRESS;
 
     int offset;
@@ -40,7 +40,7 @@ void kprint_at(char * message, int col, int row) {
 
     int i;
     while (message[i] != 0) {
-        offset = put_char(message[i++], col, row, WHITE_ON_BLACK);
+        offset = put_char(message[i++], row, col, WHITE_ON_BLACK);
         row = get_offset_row(offset);
         col = get_offset_col(offset);
     }
@@ -66,8 +66,8 @@ static int put_char(char c, int row, int col, char attr) {
         attr = WHITE_ON_BLACK;
 
     if (row >= MAX_ROWS || col >= MAX_COLS) {
-        screen[2 * (MAX_COLS) * (MAX_ROWS)-2] = 'E';
-        screen[2 * (MAX_COLS) * (MAX_ROWS)] = RED_ON_WHITE;
+        screen[MAX_OFFSET-2] = 'E';
+        screen[MAX_OFFSET-1] = RED_ON_WHITE;
         return get_offset(row, col);
     }
 
@@ -82,8 +82,8 @@ static int put_char(char c, int row, int col, char attr) {
         offset = get_offset(row + 1, 0);
     }
     else {
-        screen[offset * 2] = c;
-        screen[offset * 2 + 1] = attr;
+        screen[offset] = c;
+        screen[offset + 1] = attr;
         offset += 2;
     }
 
