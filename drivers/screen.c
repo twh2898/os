@@ -1,7 +1,8 @@
 #include "screen.h"
 #include "ports.h"
 
-static unsigned char color = WHITE_ON_BLACK;
+static unsigned char color = VGA_FG_WHITE | VGA_BG_BLACK;
+//static unsigned char color = BLACK_ON_WHITE;
 
 static int get_cursor_offset();
 static void set_cursor_offset(int offset);
@@ -29,7 +30,7 @@ void set_screen_color(enum VGA_FG fg, enum VGA_BG bg) {
 
 void kprint_at(char * message, int col, int row) {
     char * screen = VIDEO_ADDRESS;
-    int offset;
+    int offset = 0;
 
     if (col >= 0 && row >= 0) {
         offset = get_offset(row, col);
@@ -38,10 +39,11 @@ void kprint_at(char * message, int col, int row) {
         offset = get_cursor_offset();
     }
 
-    while (message != 0) {
+    while (*message != 0) {
         screen[offset*2] = *message;
         screen[offset*2 + 1] = color;
         offset++;
+        message++;
     }
     set_cursor_offset(offset);
 }
