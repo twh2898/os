@@ -38,6 +38,6 @@ debug: os-image.bin kernel.elf
 	$(ASM) -f bin $< -o $@
 
 clean:
-	@rm -rf *.bin *.o
+	@rm -rf **/*.bin **/*.o *.bin *.elf
 
 .PHONY: clean
