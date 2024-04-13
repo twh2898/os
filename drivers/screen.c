@@ -20,7 +20,7 @@ void clear_screen() {
         screen[i * 2 + 1] = WHITE_ON_BLACK;
     }
 
-    set_cursor_offset(0);
+    set_cursor_offset(get_offset(0, 0));
 }
 
 void kput_at(char c, int row, int col) {
