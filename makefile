@@ -8,7 +8,7 @@ OBJ = ${C_SOURCES:.c=.o}
 ASM=nasm
 CC=i386-elf-gcc
 LD=i386-elf-ld
-GDB=i386-elf-gdb
+GDB=gdb
 QEMU=qemu-system-i386
 
 CFLAGS=-g
