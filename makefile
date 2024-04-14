@@ -12,7 +12,6 @@ GDB=i386-elf-gdb
 QEMU=qemu-system-i386
 
 CFLAGS=-g
-LDFLAGS=-Ttext 0x0 --oformat binary
 
 os-image.bin: boot/bootsect.bin kernel.bin
 	cat $^ > $@
