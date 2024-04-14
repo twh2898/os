@@ -24,7 +24,7 @@ void term_init() {
 void term_putc(char c) {
     if (index >= MAX_INDEX) {
         shift_lines();
-        index = vga_index(VGA_ROWS-1, 0);
+        index = vga_index(VGA_ROWS - 1, 0);
     }
 
     if (c == '\n') {
@@ -54,13 +54,13 @@ static void update_cursor() {
 }
 
 static void shift_lines() {
-    char * screen = (char *) VGA_ADDRES;
+    char * screen = (char *)VGA_ADDRES;
     for (int row = 1; row < VGA_ROWS; row++) {
         for (int col = 1; col < VGA_COLS; col++) {
             int index = vga_index(row, col);
             int prev = index - (VGA_COLS * 2);
             screen[prev] = screen[index];
-            screen[prev+1] = screen[index+1];
+            screen[prev + 1] = screen[index + 1];
         }
     }
     for (int col = 1; col < VGA_COLS; col++) {
