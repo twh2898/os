@@ -34,7 +34,7 @@ void test4() {
         term_print(number);
         term_putc('\n');
     }
-    term_putc('\n');
+    term_print("END\n\nTWO\n");
 }
 void kernel_main() {
     term_init();
