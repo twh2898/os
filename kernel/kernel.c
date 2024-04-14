@@ -27,11 +27,9 @@ void test3() {
 void test4() {
     term_cursor(0, 0);
     term_color(VGA_WHITE_ON_BLACK);
-    char * number = "                    \0";
     for (int i = 0; i < 24; i++) {
         term_print("FILL ");
-        itoa(i, number);
-        term_print(number);
+        term_puti(i, 10, false);
         term_putc('\n');
     }
     term_print("END\n\nTWO\n");

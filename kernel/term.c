@@ -1,8 +1,8 @@
 #include "term.h"
 
-#include "std.h"
 #include "../drivers/ports.h"
 #include "../drivers/vga.h"
+#include "std.h"
 
 #define REG_SCREEN_CTRL 0x3d4
 #define REG_SCREEN_DATA 0x3d5
@@ -13,12 +13,25 @@ static int index;
 static char color;
 
 static void update_cursor();
+static void shift_lines();
 
 void term_init() {
     index = 0;
     color = VGA_WHITE_ON_BLACK;
     vga_clear();
     update_cursor();
+}
+
+void term_cursor(int row, int col) {
+    if (row < 0 || col < 0 || row >= VGA_ROWS || col >= VGA_COLS)
+        return;
+
+    index = vga_index(row, col);
+    update_cursor();
+}
+
+void term_color(unsigned char attr) {
+    color = attr;
 }
 
 void term_putc(char c) {
@@ -38,22 +51,52 @@ void term_putc(char c) {
     update_cursor();
 }
 
-void term_print(const char * str) {
+int term_print(const char * str) {
+    int len = 0;
     while (*str != 0) {
         term_putc(*str++);
+        len++;
     }
+    return len;
 }
 
-void term_cursor(int row, int col) {
-    if (row < 0 || col < 0 || row >= VGA_ROWS || col >= VGA_COLS)
-        return;
-
-    index = vga_index(row, col);
-    update_cursor();
+static char digit(unsigned int num, int base, bool upper) {
+    if (num < 10)
+        return num + '0';
+    else
+        return (num - 10) + (upper ? 'A' : 'a');
 }
 
-void term_color(unsigned char attr) {
-    color = attr;
+int term_puti(int num, int base, bool upper) {
+    if (num == 0) {
+        term_putc('0');
+        return 1;
+    }
+
+    bool is_neg = num < 0;
+
+    if (num < 0) {
+        term_putc('-');
+        num = -num;
+    }
+
+    int len = 0;
+    int rev = 0;
+    while (num > 0) {
+        rev = (rev * base) + (num % base);
+        num /= base;
+        len++;
+    }
+
+    for (int i = 0; i < len; i++) {
+        term_putc(digit(rev % base, base, upper));
+        rev /= base;
+    }
+
+    if (is_neg)
+        len++;
+
+    return len;
 }
 
 static void update_cursor() {
@@ -66,7 +109,7 @@ static void update_cursor() {
     port_byte_out(REG_SCREEN_DATA, (unsigned char)(index & 0xff));
 }
 
-void shift_lines() {
+static void shift_lines() {
     char * screen = (char *)VGA_ADDRES;
     memmove(screen, screen + (VGA_COLS * 2), ((VGA_ROWS - 1) * VGA_COLS * 2));
     for (int col = 0; col < VGA_COLS; col++) {
