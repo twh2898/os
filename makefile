@@ -27,7 +27,7 @@ run: os-image.bin
 
 debug: os-image.bin kernel.elf
 	$(QEMU) -s -fda os-image.bin &
-	$(GDB) -ex "target remote localhost:1234" -ex "symbol-file kernel.elf"
+	$(GDB) -ex "target remote localhost:1234" -ex "symbol-file kernel.elf" -ex "b __start" -ex "b kernel_main"
 
 %.o : %.c ${HEADERS}
 	$(CC) $(CFLAGS) -ffreestanding -c $< -o $@
