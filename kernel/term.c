@@ -22,6 +22,14 @@ void term_init() {
     update_cursor();
 }
 
+int term_cursor_row() {
+    return vga_row(index);
+}
+
+int term_cursor_col() {
+    return vga_col(index);
+}
+
 void term_cursor(int row, int col) {
     if (row < 0 || col < 0 || row >= VGA_ROWS || col >= VGA_COLS)
         return;
@@ -33,6 +41,14 @@ void term_cursor(int row, int col) {
 void term_cursor_hide() {
     port_byte_out(REG_SCREEN_CTRL, 0x0a);
     port_byte_out(REG_SCREEN_DATA, 0x3f);
+}
+
+void term_cursor_show() {
+    port_byte_out(REG_SCREEN_CTRL, 0x0a);
+    port_byte_out(REG_SCREEN_DATA, (port_byte_in(REG_SCREEN_DATA) & 0xc0) | 0xd);
+
+    port_byte_out(REG_SCREEN_CTRL, 0x0b);
+    port_byte_out(REG_SCREEN_DATA, (port_byte_in(REG_SCREEN_DATA) & 0xe0) | 0xe);
 }
 
 void term_color(unsigned char attr) {

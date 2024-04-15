@@ -44,8 +44,14 @@ void demo()
 	len += printf("There's booleans to %b and chars like %c and strings like %s\n", true, 'c', "this");
 	int store = 0;
 	len += printf("The last part is pointers 0x%8p\n", &store);
-	//terminal_disable_cursor();
-	//terminal_enable_cursor(14, 15);
+}
+
+void cursor() {
+    term_cursor(3, 3);
+
+    term_cursor_hide();
+    term_cursor_show();
+    term_cursor(term_cursor_row(), term_cursor_col());
 }
 
 void kernel_main() {
@@ -55,4 +61,5 @@ void kernel_main() {
     test3();
     test4();
     demo();
+    cursor();
 }
