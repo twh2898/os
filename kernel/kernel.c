@@ -34,10 +34,25 @@ void test4() {
     }
     term_print("END\n\nTWO\n");
 }
+
+void demo()
+{
+	printf("Lets demo some cool features of printf\n");
+	int len = printf("Like the percent sign %%, \na signed int %d, a signed int with width formatting %4d, \nleading zeros %04d, left align %-4d\n", 10, 10, 10, 10);
+	len += printf("How about negative numbers: signed %d and unsigned %u\n", -10, -10);
+	len += printf("Now for non decimal 0x%04x and 0x%04X or octal %o\n", 1234, 1234, 1234);
+	len += printf("There's booleans to %b and chars like %c and strings like %s\n", true, 'c', "this");
+	int store = 0;
+	len += printf("The last part is pointers 0x%8p\n", &store);
+	//terminal_disable_cursor();
+	//terminal_enable_cursor(14, 15);
+}
+
 void kernel_main() {
     term_init();
     test1();
     test2();
     test3();
     test4();
+    demo();
 }

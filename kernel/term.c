@@ -30,6 +30,11 @@ void term_cursor(int row, int col) {
     update_cursor();
 }
 
+void term_cursor_hide() {
+    port_byte_out(REG_SCREEN_CTRL, 0x0a);
+    port_byte_out(REG_SCREEN_DATA, 0x3f);
+}
+
 void term_color(unsigned char attr) {
     color = attr;
 }
@@ -95,6 +100,29 @@ int term_puti(int num, int base, bool upper) {
 
     if (is_neg)
         len++;
+
+    return len;
+}
+
+
+int term_putu(unsigned int num, unsigned int base, bool upper) {
+    if (num == 0) {
+        term_putc('0');
+        return 1;
+    }
+
+    int len = 0;
+    int rev = 0;
+    while (num > 0) {
+        rev = (rev * base) + (num % base);
+        num /= base;
+        len++;
+    }
+
+    for (int i = 0; i < len; i++) {
+        term_putc(digit(rev % base, base, upper));
+        rev /= base;
+    }
 
     return len;
 }

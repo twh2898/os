@@ -6,7 +6,7 @@
 
 #include "term.h"
 
-static int num_width(int n, int base) {
+static int num_width(unsigned int n, int base) {
     if (n < 0)
         n = -n;
     int width = 0;
@@ -73,18 +73,49 @@ static int pad(char c, int len) {
     return len;
 }
 
-static int padded_int(int width, bool left_align, int num, int base, bool upper) {
+static int padded_int(int width, bool left_align, int num, int base, bool upper, bool lead_zero) {
     int num_len = num_width(num, base);
-    if (num < 0)
+    bool is_neg = num < 0;
+
+    if (is_neg) {
         num_len++;
+        num = -num;
+    }
+
+    bool fill = width > num_len;
+    int len = 0;
+
+    if (fill && !left_align) {
+        if (lead_zero && is_neg) {
+            term_putc('-');
+            len++;
+        }
+        pad((lead_zero ? '0' : ' '), width - num_len);
+        if (!lead_zero && is_neg) {
+            term_putc('-');
+            len++;
+        }
+    }
+
+    len += term_puti(num, base, upper);
+
+    if (fill && left_align) {
+        pad(' ', width - num_len);
+    }
+
+    return (fill ? width : len);
+}
+
+static int padded_uint(int width, bool left_align, unsigned int num, int base, bool upper, bool lead_zero) {
+    int num_len = num_width(num, base);
 
     bool fill = width > num_len;
 
     if (fill && !left_align) {
-        pad(' ', width - num_len);
+        pad((lead_zero ? '0' : ' '), width - num_len);
     }
 
-    int len = term_puti(num, base, upper);
+    int len = term_putu(num, base, upper);
 
     if (fill && left_align) {
         pad(' ', width - num_len);
@@ -139,23 +170,30 @@ int printf(const char * fmt, ...) {
                 case '9':
                     width = width * 10 + (*fmt - '0');
                     goto start_format;
-                case 'd':
-                case 'u':
-                case 'p': {
+                case 'd': {
                     int arg = va_arg(params, int);
-                    len += padded_int(width, left_align, arg, 10, false);
+                    len += padded_int(width, left_align, arg, 10, false, lead_zero);
+                } break;
+                case 'u': {
+                    unsigned int arg = va_arg(params, unsigned int);
+                    len += padded_uint(width, left_align, arg, 10, false, lead_zero);
+                } break;
+                case 'p': {
+                    unsigned int arg = va_arg(params, unsigned int);
+                    len += padded_uint(width, left_align, arg, 16, false, true);
                 } break;
                 case 'o': {
                     int arg = va_arg(params, int);
-                    len += padded_int(width, left_align, arg, 8, false);
+                    len += padded_int(width, left_align, arg, 8, false, lead_zero);
                 } break;
                 case 'x':
                 case 'X': {
                     int arg = va_arg(params, int);
-                    len += padded_int(width, left_align, arg, 16, *fmt == 'X');
+                    len += padded_int(
+                        width, left_align, arg, 16, *fmt == 'X', lead_zero);
                 } break;
                 case 'c': {
-                    char arg = va_arg(params, char);
+                    char arg = va_arg(params, int);
                     term_putc(arg);
                     len++;
                 } break;
@@ -178,6 +216,7 @@ int printf(const char * fmt, ...) {
                 default:
                     break;
             }
+            fmt++;
         }
         else {
             term_putc(*fmt++);
