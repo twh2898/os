@@ -1,7 +1,8 @@
 #include "../drivers/ports.h"
 #include "../drivers/vga.h"
+#include "../libc/stdio.h"
+#include "../libc/string.h"
 #include "term.h"
-#include "std.h"
 
 void test1() {
     int i = VGA_COLS * 2;

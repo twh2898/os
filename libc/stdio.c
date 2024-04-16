@@ -1,10 +1,11 @@
-#include "std.h"
+#include "stdio.h"
 
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "term.h"
+#include "../kernel/term.h"
+#include "string.h"
 
 static int num_width(unsigned int n, int base) {
     if (n < 0)
@@ -41,29 +42,6 @@ void itoa(int n, char * str) {
     }
 
     *str = 0;
-}
-
-int strlen(char * str) {
-    int len = 0;
-    while (*str++) {
-        len++;
-    }
-    return len;
-}
-
-void * memmove(void * destptr, const void * srcptr, int n) {
-    uint8_t * dest = (uint8_t *)destptr;
-    const uint8_t * src = (uint8_t *)srcptr;
-    int i;
-    if (dest < src) {
-        for (i = 0; i < n; i++, dest++, src++) *dest = *src;
-    }
-    else {
-        dest = dest + n;
-        src = src + n;
-        for (i = 0; i < n; i++, dest--, src--) *dest = *src;
-    }
-    return destptr;
 }
 
 static int pad(char c, int len) {
