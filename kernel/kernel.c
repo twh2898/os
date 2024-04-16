@@ -30,7 +30,7 @@ void test4() {
     term_color(VGA_WHITE_ON_BLACK);
     for (int i = 0; i < 24; i++) {
         term_print("FILL ");
-        term_puti(i, 10, false);
+        puti(i, 10, false);
         term_putc('\n');
     }
     term_print("END\n\nTWO\n");

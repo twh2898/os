@@ -18,9 +18,6 @@ void term_color(unsigned char color);
 
 void term_putc(char c);
 
-int term_puti(int num, int base, bool upper);
-int term_putu(unsigned int num, unsigned int base, bool upper);
-
 int term_print(const char * str);
 
 #endif // TERM_H

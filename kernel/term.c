@@ -82,68 +82,6 @@ int term_print(const char * str) {
     return len;
 }
 
-static char digit(unsigned int num, int base, bool upper) {
-    if (num < 10)
-        return num + '0';
-    else
-        return (num - 10) + (upper ? 'A' : 'a');
-}
-
-int term_puti(int num, int base, bool upper) {
-    if (num == 0) {
-        term_putc('0');
-        return 1;
-    }
-
-    bool is_neg = num < 0;
-
-    if (num < 0) {
-        term_putc('-');
-        num = -num;
-    }
-
-    int len = 0;
-    int rev = 0;
-    while (num > 0) {
-        rev = (rev * base) + (num % base);
-        num /= base;
-        len++;
-    }
-
-    for (int i = 0; i < len; i++) {
-        term_putc(digit(rev % base, base, upper));
-        rev /= base;
-    }
-
-    if (is_neg)
-        len++;
-
-    return len;
-}
-
-
-int term_putu(unsigned int num, unsigned int base, bool upper) {
-    if (num == 0) {
-        term_putc('0');
-        return 1;
-    }
-
-    int len = 0;
-    int rev = 0;
-    while (num > 0) {
-        rev = (rev * base) + (num % base);
-        num /= base;
-        len++;
-    }
-
-    for (int i = 0; i < len; i++) {
-        term_putc(digit(rev % base, base, upper));
-        rev /= base;
-    }
-
-    return len;
-}
-
 static void update_cursor() {
     if (index < 0 || index >= MAX_INDEX)
         return;

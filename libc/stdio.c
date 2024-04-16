@@ -1,7 +1,6 @@
 #include "stdio.h"
 
 #include <stdarg.h>
-#include <stdbool.h>
 #include <stdint.h>
 
 #include "../kernel/term.h"
@@ -44,6 +43,73 @@ void itoa(int n, char * str) {
     *str = 0;
 }
 
+int putc(char c) {
+    term_putc(c);
+    return 1;
+}
+
+static char digit(unsigned int num, int base, bool upper) {
+    if (num < 10)
+        return num + '0';
+    else
+        return (num - 10) + (upper ? 'A' : 'a');
+}
+
+int puti(int num, int base, bool upper) {
+    if (num == 0) {
+        term_putc('0');
+        return 1;
+    }
+
+    bool is_neg = num < 0;
+
+    if (num < 0) {
+        term_putc('-');
+        num = -num;
+    }
+
+    int len = 0;
+    int rev = 0;
+    while (num > 0) {
+        rev = (rev * base) + (num % base);
+        num /= base;
+        len++;
+    }
+
+    for (int i = 0; i < len; i++) {
+        term_putc(digit(rev % base, base, upper));
+        rev /= base;
+    }
+
+    if (is_neg)
+        len++;
+
+    return len;
+}
+
+
+int putu(unsigned int num, unsigned int base, bool upper) {
+    if (num == 0) {
+        term_putc('0');
+        return 1;
+    }
+
+    int len = 0;
+    int rev = 0;
+    while (num > 0) {
+        rev = (rev * base) + (num % base);
+        num /= base;
+        len++;
+    }
+
+    for (int i = 0; i < len; i++) {
+        term_putc(digit(rev % base, base, upper));
+        rev /= base;
+    }
+
+    return len;
+}
+
 static int pad(char c, int len) {
     for (int i = 0; i < len; i++) {
         term_putc(c);
@@ -76,7 +142,7 @@ static int padded_int(
         }
     }
 
-    len += term_puti(num, base, upper);
+    len += puti(num, base, upper);
 
     if (fill && left_align) {
         pad(' ', width - num_len);
@@ -99,7 +165,7 @@ static int padded_uint(int width,
         pad((lead_zero ? '0' : ' '), width - num_len);
     }
 
-    int len = term_putu(num, base, upper);
+    int len = putu(num, base, upper);
 
     if (fill && left_align) {
         pad(' ', width - num_len);
