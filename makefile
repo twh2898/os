@@ -43,4 +43,4 @@ debug: os-image.bin kernel.elf
 clean:
 	@rm -rf **/*.bin **/*.o *.bin *.elf
 
-.PHONY: clean
+.PHONY: run debug clean
