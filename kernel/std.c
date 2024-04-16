@@ -73,7 +73,8 @@ static int pad(char c, int len) {
     return len;
 }
 
-static int padded_int(int width, bool left_align, int num, int base, bool upper, bool lead_zero) {
+static int padded_int(
+    int width, bool left_align, int num, int base, bool upper, bool lead_zero) {
     int num_len = num_width(num, base);
     bool is_neg = num < 0;
 
@@ -106,7 +107,12 @@ static int padded_int(int width, bool left_align, int num, int base, bool upper,
     return (fill ? width : len);
 }
 
-static int padded_uint(int width, bool left_align, unsigned int num, int base, bool upper, bool lead_zero) {
+static int padded_uint(int width,
+                       bool left_align,
+                       unsigned int num,
+                       int base,
+                       bool upper,
+                       bool lead_zero) {
     int num_len = num_width(num, base);
 
     bool fill = width > num_len;
@@ -172,11 +178,13 @@ int printf(const char * fmt, ...) {
                     goto start_format;
                 case 'd': {
                     int arg = va_arg(params, int);
-                    len += padded_int(width, left_align, arg, 10, false, lead_zero);
+                    len +=
+                        padded_int(width, left_align, arg, 10, false, lead_zero);
                 } break;
                 case 'u': {
                     unsigned int arg = va_arg(params, unsigned int);
-                    len += padded_uint(width, left_align, arg, 10, false, lead_zero);
+                    len +=
+                        padded_uint(width, left_align, arg, 10, false, lead_zero);
                 } break;
                 case 'p': {
                     unsigned int arg = va_arg(params, unsigned int);

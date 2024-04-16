@@ -1,7 +1,7 @@
 #ifndef VGA_H
 #define VGA_H
 
-#define VGA_ADDRES 0xb8000
+#define VGA_ADDRESS 0xb8000
 #define VGA_ROWS 25
 #define VGA_COLS 80
 #define VGA_WHITE_ON_BLACK (VGA_FG_WHITE | VGA_BG_BLACK)

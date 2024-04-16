@@ -154,7 +154,7 @@ static void update_cursor() {
 }
 
 static void shift_lines() {
-    char * screen = (char *)VGA_ADDRES;
+    char * screen = (char *)VGA_ADDRESS;
     memmove(screen, screen + (VGA_COLS * 2), ((VGA_ROWS - 1) * VGA_COLS * 2));
     for (int col = 0; col < VGA_COLS; col++) {
         int index = vga_index(VGA_ROWS - 1, col);

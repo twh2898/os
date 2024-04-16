@@ -10,7 +10,7 @@ void vga_clear() {
 }
 
 void vga_put(int index, char c, unsigned char attr) {
-    char * screen = (char *)VGA_ADDRES;
+    char * screen = (char *)VGA_ADDRESS;
     index *= 2;
     screen[index] = c;
     screen[index + 1] = attr;
