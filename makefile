@@ -17,6 +17,7 @@ os-image.bin: boot/bootsect.bin kernel.bin
 	cat $^ > $@
 	@echo "Final image size"
 	@du -sh $@
+	@echo Remember the limit is 32K in bootsect.asm
 
 kernel.bin: boot/kernel_entry.o ${OBJ}
 	$(LD) -Ttext 0x1000 --oformat binary -o $@ $^
