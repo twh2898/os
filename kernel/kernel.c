@@ -39,6 +39,21 @@ void test4() {
     term_print("END\n\nTWO\n");
 }
 
+void cursor() {
+    term_cursor(3, 3);
+
+    term_cursor_hide();
+    term_cursor_show();
+    term_cursor(term_cursor_row(), term_cursor_col());
+}
+
+void test_interrupt() {
+    vga_clear();
+    /* Test the interrupts */
+    asm volatile("int $2");
+    asm volatile("int $3");
+}
+
 void demo() {
     printf("Lets demo some cool features of printf\n");
     int len = printf(
@@ -59,21 +74,6 @@ void demo() {
     len += printf("The last part is pointers 0x%8p\n", &store);
 }
 
-void cursor() {
-    term_cursor(3, 3);
-
-    term_cursor_hide();
-    term_cursor_show();
-    term_cursor(term_cursor_row(), term_cursor_col());
-}
-
-void test_interrupt() {
-    vga_clear();
-    /* Test the interrupts */
-    asm volatile("int $2");
-    asm volatile("int $3");
-}
-
 void kernel_main() {
     term_init();
     isr_install();
@@ -83,7 +83,8 @@ void kernel_main() {
     // test2();
     // test3();
     // test4();
-    // demo();
     // cursor();
     // test_interrupt();
+
+    demo();
 }
