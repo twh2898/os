@@ -1,9 +1,11 @@
+#include "../cpu/isr.h"
+#include "../cpu/timer.h"
+#include "../drivers/keyboard.h"
 #include "../drivers/ports.h"
 #include "../drivers/vga.h"
 #include "../libc/stdio.h"
 #include "../libc/string.h"
 #include "term.h"
-#include "../cpu/isr.h"
 
 void test1() {
     int i = VGA_COLS * 2;
@@ -37,15 +39,24 @@ void test4() {
     term_print("END\n\nTWO\n");
 }
 
-void demo()
-{
-	printf("Lets demo some cool features of printf\n");
-	int len = printf("Like the percent sign %%, \na signed int %d, a signed int with width formatting %4d, \nleading zeros %04d, left align %-4d\n", 10, 10, 10, 10);
-	len += printf("How about negative numbers: signed %d and unsigned %u\n", -10, -10);
-	len += printf("Now for non decimal 0x%04x and 0x%04X or octal %o\n", 1234, 1234, 1234);
-	len += printf("There's booleans to %b and chars like %c and strings like %s\n", true, 'c', "this");
-	int store = 0;
-	len += printf("The last part is pointers 0x%8p\n", &store);
+void demo() {
+    printf("Lets demo some cool features of printf\n");
+    int len = printf(
+        "Like the percent sign %%, \na signed int %d, a signed int with width formatting %4d, \nleading zeros %04d, left align %-4d\n",
+        10,
+        10,
+        10,
+        10);
+    len += printf(
+        "How about negative numbers: signed %d and unsigned %u\n", -10, -10);
+    len += printf(
+        "Now for non decimal 0x%04x and 0x%04X or octal %o\n", 1234, 1234, 1234);
+    len += printf("There's booleans to %b and chars like %c and strings like %s\n",
+                  true,
+                  'c',
+                  "this");
+    int store = 0;
+    len += printf("The last part is pointers 0x%8p\n", &store);
 }
 
 void cursor() {
@@ -58,7 +69,6 @@ void cursor() {
 
 void test_interrupt() {
     vga_clear();
-    isr_install();
     /* Test the interrupts */
     asm volatile("int $2");
     asm volatile("int $3");
@@ -66,11 +76,19 @@ void test_interrupt() {
 
 void kernel_main() {
     term_init();
+    isr_install();
+
     // test1();
     // test2();
     // test3();
     // test4();
     // demo();
     // cursor();
-    test_interrupt();
+    // test_interrupt();
+
+    asm volatile("sti");
+
+    init_timer(50);
+
+    init_keyboard();
 }
