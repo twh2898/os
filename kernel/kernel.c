@@ -3,6 +3,7 @@
 #include "../libc/stdio.h"
 #include "../libc/string.h"
 #include "term.h"
+#include "../cpu/isr.h"
 
 void test1() {
     int i = VGA_COLS * 2;
@@ -55,12 +56,21 @@ void cursor() {
     term_cursor(term_cursor_row(), term_cursor_col());
 }
 
+void test_interrupt() {
+    vga_clear();
+    isr_install();
+    /* Test the interrupts */
+    __asm__ __volatile__("int $2");
+    __asm__ __volatile__("int $3");
+}
+
 void kernel_main() {
     term_init();
-    test1();
-    test2();
-    test3();
-    test4();
-    demo();
-    cursor();
+    // test1();
+    // test2();
+    // test3();
+    // test4();
+    // demo();
+    // cursor();
+    test_interrupt();
 }
