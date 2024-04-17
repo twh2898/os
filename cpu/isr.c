@@ -1,8 +1,10 @@
 #include "isr.h"
-#include "idt.h"
 
+#include "../drivers/keyboard.h"
 #include "../drivers/ports.h"
 #include "../libc/stdio.h"
+#include "idt.h"
+#include "timer.h"
 
 isr_t interrupt_handlers[256];
 
@@ -76,7 +78,8 @@ void isr_install() {
 }
 
 /* To print the message which defines every exception */
-char *exception_messages[] = {
+char * exception_messages[] = {
+    //
     "Division By Zero",
     "Debug",
     "Non Maskable Interrupt",
@@ -111,7 +114,7 @@ char *exception_messages[] = {
     "Reserved",
     "Reserved",
     "Reserved",
-    "Reserved"
+    "Reserved",
 };
 
 void isr_handler(registers_t r) {
@@ -125,7 +128,8 @@ void register_interrupt_handler(uint8_t n, isr_t handler) {
 void irq_handler(registers_t r) {
     /* After every interrupt we need to send an EOI to the PICs
      * or they will not send another interrupt again */
-    if (r.int_no >= 40) port_byte_out(0xA0, 0x20); /* slave */
+    if (r.int_no >= 40)
+        port_byte_out(0xA0, 0x20); /* slave */
     port_byte_out(0x20, 0x20); /* master */
 
     /* Handle the interrupt in a more modular way */
@@ -133,4 +137,13 @@ void irq_handler(registers_t r) {
         isr_t handler = interrupt_handlers[r.int_no];
         handler(r);
     }
+}
+
+void irq_install() {
+    /* Enable interruptions */
+    asm volatile("sti");
+    /* IRQ0: timer */
+    init_timer(50);
+    /* IRQ1: keyboard */
+    init_keyboard();
 }

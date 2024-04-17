@@ -77,6 +77,7 @@ void test_interrupt() {
 void kernel_main() {
     term_init();
     isr_install();
+    irq_install();
 
     // test1();
     // test2();
@@ -86,9 +87,4 @@ void kernel_main() {
     // cursor();
     // test_interrupt();
 
-    asm volatile("sti");
-
-    init_timer(50);
-
-    init_keyboard();
 }
