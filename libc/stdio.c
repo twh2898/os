@@ -43,9 +43,12 @@ void itoa(int n, char * str) {
     *str = 0;
 }
 
+int puts(const char * str) {
+    return term_print(str);
+}
+
 int putc(char c) {
-    term_putc(c);
-    return 1;
+    return term_putc(c);
 }
 
 static char digit(unsigned int num, int base, bool upper) {
@@ -57,8 +60,7 @@ static char digit(unsigned int num, int base, bool upper) {
 
 int puti(int num, int base, bool upper) {
     if (num == 0) {
-        term_putc('0');
-        return 1;
+        return term_putc('0');
     }
 
     bool is_neg = num < 0;
@@ -90,8 +92,7 @@ int puti(int num, int base, bool upper) {
 
 int putu(unsigned int num, unsigned int base, bool upper) {
     if (num == 0) {
-        term_putc('0');
-        return 1;
+        return term_putc('0');
     }
 
     int len = 0;
@@ -232,6 +233,7 @@ int printf(const char * fmt, ...) {
                 } break;
                 case 'p': {
                     unsigned int arg = va_arg(params, unsigned int);
+                    len += puts("0x");
                     len += padded_uint(width, left_align, arg, 16, false, true);
                 } break;
                 case 'o': {
@@ -246,8 +248,7 @@ int printf(const char * fmt, ...) {
                 } break;
                 case 'c': {
                     char arg = va_arg(params, int);
-                    term_putc(arg);
-                    len++;
+                    len += term_putc(arg);
                 } break;
                 case 's': {
                     char * arg = va_arg(params, char *);
@@ -262,8 +263,7 @@ int printf(const char * fmt, ...) {
                     len += term_print(arg ? "true" : "false");
                 } break;
                 case '%': {
-                    term_putc('%');
-                    len++;
+                    len += term_putc('%');
                 } break;
                 default:
                     break;
@@ -271,8 +271,7 @@ int printf(const char * fmt, ...) {
             fmt++;
         }
         else {
-            term_putc(*fmt++);
-            len++;
+            len += term_putc(*fmt++);
         };
     }
 

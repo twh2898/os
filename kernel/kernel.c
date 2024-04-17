@@ -5,6 +5,7 @@
 #include "../drivers/vga.h"
 #include "../libc/stdio.h"
 #include "../libc/string.h"
+#include "../libc/mem.h"
 #include "term.h"
 
 void test1() {
@@ -71,7 +72,11 @@ void demo() {
                   'c',
                   "this");
     int store = 0;
-    len += printf("The last part is pointers 0x%8p\n", &store);
+    len += printf("The last part is pointers %8p\n", &store);
+
+    void * data = malloc(10);
+
+    printf("\nMalloc memory got pointer %p\n", data);
 }
 
 void kernel_main() {

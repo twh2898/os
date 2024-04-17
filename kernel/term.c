@@ -56,13 +56,16 @@ void term_color(unsigned char attr) {
     color = attr;
 }
 
-void term_putc(char c) {
+int term_putc(char c) {
+    int ret = 0;
     if (c == '\n') {
         int row = vga_row(index);
         index = vga_index(row + 1, 0);
+        ret = 0;
     }
     else {
         vga_put(index++, c, color);
+        ret = 1;
     }
 
     if (index >= MAX_INDEX) {
@@ -71,6 +74,7 @@ void term_putc(char c) {
     }
 
     update_cursor();
+    return ret;
 }
 
 int term_print(const char * str) {

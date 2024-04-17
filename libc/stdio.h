@@ -5,6 +5,7 @@
 
 void itoa(int n, char * str);
 
+int puts(const char * str);
 int putc(char c);
 int puti(int num, int base, bool upper);
 int putu(unsigned int num, unsigned int base, bool upper);

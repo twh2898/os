@@ -16,7 +16,7 @@ void term_cursor_show();
 
 void term_color(unsigned char color);
 
-void term_putc(char c);
+int term_putc(char c);
 
 int term_print(const char * str);
 
