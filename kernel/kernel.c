@@ -1,7 +1,7 @@
 #include "../cpu/isr.h"
+#include "../cpu/ports.h"
 #include "../cpu/timer.h"
 #include "../drivers/keyboard.h"
-#include "../drivers/ports.h"
 #include "../drivers/vga.h"
 #include "../libc/stdio.h"
 #include "../libc/string.h"
@@ -86,5 +86,4 @@ void kernel_main() {
     // demo();
     // cursor();
     // test_interrupt();
-
 }

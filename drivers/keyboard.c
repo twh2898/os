@@ -1,6 +1,7 @@
 #include "keyboard.h"
-#include "ports.h"
+
 #include "../cpu/isr.h"
+#include "../cpu/ports.h"
 #include "../libc/stdio.h"
 
 void print_letter(uint8_t scancode);
@@ -14,7 +15,7 @@ static void keyboard_callback(registers_t regs) {
 }
 
 void init_keyboard() {
-   register_interrupt_handler(IRQ1, keyboard_callback); 
+    register_interrupt_handler(IRQ1, keyboard_callback);
 }
 
 void print_letter(uint8_t scancode) {
@@ -96,24 +97,24 @@ void print_letter(uint8_t scancode) {
         case 0x19:
             printf("P");
             break;
-		case 0x1A:
-			printf("[");
-			break;
-		case 0x1B:
-			printf("]");
-			break;
-		case 0x1C:
-			printf("ENTER");
-			break;
-		case 0x1D:
-			printf("LCtrl");
-			break;
-		case 0x1E:
-			printf("A");
-			break;
-		case 0x1F:
-			printf("S");
-			break;
+        case 0x1A:
+            printf("[");
+            break;
+        case 0x1B:
+            printf("]");
+            break;
+        case 0x1C:
+            printf("ENTER");
+            break;
+        case 0x1D:
+            printf("LCtrl");
+            break;
+        case 0x1E:
+            printf("A");
+            break;
+        case 0x1F:
+            printf("S");
+            break;
         case 0x20:
             printf("D");
             break;
@@ -144,24 +145,24 @@ void print_letter(uint8_t scancode) {
         case 0x29:
             printf("`");
             break;
-		case 0x2A:
-			printf("LShift");
-			break;
-		case 0x2B:
-			printf("\\");
-			break;
-		case 0x2C:
-			printf("Z");
-			break;
-		case 0x2D:
-			printf("X");
-			break;
-		case 0x2E:
-			printf("C");
-			break;
-		case 0x2F:
-			printf("V");
-			break;
+        case 0x2A:
+            printf("LShift");
+            break;
+        case 0x2B:
+            printf("\\");
+            break;
+        case 0x2C:
+            printf("Z");
+            break;
+        case 0x2D:
+            printf("X");
+            break;
+        case 0x2E:
+            printf("C");
+            break;
+        case 0x2F:
+            printf("V");
+            break;
         case 0x30:
             printf("B");
             break;
@@ -193,15 +194,18 @@ void print_letter(uint8_t scancode) {
             printf("Spc");
             break;
         default:
-            /* 'keuyp' event corresponds to the 'keydown' + 0x80 
+            /* 'keuyp' event corresponds to the 'keydown' + 0x80
              * it may still be a scancode we haven't implemented yet, or
              * maybe a control/escape sequence */
             if (scancode <= 0x7f) {
                 printf("Unknown key down");
-            } else if (scancode <= 0x39 + 0x80) {
+            }
+            else if (scancode <= 0x39 + 0x80) {
                 printf("key up ");
                 print_letter(scancode - 0x80);
-            } else printf("Unknown key up");
+            }
+            else
+                printf("Unknown key up");
             break;
     }
 }

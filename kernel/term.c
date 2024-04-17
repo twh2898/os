@@ -1,6 +1,6 @@
 #include "term.h"
 
-#include "../drivers/ports.h"
+#include "../cpu/ports.h"
 #include "../drivers/vga.h"
 #include "../libc/stdio.h"
 #include "../libc/string.h"
