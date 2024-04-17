@@ -56,7 +56,7 @@ void term_color(unsigned char attr) {
     color = attr;
 }
 
-int term_putc(char c) {
+size_t term_putc(char c) {
     int ret = 0;
     if (c == '\n') {
         int row = vga_row(index);
@@ -77,7 +77,7 @@ int term_putc(char c) {
     return ret;
 }
 
-int term_print(const char * str) {
+size_t term_print(const char * str) {
     int len = 0;
     while (*str != 0) {
         term_putc(*str++);

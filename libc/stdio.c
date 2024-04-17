@@ -43,11 +43,11 @@ void itoa(int n, char * str) {
     *str = 0;
 }
 
-int puts(const char * str) {
+size_t puts(const char * str) {
     return term_print(str);
 }
 
-int putc(char c) {
+size_t putc(char c) {
     return term_putc(c);
 }
 
@@ -58,19 +58,20 @@ static char digit(unsigned int num, int base, bool upper) {
         return (num - 10) + (upper ? 'A' : 'a');
 }
 
-int puti(int num, int base, bool upper) {
+size_t puti(int num, int base, bool upper) {
     if (num == 0) {
         return term_putc('0');
     }
 
     bool is_neg = num < 0;
 
+    size_t o_len = 0;
     if (num < 0) {
-        term_putc('-');
+        o_len += term_putc('-');
         num = -num;
     }
 
-    int len = 0;
+    size_t len = 0;
     int rev = 0;
     while (num > 0) {
         rev = (rev * base) + (num % base);
@@ -78,24 +79,21 @@ int puti(int num, int base, bool upper) {
         len++;
     }
 
-    for (int i = 0; i < len; i++) {
-        term_putc(digit(rev % base, base, upper));
+    for (size_t i = 0; i < len; i++) {
+        o_len += term_putc(digit(rev % base, base, upper));
         rev /= base;
     }
 
-    if (is_neg)
-        len++;
-
-    return len;
+    return o_len;
 }
 
 
-int putu(unsigned int num, unsigned int base, bool upper) {
+size_t putu(unsigned int num, unsigned int base, bool upper) {
     if (num == 0) {
         return term_putc('0');
     }
 
-    int len = 0;
+    size_t len = 0;
     int rev = 0;
     while (num > 0) {
         rev = (rev * base) + (num % base);
@@ -103,22 +101,24 @@ int putu(unsigned int num, unsigned int base, bool upper) {
         len++;
     }
 
-    for (int i = 0; i < len; i++) {
-        term_putc(digit(rev % base, base, upper));
+    size_t o_len = 0;
+    for (size_t i = 0; i < len; i++) {
+        o_len += term_putc(digit(rev % base, base, upper));
         rev /= base;
     }
 
-    return len;
+    return o_len;
 }
 
-static int pad(char c, int len) {
-    for (int i = 0; i < len; i++) {
-        term_putc(c);
+static size_t pad(char c, size_t len) {
+    size_t o_len = 0;
+    for (size_t i = 0; i < len; i++) {
+        o_len += term_putc(c);
     }
-    return len;
+    return o_len;
 }
 
-static int padded_int(
+static size_t padded_int(
     int width, bool left_align, int num, int base, bool upper, bool lead_zero) {
     int num_len = num_width(num, base);
     bool is_neg = num < 0;
@@ -129,74 +129,74 @@ static int padded_int(
     }
 
     bool fill = width > num_len;
-    int len = 0;
 
+    size_t o_len = 0;
     if (fill && !left_align) {
         if (lead_zero && is_neg) {
-            term_putc('-');
-            len++;
+            o_len += term_putc('-');
         }
-        pad((lead_zero ? '0' : ' '), width - num_len);
+        o_len += pad((lead_zero ? '0' : ' '), width - num_len);
         if (!lead_zero && is_neg) {
-            term_putc('-');
-            len++;
+            o_len += term_putc('-');
         }
     }
 
-    len += puti(num, base, upper);
+    o_len += puti(num, base, upper);
 
     if (fill && left_align) {
-        pad(' ', width - num_len);
+        o_len += pad(' ', width - num_len);
     }
 
-    return (fill ? width : len);
+    return o_len;
 }
 
-static int padded_uint(int width,
-                       bool left_align,
-                       unsigned int num,
-                       int base,
-                       bool upper,
-                       bool lead_zero) {
+static size_t padded_uint(int width,
+                          bool left_align,
+                          unsigned int num,
+                          int base,
+                          bool upper,
+                          bool lead_zero) {
     int num_len = num_width(num, base);
 
     bool fill = width > num_len;
 
+    size_t o_len = 0;
     if (fill && !left_align) {
-        pad((lead_zero ? '0' : ' '), width - num_len);
+        o_len += pad((lead_zero ? '0' : ' '), width - num_len);
     }
 
-    int len = putu(num, base, upper);
+    o_len += putu(num, base, upper);
 
     if (fill && left_align) {
-        pad(' ', width - num_len);
+        o_len += pad(' ', width - num_len);
     }
 
-    return (fill ? width : len);
+    return o_len;
 }
 
-static int padded_str(int width, bool left_align, char * str) {
+static size_t padded_str(int width, bool left_align, char * str) {
     int str_len = strlen(str);
     bool fill = width > str_len;
 
+    size_t o_len = 0;
     if (fill && !left_align) {
-        pad(' ', width - str_len);
+        o_len += pad(' ', width - str_len);
     }
 
     int len = term_print(str);
 
     if (fill && left_align) {
-        pad(' ', width - str_len);
+        o_len += pad(' ', width - str_len);
     }
 
-    return (fill ? width : len);
+    return o_len;
 }
 
-int printf(const char * fmt, ...) {
+size_t printf(const char * fmt, ...) {
     va_list params;
     va_start(params, fmt);
 
-    int len = 0;
+    size_t o_len = 0;
     while (*fmt) {
         if (*fmt == '%') {
             int width = 0;
@@ -223,36 +223,37 @@ int printf(const char * fmt, ...) {
                     goto start_format;
                 case 'd': {
                     int arg = va_arg(params, int);
-                    len +=
+                    o_len +=
                         padded_int(width, left_align, arg, 10, false, lead_zero);
                 } break;
                 case 'u': {
                     unsigned int arg = va_arg(params, unsigned int);
-                    len +=
+                    o_len +=
                         padded_uint(width, left_align, arg, 10, false, lead_zero);
                 } break;
                 case 'p': {
                     unsigned int arg = va_arg(params, unsigned int);
-                    len += puts("0x");
-                    len += padded_uint(width, left_align, arg, 16, false, true);
+                    o_len += puts("0x");
+                    o_len += padded_uint(width, left_align, arg, 16, false, true);
                 } break;
                 case 'o': {
                     int arg = va_arg(params, int);
-                    len += padded_int(width, left_align, arg, 8, false, lead_zero);
+                    o_len +=
+                        padded_int(width, left_align, arg, 8, false, lead_zero);
                 } break;
                 case 'x':
                 case 'X': {
                     int arg = va_arg(params, int);
-                    len += padded_int(
+                    o_len += padded_int(
                         width, left_align, arg, 16, *fmt == 'X', lead_zero);
                 } break;
                 case 'c': {
                     char arg = va_arg(params, int);
-                    len += term_putc(arg);
+                    o_len += term_putc(arg);
                 } break;
                 case 's': {
                     char * arg = va_arg(params, char *);
-                    len += padded_str(width, left_align, arg);
+                    o_len += padded_str(width, left_align, arg);
                 } break;
                 case 'n': {
                     int * arg = va_arg(params, int *);
@@ -260,10 +261,10 @@ int printf(const char * fmt, ...) {
                 } break;
                 case 'b': {
                     int arg = va_arg(params, int);
-                    len += term_print(arg ? "true" : "false");
+                    o_len += term_print(arg ? "true" : "false");
                 } break;
                 case '%': {
-                    len += term_putc('%');
+                    o_len += term_putc('%');
                 } break;
                 default:
                     break;
@@ -271,9 +272,9 @@ int printf(const char * fmt, ...) {
             fmt++;
         }
         else {
-            len += term_putc(*fmt++);
+            o_len += term_putc(*fmt++);
         };
     }
 
-    return len;
+    return o_len;
 }
