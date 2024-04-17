@@ -11,7 +11,7 @@ LD=i386-elf-ld
 GDB=gdb
 QEMU=qemu-system-i386
 
-CFLAGS=-g
+CFLAGS=-g -Werror
 
 os-image.bin: boot/bootsect.bin kernel.bin
 	cat $^ > $@
