@@ -1,8 +1,8 @@
 #include "keyboard.h"
 
-#include "../cpu/isr.h"
-#include "../cpu/ports.h"
-#include "../libc/stdio.h"
+#include "cpu/isr.h"
+#include "cpu/ports.h"
+#include "libc/stdio.h"
 
 void print_letter(uint8_t scancode);
 

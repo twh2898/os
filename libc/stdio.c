@@ -3,7 +3,7 @@
 #include <stdarg.h>
 #include <stdint.h>
 
-#include "../kernel/term.h"
+#include "kernel/term.h"
 #include "string.h"
 
 static int num_width(unsigned int n, int base) {

@@ -1,9 +1,9 @@
 #include "term.h"
 
-#include "../cpu/ports.h"
-#include "../drivers/vga.h"
-#include "../libc/stdio.h"
-#include "../libc/string.h"
+#include "cpu/ports.h"
+#include "drivers/vga.h"
+#include "libc/stdio.h"
+#include "libc/string.h"
 
 #define REG_SCREEN_CTRL 0x3d4
 #define REG_SCREEN_DATA 0x3d5

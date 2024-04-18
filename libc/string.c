@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "../kernel/term.h"
+#include "kernel/term.h"
 
 int memcmp(const void * lhs, const void * rhs, size_t n) {
     const uint8_t * a = (uint8_t *)lhs;

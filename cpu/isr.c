@@ -1,7 +1,7 @@
 #include "isr.h"
 
-#include "../drivers/keyboard.h"
-#include "../libc/stdio.h"
+#include "drivers/keyboard.h"
+#include "libc/stdio.h"
 #include "idt.h"
 #include "ports.h"
 #include "timer.h"

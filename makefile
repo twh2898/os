@@ -1,9 +1,3 @@
-C_SOURCES = $(wildcard kernel/*.c drivers/*.c libc/*.c cpu/*.c)
-HEADERS = $(wildcard kernel/*.h drivers/*.h libc/*.h cpu/*.h)
-#C_SOURCES = $(wildcard kernel/*.c)
-#HEADERS = $(wildcard kernel/*.h)
-
-OBJ = ${C_SOURCES:.c=.o cpu/interrupt.o}
 
 ASM=nasm
 CC=i386-elf-gcc
@@ -11,7 +5,12 @@ LD=i386-elf-ld
 GDB=gdb
 QEMU=qemu-system-i386
 
-CFLAGS=-g -Werror
+CFLAGS=-g -Werror -I.
+
+C_SOURCES = $(wildcard kernel/*.c drivers/*.c libc/*.c libc/intern/*.c cpu/*.c)
+HEADERS = $(wildcard kernel/*.h drivers/*.h libc/*.h libc/intern/*.h cpu/*.h)
+
+OBJ = ${C_SOURCES:.c=.o cpu/interrupt.o}
 
 os-image.bin: boot/bootsect.bin kernel.bin
 	cat $^ > $@
@@ -42,6 +41,6 @@ debug: os-image.bin kernel.elf
 	$(ASM) -f bin $< -o $@
 
 clean:
-	@rm -rf **/*.bin **/*.o *.bin *.elf
+	@rm -rf */*.bin */*.o *.bin *.elf libc/intern/*.o
 
 .PHONY: run debug clean

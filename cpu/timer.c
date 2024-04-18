@@ -1,6 +1,6 @@
 #include "timer.h"
 
-#include "../libc/stdio.h"
+#include "libc/stdio.h"
 #include "isr.h"
 #include "ports.h"
 
