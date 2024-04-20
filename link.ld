@@ -1,27 +1,33 @@
-ENTRY (loader)
+ENTRY(kernel_main)
+OUTPUT_FORMAT(binary)
 
-SECTIONS{
-    . = 0x00100000;
+SECTIONS {
+    . = 4k;
 
-    .text :{
-        text_start = .;
-        *(.text)
-    }
+	/* First put the multiboot header, as it is required to be put very early
+	   in the image or the bootloader won't recognize the file format.
+	   Next we'll put the .text section. */
+	.text BLOCK(4K) : ALIGN(4K)
+	{
+		*(.text)
+	}
 
-    .rodata ALIGN (0x1000) : {
-        *(.rodata)
-    }
+	/* Read-only data. */
+	.rodata BLOCK(4K) : ALIGN(4K)
+	{
+		*(.rodata)
+	}
 
-    .data ALIGN (0x1000) : {
-        *(.data)
-        end_data = .;
-    }
+	/* Read-write data (initialized) */
+	.data BLOCK(4K) : ALIGN(4K)
+	{
+		*(.data)
+	}
 
-    .bss : {
-        sbss = .;
-        *(COMMON)
-        *(.bss)
-        ebss = .;
-	endkernel = .;
-    }
+	/* Read-write data (uninitialized) and stack */
+	.bss BLOCK(4K) : ALIGN(4K)
+	{
+		*(COMMON)
+		*(.bss)
+	}
 }
