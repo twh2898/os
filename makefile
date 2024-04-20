@@ -5,7 +5,7 @@ LD=i386-elf-ld
 GDB=gdb
 QEMU=qemu-system-i386
 
-CFLAGS=-g -Werror -I.
+CFLAGS=-g -Werror -I. -ffreestanding
 
 C_SOURCES = $(wildcard kernel/*.c drivers/*.c libc/*.c libc/intern/*.c cpu/*.c)
 HEADERS = $(wildcard kernel/*.h drivers/*.h libc/*.h libc/intern/*.h cpu/*.h)
@@ -32,7 +32,7 @@ debug: os-image.bin kernel.elf
 	$(GDB) -ex "target remote localhost:1234" -ex "symbol-file kernel.elf" -ex "b __start" -ex "b kernel_main"
 
 %.o : %.c ${HEADERS}
-	$(CC) $(CFLAGS) -ffreestanding -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 %.o : %.asm
 	$(ASM) -f elf $< -o $@
