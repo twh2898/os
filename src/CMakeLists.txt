@@ -46,17 +46,9 @@ add_dependencies(kernel.bin bootsect)
 # target_link_options(kernel.bin PRIVATE -Ttext 0x1000)
 
 add_custom_target(os-image ALL
-    DEPENDS "${${PROJECT_NAME}_SOURCE_DIR}/os-image.bin"
+    DEPENDS
+        "${${PROJECT_NAME}_SOURCE_DIR}/os-image.bin"
 )
-
-# add_custom_command(
-#     OUTPUT
-#         "${CMAKE_BINARY_DIR}/kernel.bin"
-#     COMMAND
-#         i386-elf-ld -Ttext 0x1000 --oformat binary -o "${CMAKE_BINARY_DIR}/kernel.bin" "${CMAKE_BINARY_DIR}/src/libkernel.bin.a"
-#     DEPENDS
-#         "${CMAKE_BINARY_DIR}/src/libkernel.bin.a"
-# )
 
 add_custom_command(
     OUTPUT
@@ -64,7 +56,8 @@ add_custom_command(
     COMMAND
         cat "${CMAKE_BINARY_DIR}/bootsect.bin" "${CMAKE_BINARY_DIR}/src/libkernel.bin.a" > "${${PROJECT_NAME}_SOURCE_DIR}/os-image.bin"
     DEPENDS
-        "${CMAKE_BINARY_DIR}/kernel.bin"
+        "${CMAKE_BINARY_DIR}/bootsect.bin"
+        "${CMAKE_BINARY_DIR}/src/libkernel.bin.a"
 )
 
 add_custom_command(TARGET os-image
