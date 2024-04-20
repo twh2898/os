@@ -66,3 +66,14 @@ add_custom_command(
     DEPENDS
         "${CMAKE_BINARY_DIR}/kernel.bin"
 )
+
+add_custom_command(TARGET os-image
+    POST_BUILD
+    COMMAND
+    echo "Final image size"
+    COMMAND
+	du -sh "${${PROJECT_NAME}_SOURCE_DIR}/os-image.bin"
+    COMMAND
+	echo Remember the limit is 32K in bootsect.asm
+    VERBATIM
+)
