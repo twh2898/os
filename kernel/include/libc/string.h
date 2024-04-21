@@ -13,4 +13,6 @@ size_t strlen(const char * str);
 int strfind(const char * str, size_t start, char c);
 char * strtok(char * str, char * delim);
 
+int atoi(const char * str);
+
 #endif // STRING_H

@@ -119,3 +119,31 @@ char * strtok(char * str, char * delim) {
     *strtok_curr = 0;
     return str;
 }
+
+int atoi(const char * str) {
+    if (!str)
+        return 0;
+
+    bool neg = false;
+    if (*str == '+')
+        str++;
+    else if (*str == '-') {
+        neg = true;
+        str++;
+    }
+
+    int res = 0;
+    while (*str) {
+        char c = *str++;
+        if (c < '0' || c > '9')
+            return 0;
+
+        res *= 10;
+        res += (c - '0');
+    }
+
+    if (neg)
+        res *= -1;
+
+    return res;
+}

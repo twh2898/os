@@ -45,8 +45,20 @@ static int debug_cmd(size_t argc, char ** argv) {
     return 0;
 }
 
+static int atoi_cmd(size_t argc, char ** argv) {
+    if (argc != 2) {
+        printf("%s requires one argument", argv[0]);
+        return 1;
+    }
+
+    int i = atoi(argv[1]);
+    printf("%d\n", i);
+    return 0;
+}
+
 void commands_init() {
     term_command_add("clear", clear_cmd);
     term_command_add("echo", echo_cmd);
     term_command_add("debug", debug_cmd);
+    term_command_add("atoi", atoi_cmd);
 }
