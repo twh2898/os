@@ -140,6 +140,9 @@ static size_t padded_int(
             o_len += vga_putc('-');
         }
     }
+    else if (is_neg) {
+        o_len += vga_putc('-');
+    }
 
     o_len += puti(num, base, upper);
 
