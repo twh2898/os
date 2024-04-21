@@ -17,12 +17,12 @@ static int clear_cmd(size_t argc, char ** argv) {
 }
 
 static int echo_cmd(size_t argc, char ** argv) {
-    bool newline = true;
+    bool next_line = true;
     if (argc > 1 && memcmp(argv[1], "-n", 2) == 0)
-        newline = false;
+        next_line = false;
 
     size_t i = 1;
-    if (!newline)
+    if (!next_line)
         i++;
     for (; i < argc; i++) {
         puts(argv[i]);
@@ -30,7 +30,7 @@ static int echo_cmd(size_t argc, char ** argv) {
             putc(' ');
     }
 
-    if (newline)
+    if (next_line)
         putc('\n');
 
     return 0;
