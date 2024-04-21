@@ -8,6 +8,9 @@ int memcmp(const void * lhs, const void * rhs, size_t n);
 void * memcpy(void * dest, const void * src, size_t n);
 void * memmove(void * dest, const void * src, size_t n);
 void * memset(void * dest, uint8_t value, size_t n);
+
 size_t strlen(const char * str);
+int strfind(const char * str, size_t start, char c);
+char * strtok(char * str, char * delim);
 
 #endif // STRING_H
