@@ -1,3 +1,4 @@
+#include "commands.h"
 #include "cpu/isr.h"
 #include "cpu/ports.h"
 #include "cpu/timer.h"
@@ -6,7 +7,6 @@
 #include "libc/mem.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
-#include "commands.h"
 #include "term.h"
 
 void test1() {
