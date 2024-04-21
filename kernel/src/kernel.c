@@ -86,15 +86,10 @@ void key_cb(uint8_t code, char c, keyboard_event_t event, keyboard_mod_t mod) {
     }
 }
 
-static command_t command_demo = {
-    .command = "demo",
-    .cb = demo,
-};
-
 void console() {
     term_init();
     commands_init();
-    term_command_add(command_demo);
+    term_command_add("demo", demo);
 }
 
 void kernel_main() {

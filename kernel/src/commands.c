@@ -16,11 +16,6 @@ static int clear_cmd(size_t argc, char ** argv) {
     return 0;
 }
 
-static command_t command_clear = {
-    .command = "clear",
-    .cb = clear_cmd,
-};
-
 static int echo_cmd(size_t argc, char ** argv) {
     bool newline = true;
     if (argc > 1 && memcmp(argv[1], "-n", 2) == 0)
@@ -41,24 +36,17 @@ static int echo_cmd(size_t argc, char ** argv) {
     return 0;
 }
 
-static command_t command_echo = {
-    .command = "echo",
-    .cb = echo_cmd,
-};
-
 static int debug_cmd(size_t argc, char ** argv) {
-    debug = true;
-    puts("Enable debug\n");
+    debug = !debug;
+    if (debug)
+        puts("Enable debug\n");
+    else
+        puts("Disabling debug\n");
     return 0;
 }
 
-static command_t command_debug = {
-    .command = "debug",
-    .cb = debug_cmd,
-};
-
 void commands_init() {
-    term_command_add(command_clear);
-    term_command_add(command_echo);
-    term_command_add(command_debug);
+    term_command_add("clear", clear_cmd);
+    term_command_add("echo", echo_cmd);
+    term_command_add("debug", debug_cmd);
 }

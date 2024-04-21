@@ -16,6 +16,11 @@
         keybuff_i = 0;                     \
     }
 
+typedef struct {
+    const char * command;
+    command_cb_t cb;
+} command_t;
+
 #define MAX_CHARS 4095
 char keybuff[MAX_CHARS + 1] = {0};
 size_t keybuff_i = 0;
@@ -64,14 +69,15 @@ void term_init() {
     vga_print("> ");
 }
 
-void term_command_add(command_t command) {
+void term_command_add(const char * command, command_cb_t cb) {
     if (n_commands > MAX_COMMANDS) {
         vga_color(VGA_RED_ON_WHITE);
         vga_print("TERMINAL COMMAND REGISTER OVERFLOW!\n");
         return;
     }
 
-    commands[n_commands++] = command;
+    commands[n_commands].command = command;
+    commands[n_commands++].cb = cb;
 }
 
 static void exec_buff() {

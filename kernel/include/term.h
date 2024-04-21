@@ -7,15 +7,10 @@
 
 typedef int (*command_cb_t)(size_t argc, char ** argv);
 
-typedef struct {
-    const char * command;
-    command_cb_t cb;
-} command_t;
-
 extern int term_last_ret;
 
 void term_init();
 
-void term_command_add(command_t command);
+void term_command_add(const char * command, command_cb_t cb);
 
 #endif // TERM_H
