@@ -6,7 +6,7 @@
 
 void print_letter(uint8_t scancode);
 
-static void (*_cb)(uint8_t, char, keyboard_event_t, keyboard_mod_t) = 0;
+static keyboard_cb_t _cb = 0;
 static uint8_t last_code = 0;
 static bool lctrl = false;
 static bool rctrl = false;
@@ -17,7 +17,7 @@ static bool rshift = false;
 static bool lsuper = false;
 static bool rsuper = false;
 
-void keyboard_set_cb(void (*cb)(uint8_t, char, keyboard_event_t, keyboard_mod_t)) {
+void keyboard_set_cb(keyboard_cb_t cb) {
     _cb = cb;
 }
 
