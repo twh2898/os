@@ -86,8 +86,7 @@ void key_cb(uint8_t code, char c, keyboard_event_t event, keyboard_mod_t mod) {
 }
 
 void console() {
-    keyboard_set_cb(&key_cb);
-    printf("\n> ");
+    term_init();
 }
 
 void kernel_main() {

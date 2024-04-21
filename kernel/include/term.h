@@ -5,4 +5,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
+void term_init();
+
 #endif // TERM_H
