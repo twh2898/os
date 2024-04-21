@@ -26,6 +26,7 @@ size_t n_commands = 0;
 
 int term_last_ret = 0;
 
+static bool is_ws(char c);
 static void exec_buff();
 static char ** parse_args(const char * line, size_t * out_len);
 
@@ -76,6 +77,8 @@ void term_command_add(command_t command) {
 static void exec_buff() {
     if (keybuff_i == 0) {
         term_last_ret = 0;
+        if (debug)
+            puts("Buffer empty\n");
         return;
     }
 
@@ -83,36 +86,90 @@ static void exec_buff() {
         keybuff_i = MAX_CHARS + 1;
     }
 
+    // terminate full command / terminal line
     keybuff[keybuff_i] = 0;
-    size_t space_i = strfind(keybuff, 0, ' ');
-    bool found = false;
-    for (size_t i = 0; i < n_commands; i++) {
-        size_t cmp_len = strlen(commands[i].command);
-        if (keybuff_i < cmp_len)
-            cmp_len = keybuff_i;
-        if (memcmp(keybuff, commands[i].command, cmp_len) == 0) {
-            found = true;
-            size_t argc;
-            char ** argv = parse_args(keybuff, &argc);
-            if (!argv) {
-                FATAL("SYNTAX ERROR!\n");
-                term_last_ret = 1;
-                return;
-            }
-            term_last_ret = commands[i].cb(argc, argv);
-            for (size_t i = 0; i < argc; i++) {
-                free(argv[i]);
-            }
-            free(argv);
-            break;
-        }
-    }
-    if (!found) {
-        printf("Unknown command '%s'\n", keybuff);
-        term_last_ret = 1;
+
+    // Skip any leading whitespace
+    char * line = keybuff;
+    size_t line_len = keybuff_i;
+    while (line_len > 0 && is_ws(*line)) {
+        line++;
+        line_len--;
     }
 
+    // Trim trailing whitespace
+    while (line_len > 1 && is_ws(line[line_len - 1])) {
+        line_len--;
+    }
+
+    if (debug)
+        printf("Trimmed line length %u starting at +%u\n",
+               line_len,
+               (line - keybuff));
+
+    // Terminate trimmed line
+    line[line_len] = 0;
+
+    // Clear key buffer
     keybuff_i = 0;
+
+    // Find the length of the first non whitespace word
+    int first_len = 0;
+    while (first_len < line_len && !is_ws(line[first_len])) first_len++;
+
+    // Check against all commands
+    bool found = false;
+    for (size_t i = 0; i < n_commands; i++) {
+        size_t command_len = strlen(commands[i].command);
+
+        // Check length of command vs first word
+        if (first_len < command_len) {
+            if (debug)
+                printf("Command too short %u < %u\n", first_len, command_len);
+            continue;
+        }
+
+        if (first_len > command_len) {
+            if (debug)
+                printf("Command too long %u > %u\n", first_len, command_len);
+            continue;
+        }
+
+        // Check command string
+        int match = memcmp(line, commands[i].command, command_len);
+        if (match != 0) {
+            if (debug)
+                printf("Command does not match %s\n", commands[i].command);
+            continue;
+        }
+
+        // Command is a match, parse arguments
+        found = true;
+        size_t argc;
+        char ** argv = parse_args(line, &argc);
+        if (!argv) {
+            FATAL("SYNTAX ERROR!\n");
+            term_last_ret = 1;
+            return;
+        }
+
+        // Execute the command with parsed args
+        term_last_ret = commands[i].cb(argc, argv);
+
+        // Free parsed args
+        for (size_t i = 0; i < argc; i++) {
+            free(argv[i]);
+        }
+        free(argv);
+
+        break;
+    }
+
+    // No match was found
+    if (!found) {
+        printf("Unknown command '%s'\n", line);
+        term_last_ret = 1;
+    }
 }
 
 static bool is_ws(char c) {
