@@ -63,6 +63,11 @@ size_t term_putc(char c) {
         index = vga_index(row + 1, 0);
         ret = 0;
     }
+    else if (c == '\b') {
+        if (index > 0)
+            index--;
+        vga_put(index, ' ', VGA_WHITE_ON_BLACK);
+    }
     else {
         vga_put(index++, c, color);
         ret = 1;

@@ -21,37 +21,40 @@ void keyboard_set_cb(void (*cb)(uint8_t, char, keyboard_event_t, keyboard_mod_t)
     _cb = cb;
 }
 
+static const char keyMap[0xFF];
+
 static void keyboard_callback(registers_t regs) {
     /* The PIC leaves us the scancode in port 0x60 */
     uint8_t scancode = port_byte_in(0x60);
+    uint8_t keycode = scancode;
     if (_cb) {
         keyboard_event_t event = KEY_EVENT_PRESS;
-        bool press = scancode < 0x80;
+        bool press = keycode < 0x80;
 
         if (press) {
-            if (scancode == last_code)
+            if (keycode == last_code)
                 event = KEY_EVENT_REPEAT;
             else {
-                if (scancode == KEY_LSHIFT)
+                if (keycode == KEY_LSHIFT)
                     lshift = true;
-                if (scancode == KEY_RSHIFT)
+                if (keycode == KEY_RSHIFT)
                     lshift = true;
             }
-            last_code = scancode;
+            last_code = keycode;
         }
 
         else {
-            scancode -= 0x80;
+            keycode -= 0x80;
             event = KEY_EVENT_RELEASE;
             last_code = 0;
 
-            if (scancode == KEY_LSHIFT)
+            if (keycode == KEY_LSHIFT)
                 lshift = false;
-            if (scancode == KEY_RSHIFT)
+            if (keycode == KEY_RSHIFT)
                 lshift = false;
         }
 
-        char c = keyboard_char(scancode, lshift || rshift);
+        char c = keyMap[scancode & 0xff];
 
         keyboard_mod_t mods = 0;
         if (lctrl || rctrl)
@@ -63,14 +66,13 @@ static void keyboard_callback(registers_t regs) {
         if (lsuper || rsuper)
             mods |= KEY_MOD_SUPER;
 
-        _cb(scancode, c, event, mods);
+        _cb(keycode, c, event, mods);
     }
     else {
         printf("Keyboard scancode: %u, ", scancode);
         print_letter(scancode);
         printf("\n");
     }
-    last_code = scancode;
 }
 
 void init_keyboard() {
@@ -78,51 +80,33 @@ void init_keyboard() {
 }
 
 static const char keyMap[0xFF] = {
-    0,    0,    '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-',  '+',
-    '\b', '\t', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[',  ']',
-    '\n', 0,    'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`',
-    0,    '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 0,    0,
-    0,    ' ',  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,    0,
-    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,    0,
-    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,    0,
-    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,    0,
-    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,    0,
+    0,    0,    '1',  '2',  '3', '4', '5', '6', '7', '8', '9', '0', '-',  '=',
+    '\b', '\t', 'q',  'w',  'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[',  ']',
+    '\n', 0,    'a',  's',  'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`',
+    0,    '\\', 'z',  'x',  'c', 'v', 'b', 'n', 'm', ',', '.', '/', 0,    0,
+    0,    ' ',  0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,    0,
+    0,    0,    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,    0,
+    0,    0,    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,    0,
+    0,    0,    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,    0,
+    0,    0,    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,    0,
+    0,    0,    0,    0,    '!', '@', '#', '$', '%', '^', '&', '*', '(',  ')',
+    '_',  '+',  '\b', '\t', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O',  'P',
+    '{',  '}',  '\n', 0,    'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L',  ':',
+    '"',  '~',  0,    '|',  'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>',  '?',
+    0,    0,    0,    ' ',  0,   0,   0,   0,   0,   0,   0,   0,   0,    0,
+    0,    0,    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,    0,
+    0,    0,    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,    0,
+    0,    0,    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,    0,
+    0,    0,    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,    0,
+    0,    0,    0};
 
-    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,    0,
-    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,    0,
-    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,    0,
-    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,    0,
-    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,    0,
-    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,    0,
-    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,    0,
-    0,    0,    0,   0,   0};
-static const char shiftKeyMap[0xFF] = {
-    0,    0,    '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+',
-    '\b', '\t', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}',
-    '\n', 0,    'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '"', '~',
-    0,    '|',  'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?', 0,   0,
-    0,    ' ',  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-    
-    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-    0,    0,    0,   0,   0};
-
-char keyboard_char(uint8_t code, bool shift) {
-    code = code & 0x7F;
-    if (shift) {
-        return shiftKeyMap[code];
-    }
-    return keyMap[code];
-}
+// char keyboard_char(uint8_t code, bool shift) {
+//     code = code & 0x7F;
+//     if (shift) {
+//         return shiftKeyMap[code];
+//     }
+//     return keyMap[code];
+// }
 
 void print_letter(uint8_t scancode) {
     switch (scancode) {
