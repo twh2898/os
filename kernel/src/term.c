@@ -1,5 +1,6 @@
 #include "term.h"
 
+#include "debug.h"
 #include "drivers/keyboard.h"
 #include "drivers/vga.h"
 #include "libc/mem.h"
@@ -169,8 +170,12 @@ static char ** parse_args(const char * line, size_t * out_len) {
     size_t arg_i = 0;
 
     while (*line) {
-        if (arg_i >= len) {
+        if (arg_i > len) {
             FATAL("SYNTAX ERROR!\n");
+            if (debug) {
+                printf("expected %u args but have %u\n", len, arg_i);
+                printf("current parse char is 0x%02x\n", *line);
+            }
             return 0;
         }
         // Skip whitespace
@@ -206,6 +211,15 @@ static char ** parse_args(const char * line, size_t * out_len) {
         memcpy(args[arg_i], start, word_len);
         args[arg_i][word_len] = 0;
         arg_i++;
+    }
+
+    if (arg_i < len) {
+        FATAL("SYNTAX ERROR!\n");
+        if (debug) {
+            printf("expected %u args but have %u\n", len, arg_i);
+            printf("current parse char is 0x%02x\n", *line);
+        }
+        return 0;
     }
 
     return args;
