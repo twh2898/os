@@ -18,34 +18,34 @@ void test1() {
 
 void test2() {
     for (char l = 'A'; l <= 'Z'; l++) {
-        term_putc(l);
+        vga_putc(l);
     }
 }
 
 void test3() {
-    term_print("Hello\nWorld");
-    term_cursor(1, 10);
-    term_color(VGA_FG_CYAN | VGA_BG_DARK_GRAY);
-    term_print("\nHello\nWorld");
+    vga_print("Hello\nWorld");
+    vga_cursor(1, 10);
+    vga_color(VGA_FG_CYAN | VGA_BG_DARK_GRAY);
+    vga_print("\nHello\nWorld");
 }
 
 void test4() {
-    term_cursor(0, 0);
-    term_color(VGA_WHITE_ON_BLACK);
+    vga_cursor(0, 0);
+    vga_color(VGA_WHITE_ON_BLACK);
     for (int i = 0; i < 24; i++) {
-        term_print("FILL ");
+        vga_print("FILL ");
         puti(i, 10, false);
-        term_putc('\n');
+        vga_putc('\n');
     }
-    term_print("END\n\nTWO\n");
+    vga_print("END\n\nTWO\n");
 }
 
 void cursor() {
-    term_cursor(3, 3);
+    vga_cursor(3, 3);
 
-    term_cursor_hide();
-    term_cursor_show();
-    term_cursor(term_cursor_row(), term_cursor_col());
+    vga_cursor_hide();
+    vga_cursor_show();
+    vga_cursor(vga_cursor_row(), vga_cursor_col());
 }
 
 void test_interrupt() {
@@ -91,7 +91,7 @@ void console() {
 }
 
 void kernel_main() {
-    term_init();
+    vga_clear();
     isr_install();
     irq_install();
 

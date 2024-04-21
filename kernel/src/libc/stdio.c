@@ -3,7 +3,7 @@
 #include <stdarg.h>
 #include <stdint.h>
 
-#include "term.h"
+#include "drivers/vga.h"
 #include "libc/string.h"
 
 static int num_width(unsigned int n, int base) {
@@ -44,11 +44,11 @@ void itoa(int n, char * str) {
 }
 
 size_t puts(const char * str) {
-    return term_print(str);
+    return vga_print(str);
 }
 
 size_t putc(char c) {
-    return term_putc(c);
+    return vga_putc(c);
 }
 
 static char digit(unsigned int num, int base, bool upper) {
@@ -60,14 +60,14 @@ static char digit(unsigned int num, int base, bool upper) {
 
 size_t puti(int num, int base, bool upper) {
     if (num == 0) {
-        return term_putc('0');
+        return vga_putc('0');
     }
 
     bool is_neg = num < 0;
 
     size_t o_len = 0;
     if (num < 0) {
-        o_len += term_putc('-');
+        o_len += vga_putc('-');
         num = -num;
     }
 
@@ -80,7 +80,7 @@ size_t puti(int num, int base, bool upper) {
     }
 
     for (size_t i = 0; i < len; i++) {
-        o_len += term_putc(digit(rev % base, base, upper));
+        o_len += vga_putc(digit(rev % base, base, upper));
         rev /= base;
     }
 
@@ -90,7 +90,7 @@ size_t puti(int num, int base, bool upper) {
 
 size_t putu(unsigned int num, unsigned int base, bool upper) {
     if (num == 0) {
-        return term_putc('0');
+        return vga_putc('0');
     }
 
     size_t len = 0;
@@ -103,7 +103,7 @@ size_t putu(unsigned int num, unsigned int base, bool upper) {
 
     size_t o_len = 0;
     for (size_t i = 0; i < len; i++) {
-        o_len += term_putc(digit(rev % base, base, upper));
+        o_len += vga_putc(digit(rev % base, base, upper));
         rev /= base;
     }
 
@@ -113,7 +113,7 @@ size_t putu(unsigned int num, unsigned int base, bool upper) {
 static size_t pad(char c, size_t len) {
     size_t o_len = 0;
     for (size_t i = 0; i < len; i++) {
-        o_len += term_putc(c);
+        o_len += vga_putc(c);
     }
     return o_len;
 }
@@ -133,11 +133,11 @@ static size_t padded_int(
     size_t o_len = 0;
     if (fill && !left_align) {
         if (lead_zero && is_neg) {
-            o_len += term_putc('-');
+            o_len += vga_putc('-');
         }
         o_len += pad((lead_zero ? '0' : ' '), width - num_len);
         if (!lead_zero && is_neg) {
-            o_len += term_putc('-');
+            o_len += vga_putc('-');
         }
     }
 
@@ -183,7 +183,7 @@ static size_t padded_str(int width, bool left_align, char * str) {
         o_len += pad(' ', width - str_len);
     }
 
-    int len = term_print(str);
+    int len = vga_print(str);
 
     if (fill && left_align) {
         o_len += pad(' ', width - str_len);
@@ -249,7 +249,7 @@ size_t printf(const char * fmt, ...) {
                 } break;
                 case 'c': {
                     char arg = va_arg(params, int);
-                    o_len += term_putc(arg);
+                    o_len += vga_putc(arg);
                 } break;
                 case 's': {
                     char * arg = va_arg(params, char *);
@@ -261,10 +261,10 @@ size_t printf(const char * fmt, ...) {
                 } break;
                 case 'b': {
                     int arg = va_arg(params, int);
-                    o_len += term_print(arg ? "true" : "false");
+                    o_len += vga_print(arg ? "true" : "false");
                 } break;
                 case '%': {
-                    o_len += term_putc('%');
+                    o_len += vga_putc('%');
                 } break;
                 default:
                     break;
@@ -272,7 +272,7 @@ size_t printf(const char * fmt, ...) {
             fmt++;
         }
         else {
-            o_len += term_putc(*fmt++);
+            o_len += vga_putc(*fmt++);
         };
     }
 

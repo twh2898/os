@@ -1,7 +1,9 @@
 #ifndef VGA_H
 #define VGA_H
 
-#define VGA_ADDRESS 0xb8000
+#include <stddef.h>
+#include <stdint.h>
+
 #define VGA_ROWS 25
 #define VGA_COLS 80
 #define VGA_WHITE_ON_BLACK (VGA_FG_WHITE | VGA_BG_BLACK)
@@ -49,5 +51,15 @@ void vga_put(int index, char c, unsigned char attr);
 int vga_row(int index);
 int vga_col(int index);
 int vga_index(int row, int col);
+
+int vga_cursor_row();
+int vga_cursor_col();
+void vga_cursor(int row, int col);
+void vga_cursor_hide();
+void vga_cursor_show();
+
+void vga_color(unsigned char color);
+size_t vga_putc(char c);
+size_t vga_print(const char * str);
 
 #endif // VGA_H
