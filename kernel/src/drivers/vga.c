@@ -16,6 +16,10 @@ static char * screen = (char *)VGA_ADDRESS;
 static void update_cursor();
 static void shift_lines();
 
+/*
+ * DIRECT ACCESS
+ */
+
 void vga_clear() {
     for (int row = 0; row < VGA_ROWS; row++) {
         for (int col = 0; col < VGA_COLS; col++) {
@@ -45,6 +49,10 @@ int vga_index(int row, int col) {
     return (row * VGA_COLS) + col;
 }
 
+/*
+ * MANAGED ACCESS
+ */
+
 int vga_cursor_row() {
     return vga_row(index);
 }
@@ -73,6 +81,10 @@ void vga_cursor_show() {
     port_byte_out(REG_SCREEN_CTRL, 0x0b);
     port_byte_out(REG_SCREEN_DATA, (port_byte_in(REG_SCREEN_DATA) & 0xe0) | 0xe);
 }
+
+/*
+ * HIGH LEVEL
+ */
 
 void vga_color(unsigned char attr) {
     color = attr;
@@ -112,6 +124,10 @@ size_t vga_print(const char * str) {
     }
     return len;
 }
+
+/*
+ * HELPER FUNCTIONS
+ */
 
 static void update_cursor() {
     if (index < 0 || index >= MAX_INDEX)
