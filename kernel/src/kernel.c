@@ -6,6 +6,7 @@
 #include "libc/mem.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
+#include "commands.h"
 #include "term.h"
 
 void test1() {
@@ -87,6 +88,7 @@ void key_cb(uint8_t code, char c, keyboard_event_t event, keyboard_mod_t mod) {
 
 void console() {
     term_init();
+    commands_init();
 }
 
 void kernel_main() {

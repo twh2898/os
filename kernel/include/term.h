@@ -5,7 +5,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-typedef int (*command_cb_t)(size_t argc, char ** argv);
+typedef int (*command_cb_t)(const char * line);
 
 typedef struct {
     const char * command;

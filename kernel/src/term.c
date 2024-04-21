@@ -54,7 +54,7 @@ void term_init() {
 void term_command_add(command_t command) {
     if (n_commands > MAX_COMMANDS) {
         vga_color(VGA_RED_ON_WHITE);
-        vga_print("TERMINAL KEY BUFFER OVERFLOW!");
+        vga_print("TERMINAL COMMAND REGISTER OVERFLOW!");
         return;
     }
 
@@ -70,20 +70,27 @@ static void exec_buff() {
 
     size_t space_i = strfind(keybuff, 0, ' ');
     for (size_t i = 0; i < n_commands; i++) {
-        if (memcmp(keybuff, commands[i].command, space_i + 1) == 0) {
+        size_t cmp_len = strlen(commands[i].command);
+        if (keybuff_i < cmp_len)
+            cmp_len = keybuff_i;
+        if (memcmp(keybuff, commands[i].command, cmp_len) == 0) {
+            commands[i].cb(keybuff);
+
             // parse argv and argc
-            size_t argc;
-            char ** argv = parse_args(keybuff, &argc);
-            if (!argv) {
-                vga_color(VGA_RED_ON_WHITE);
-                vga_print("Syntax Error");
-                term_last_ret = 1;
-            }
-            term_last_ret = commands[i].cb(argc, argv);
+            // size_t argc;
+            // char ** argv = parse_args(keybuff, &argc);
+            // if (!argv) {
+            //     vga_color(VGA_RED_ON_WHITE);
+            //     vga_print("Syntax Error");
+            //     term_last_ret = 1;
+            // }
+            // term_last_ret = commands[i].cb(argc, argv);
+            // term_last_ret = commands[i].cb(argc, argv);
         }
     }
 
     keybuff_i = 0;
+    vga_print("> ");
 }
 
 static int count_args(char * line) {

@@ -11,9 +11,9 @@ static char * strtok_curr = 0;
 int memcmp(const void * lhs, const void * rhs, size_t n) {
     const uint8_t * a = (uint8_t *)lhs;
     const uint8_t * b = (uint8_t *)rhs;
-    for (size_t i = 0; i < n; i++, a++, b++) {
-        if (*a != *b)
-            return (int)*a - (int)*b;
+    for (size_t i = 0; i < n; i++) {
+        if (a[i] != b[i])
+            return (int)a[i] - (int)b[i];
     }
     return 0;
 }
