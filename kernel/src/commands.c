@@ -47,7 +47,7 @@ static int debug_cmd(size_t argc, char ** argv) {
 
 static int atoi_cmd(size_t argc, char ** argv) {
     if (argc != 2) {
-        printf("%s requires one argument", argv[0]);
+        printf("Usage: %s <number>\n", argv[0]);
         return 1;
     }
 
