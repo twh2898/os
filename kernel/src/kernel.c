@@ -9,38 +9,6 @@
 #include "libc/string.h"
 #include "term.h"
 
-void test1() {
-    int i = VGA_COLS * 2;
-    for (char l = 'A'; l <= 'Z'; l++) {
-        vga_put(i, l, VGA_WHITE_ON_BLACK);
-        i++;
-    }
-}
-
-void test2() {
-    for (char l = 'A'; l <= 'Z'; l++) {
-        vga_putc(l);
-    }
-}
-
-void test3() {
-    vga_print("Hello\nWorld");
-    vga_cursor(1, 10);
-    vga_color(VGA_FG_CYAN | VGA_BG_DARK_GRAY);
-    vga_print("\nHello\nWorld");
-}
-
-void test4() {
-    vga_cursor(0, 0);
-    vga_color(VGA_WHITE_ON_BLACK);
-    for (int i = 0; i < 24; i++) {
-        vga_print("FILL ");
-        puti(i, 10, false);
-        vga_putc('\n');
-    }
-    vga_print("END\n\nTWO\n");
-}
-
 void cursor() {
     vga_cursor(3, 3);
 
@@ -97,10 +65,6 @@ void kernel_main() {
     isr_install();
     irq_install();
 
-    // test1();
-    // test2();
-    // test3();
-    // test4();
     // cursor();
     // test_interrupt();
     // demo(0, 0);
