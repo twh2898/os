@@ -247,7 +247,7 @@ size_t printf(const char * fmt, ...) {
                 case 'x':
                 case 'X': {
                     int arg = va_arg(params, int);
-                    o_len += padded_int(
+                    o_len += padded_uint(
                         width, left_align, arg, 16, *fmt == 'X', lead_zero);
                 } break;
                 case 'c': {

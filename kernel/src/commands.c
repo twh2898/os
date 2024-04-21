@@ -2,7 +2,9 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
+#include "cpu/ports.h"
 #include "debug.h"
 #include "drivers/vga.h"
 #include "libc/stdio.h"
@@ -56,9 +58,69 @@ static int atoi_cmd(size_t argc, char ** argv) {
     return 0;
 }
 
+static uint8_t hex_digit(char c) {
+    if (c >= '0' && c <= '9')
+        return c - '0';
+    else if (c >= 'a' && c <= 'f')
+        return 10 + c - 'a';
+    else if (c >= 'A' && c <= 'F')
+        return 10 + c - 'A';
+    else
+        return 0;
+}
+
+static uint8_t parse_byte(const char * str) {
+    if (strlen(str) != 2)
+        return -1;
+
+    return hex_digit(str[0]) << 4 | hex_digit(str[1]);
+}
+
+static int port_out_cmd(size_t argc, char ** argv) {
+    if (argc != 3) {
+        printf("Usage: %s <port> <byte>\n", argv[0]);
+        return 1;
+    }
+
+    if (strlen(argv[1]) != 2) {
+        puts("port must be a 2 character hex\n");
+        return 1;
+    }
+    uint8_t port = parse_byte(argv[1]);
+
+    if (strlen(argv[2]) != 2) {
+        puts("byte must be a 2 character hex\n");
+        return 1;
+    }
+    uint8_t byte = parse_byte(argv[2]);
+
+    port_byte_out(port, byte);
+    return 0;
+}
+
+static int port_in_cmd(size_t argc, char ** argv) {
+    if (argc != 2) {
+        printf("Usage: %s <port>\n", argv[0]);
+        return  1;
+    }
+
+    if (strlen(argv[1]) != 2) {
+        puts("port must be a 2 character hex\n");
+        return 1;
+    }
+    uint8_t port = parse_byte(argv[1]);
+
+    uint8_t byte = port_byte_in(port);
+    printf("0x%02X = 0x%02X\n", port, byte);
+
+    return 0;
+}
+
 void commands_init() {
     term_command_add("clear", clear_cmd);
     term_command_add("echo", echo_cmd);
     term_command_add("debug", debug_cmd);
     term_command_add("atoi", atoi_cmd);
+    term_command_add("outb", port_out_cmd);
+    term_command_add("inb", port_in_cmd);
 }
