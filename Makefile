@@ -39,7 +39,7 @@ os-image.bin: $(PWD)$(OBJDIR)/bootsect.bin $(PWD)$(OBJDIR)/kernel.bin
 	cat $^ > $@
 	@echo "Final image size"
 	@du -sh $@
-	@echo Remember the limit is 32K in bootsect.asm
+	@echo Remember the limit is 50K? in bootsect.asm
 
 drive.img:
 	qemu-img create -f qcow2 drive.img 100M
@@ -76,7 +76,7 @@ run: os-image.bin drive.img
 
 debug: os-image.bin $(PWD)$(OBJDIR)/kernel.elf
 	$(QEMU) -s -drive format=raw,file=os-image.bin,index=0,if=floppy -drive format=qcow2,file=drive.img &
-	$(GDB) -ex "target remote localhost:1234" -ex "symbol-file kernel.elf" -ex "b __start" -ex "b kernel_main"
+	$(GDB) -ex "target remote localhost:1234" -ex "symbol-file $(PWD)$(OBJDIR)/kernel.elf" -ex "b __start" -ex "b kernel_main"
 
 debugbuild:
 	@echo -e "CFLAGS\n$(CFLAGS)\n"
