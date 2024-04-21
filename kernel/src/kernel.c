@@ -3,9 +3,9 @@
 #include "cpu/timer.h"
 #include "drivers/keyboard.h"
 #include "drivers/vga.h"
+#include "libc/mem.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
-#include "libc/mem.h"
 #include "term.h"
 
 void test1() {
@@ -79,6 +79,17 @@ void demo() {
     printf("\nMalloc memory got pointer %p\n", data);
 }
 
+void key_cb(uint8_t code, char c, keyboard_event_t event, keyboard_mod_t mod) {
+    if (event != KEY_EVENT_RELEASE && c) {
+        putc(c);
+    }
+}
+
+void console() {
+    keyboard_set_cb(&key_cb);
+    printf("\n> ");
+}
+
 void kernel_main() {
     term_init();
     isr_install();
@@ -92,4 +103,5 @@ void kernel_main() {
     // test_interrupt();
 
     demo();
+    console();
 }

@@ -6,20 +6,140 @@
 
 void print_letter(uint8_t scancode);
 
+static void (*_cb)(uint8_t, char, keyboard_event_t, keyboard_mod_t) = 0;
+static uint8_t last_code = 0;
+static bool lctrl = false;
+static bool rctrl = false;
+static bool lalt = false;
+static bool ralt = false;
+static bool lshift = false;
+static bool rshift = false;
+static bool lsuper = false;
+static bool rsuper = false;
+
+void keyboard_set_cb(void (*cb)(uint8_t, char, keyboard_event_t, keyboard_mod_t)) {
+    _cb = cb;
+}
+
 static void keyboard_callback(registers_t regs) {
     /* The PIC leaves us the scancode in port 0x60 */
     uint8_t scancode = port_byte_in(0x60);
-    printf("Keyboard scancode: %u, ", scancode);
-    print_letter(scancode);
-    printf("\n");
+    if (_cb) {
+        keyboard_event_t event = KEY_EVENT_PRESS;
+        bool press = scancode < 0x80;
+
+        if (press) {
+            if (scancode == last_code)
+                event = KEY_EVENT_REPEAT;
+            else {
+                if (scancode == KEY_LSHIFT)
+                    lshift = true;
+                if (scancode == KEY_RSHIFT)
+                    lshift = true;
+            }
+            last_code = scancode;
+        }
+
+        else {
+            scancode -= 0x80;
+            event = KEY_EVENT_RELEASE;
+            last_code = 0;
+
+            if (scancode == KEY_LSHIFT)
+                lshift = false;
+            if (scancode == KEY_RSHIFT)
+                lshift = false;
+        }
+
+        char c = keyboard_char(scancode, lshift || rshift);
+
+        keyboard_mod_t mods = 0;
+        if (lctrl || rctrl)
+            mods |= KEY_MOD_CTRL;
+        if (lalt || ralt)
+            mods |= KEY_MOD_ALT;
+        if (lshift || rshift)
+            mods |= KEY_MOD_SHIFT;
+        if (lsuper || rsuper)
+            mods |= KEY_MOD_SUPER;
+
+        _cb(scancode, c, event, mods);
+    }
+    else {
+        printf("Keyboard scancode: %u, ", scancode);
+        print_letter(scancode);
+        printf("\n");
+    }
+    last_code = scancode;
 }
 
 void init_keyboard() {
     register_interrupt_handler(IRQ1, keyboard_callback);
 }
 
+static const char keyMap[0xFF] = {
+    0,    0,    '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-',  '+',
+    '\b', '\t', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[',  ']',
+    '\n', 0,    'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`',
+    0,    '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 0,    0,
+    0,    ' ',  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,    0,
+    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,    0,
+    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,    0,
+    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,    0,
+    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,    0,
+
+    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,    0,
+    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,    0,
+    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,    0,
+    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,    0,
+    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,    0,
+    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,    0,
+    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,    0,
+    0,    0,    0,   0,   0};
+static const char shiftKeyMap[0xFF] = {
+    0,    0,    '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+',
+    '\b', '\t', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}',
+    '\n', 0,    'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '"', '~',
+    0,    '|',  'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?', 0,   0,
+    0,    ' ',  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+    
+    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+    0,    0,    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+    0,    0,    0,   0,   0};
+
+char keyboard_char(uint8_t code, bool shift) {
+    code = code & 0x7F;
+    if (shift) {
+        return shiftKeyMap[code];
+    }
+    return keyMap[code];
+}
+
 void print_letter(uint8_t scancode) {
     switch (scancode) {
+        default:
+            /* 'keuyp' event corresponds to the 'keydown' + 0x80
+             * it may still be a scancode we haven't implemented yet, or
+             * maybe a control/escape sequence */
+            if (scancode <= 0x7f) {
+                printf("Unknown key down");
+            }
+            else if (scancode <= 0x39 + 0x80) {
+                printf("key up ");
+                print_letter(scancode - 0x80);
+            }
+            else
+                printf("Unknown key up");
+            break;
         case 0x0:
             break;
         case 0x1:
@@ -192,20 +312,6 @@ void print_letter(uint8_t scancode) {
             break;
         case 0x39:
             printf("Spc");
-            break;
-        default:
-            /* 'keuyp' event corresponds to the 'keydown' + 0x80
-             * it may still be a scancode we haven't implemented yet, or
-             * maybe a control/escape sequence */
-            if (scancode <= 0x7f) {
-                printf("Unknown key down");
-            }
-            else if (scancode <= 0x39 + 0x80) {
-                printf("key up ");
-                print_letter(scancode - 0x80);
-            }
-            else
-                printf("Unknown key up");
             break;
     }
 }
