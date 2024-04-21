@@ -7,6 +7,7 @@
 #define VGA_ROWS 25
 #define VGA_COLS 80
 #define VGA_WHITE_ON_BLACK (VGA_FG_WHITE | VGA_BG_BLACK)
+#define VGA_RED_ON_WHITE (VGA_FG_RED | VGA_BG_WHITE)
 
 enum VGA_FG {
     VGA_FG_BLACK = 0x0,
