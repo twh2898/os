@@ -68,6 +68,35 @@ int strfind(const char * str, size_t start, char c) {
     return -1;
 }
 
+static char * find_one(char * str, char * delim) {
+    size_t len = strlen(str);
+    size_t d_len = strlen(delim);
+
+    for (size_t i = 0; i < len; i++) {
+        for (size_t d = 0; d < d_len; d++) {
+            if (str[i] == delim[d]) {
+                return str + i;
+            }
+        }
+    }
+    return str;
+}
+
+static char * find_not_one(char * str, char * delim) {
+    size_t len = strlen(str);
+    size_t d_len = strlen(delim);
+
+    for (size_t i = 0; i < len; i++) {
+        for (size_t d = 0; d < d_len; d++) {
+            if (str[i] != delim[d]) {
+                return str + i;
+            }
+        }
+    }
+    return str;
+}
+
+// FIXME: Untested, idk if this actually works
 char * strtok(char * str, char * delim) {
     if (str)
         strtok_curr = str;
@@ -75,19 +104,18 @@ char * strtok(char * str, char * delim) {
     if (strtok_curr == 0)
         return 0;
 
+    strtok_curr = find_not_one(strtok_curr, delim);
     size_t len = strlen(strtok_curr);
-    size_t d_len = strlen(delim);
+    if (len == 0)
+        return 0;
 
-    for (size_t i = 0; i < len; i++) {
-        for (size_t d = 0; d < d_len; d++) {
-            if (strtok_curr[i] == delim[d]) {
-                strtok_curr[i] = 0;
-                str = strtok_curr;
-                strtok_curr += i + 1;
-                return str;
-            }
-        }
+    str = strtok_curr;
+
+    strtok_curr = find_one(strtok_curr, delim);
+    if (strtok_curr == str) {
+        strtok_curr += len;
     }
 
-    return 0;
+    *strtok_curr = 0;
+    return str;
 }
