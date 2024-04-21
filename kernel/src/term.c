@@ -73,22 +73,24 @@ void term_command_add(command_t command) {
 }
 
 static void exec_buff() {
-    if (keybuff_i == 0)
+    if (keybuff_i == 0) {
+        term_last_ret = 0;
         return;
+    }
 
     if (keybuff_i > MAX_CHARS) {
         keybuff_i = MAX_CHARS + 1;
     }
 
     keybuff[keybuff_i] = 0;
-    printf("Got command line %s\n", keybuff);
-
     size_t space_i = strfind(keybuff, 0, ' ');
+    bool found = false;
     for (size_t i = 0; i < n_commands; i++) {
         size_t cmp_len = strlen(commands[i].command);
         if (keybuff_i < cmp_len)
             cmp_len = keybuff_i;
         if (memcmp(keybuff, commands[i].command, cmp_len) == 0) {
+            found = true;
             size_t argc;
             char ** argv = parse_args(keybuff, &argc);
             if (!argv) {
@@ -101,7 +103,12 @@ static void exec_buff() {
                 free(argv[i]);
             }
             free(argv);
+            break;
         }
+    }
+    if (!found) {
+        printf("Unknown command '%s'\n", keybuff);
+        term_last_ret = 1;
     }
 
     keybuff_i = 0;

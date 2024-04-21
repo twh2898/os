@@ -1,7 +1,11 @@
 #include "commands.h"
 
+#include <stdbool.h>
+#include <stddef.h>
+
 #include "drivers/vga.h"
 #include "libc/stdio.h"
+#include "libc/string.h"
 #include "term.h"
 
 static int clear_cmd(size_t argc, char ** argv) {
@@ -15,19 +19,31 @@ static command_t command_clear = {
 };
 
 static int echo_cmd(size_t argc, char ** argv) {
-    printf("Echo %u args\n", argc);
-    for (size_t i = 0; i < argc; i++) {
-        printf("Arg %u is %s\n", i, argv[i]);
+    bool newline = true;
+    if (argc > 1 && memcmp(argv[1], "-n", 2) == 0)
+        newline = false;
+
+    size_t i = 1;
+    if (!newline)
+        i++;
+    for (; i < argc; i++) {
+        puts(argv[i]);
+        if (i < argc)
+            putc(' ');
     }
+
+    if (newline)
+        putc('\n');
+
     return 0;
 }
 
-static command_t echo_clear = {
+static command_t command_echo = {
     .command = "echo",
     .cb = echo_cmd,
 };
 
 void commands_init() {
     term_command_add(command_clear);
-    term_command_add(echo_clear);
+    term_command_add(command_echo);
 }

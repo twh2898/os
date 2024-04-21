@@ -56,7 +56,7 @@ void test_interrupt() {
     asm volatile("int $3");
 }
 
-void demo() {
+int demo(size_t argc, char ** argv) {
     printf("Lets demo some cool features of printf\n");
     int len = printf(
         "Like the percent sign %%, \na signed int %d, a signed int with width formatting %4d, \nleading zeros %04d, left align %-4d\n",
@@ -86,9 +86,15 @@ void key_cb(uint8_t code, char c, keyboard_event_t event, keyboard_mod_t mod) {
     }
 }
 
+static command_t command_demo = {
+    .command = "demo",
+    .cb = demo,
+};
+
 void console() {
     term_init();
     commands_init();
+    term_command_add(command_demo);
 }
 
 void kernel_main() {
@@ -102,7 +108,7 @@ void kernel_main() {
     // test4();
     // cursor();
     // test_interrupt();
+    // demo(0, 0);
 
-    demo();
     console();
 }
