@@ -69,11 +69,16 @@ static uint8_t hex_digit(char c) {
         return 0;
 }
 
-static uint8_t parse_byte(const char * str) {
-    if (strlen(str) != 2)
+static uint16_t parse_byte(const char * str) {
+    size_t len = strlen(str);
+    if (len < 1 || len > 4)
         return -1;
 
-    return hex_digit(str[0]) << 4 | hex_digit(str[1]);
+    uint16_t res = 0;
+    while (*str) {
+        res = (res << 4) | hex_digit(*str++);
+    }
+    return res;
 }
 
 static int port_out_cmd(size_t argc, char ** argv) {
@@ -82,14 +87,14 @@ static int port_out_cmd(size_t argc, char ** argv) {
         return 1;
     }
 
-    if (strlen(argv[1]) != 2) {
-        puts("port must be a 2 character hex\n");
+    if (strlen(argv[1]) > 4) {
+        puts("port has max 4 hex digits\n");
         return 1;
     }
-    uint8_t port = parse_byte(argv[1]);
+    uint16_t port = parse_byte(argv[1]);
 
-    if (strlen(argv[2]) != 2) {
-        puts("byte must be a 2 character hex\n");
+    if (strlen(argv[2]) > 2) {
+        puts("byte has max 2 hex digits\n");
         return 1;
     }
     uint8_t byte = parse_byte(argv[2]);
@@ -101,17 +106,17 @@ static int port_out_cmd(size_t argc, char ** argv) {
 static int port_in_cmd(size_t argc, char ** argv) {
     if (argc != 2) {
         printf("Usage: %s <port>\n", argv[0]);
-        return  1;
-    }
-
-    if (strlen(argv[1]) != 2) {
-        puts("port must be a 2 character hex\n");
         return 1;
     }
-    uint8_t port = parse_byte(argv[1]);
+
+    if (strlen(argv[1]) > 4) {
+        puts("port has max 4 hex digits\n");
+        return 1;
+    }
+    uint16_t port = parse_byte(argv[1]);
 
     uint8_t byte = port_byte_in(port);
-    printf("0x%02X = 0x%02X\n", port, byte);
+    printf("0x%04X = 0x%02X\n", port, byte);
 
     return 0;
 }
