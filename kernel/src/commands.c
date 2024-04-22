@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #include "cpu/ports.h"
+#include "cpu/timer.h"
 #include "debug.h"
 #include "drivers/ata.h"
 #include "drivers/vga.h"
@@ -127,6 +128,12 @@ static int identify_disk_cmd(size_t argc, char ** argv) {
     return 0;
 }
 
+static int time_cmd(size_t argc, char ** argv) {
+    uint32_t ms = get_ticks();
+    printf("System ticks: %u ~= %u s\n", ms, ms / 1000);
+    return 0;
+}
+
 void commands_init() {
     term_command_add("clear", clear_cmd);
     term_command_add("echo", echo_cmd);
@@ -135,4 +142,5 @@ void commands_init() {
     term_command_add("outb", port_out_cmd);
     term_command_add("inb", port_in_cmd);
     term_command_add("id", identify_disk_cmd);
+    term_command_add("time", time_cmd);
 }
