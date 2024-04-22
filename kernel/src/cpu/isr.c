@@ -1,10 +1,11 @@
 #include "cpu/isr.h"
 
-#include "drivers/keyboard.h"
-#include "libc/stdio.h"
 #include "cpu/idt.h"
 #include "cpu/ports.h"
 #include "cpu/timer.h"
+#include "drivers/ata.h"
+#include "drivers/keyboard.h"
+#include "libc/stdio.h"
 
 isr_t interrupt_handlers[256];
 
@@ -146,4 +147,6 @@ void irq_install() {
     init_timer(50);
     /* IRQ1: keyboard */
     init_keyboard();
+    /* IRQ14: ata disk */
+    init_disk();
 }

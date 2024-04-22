@@ -6,6 +6,7 @@
 
 #include "cpu/ports.h"
 #include "debug.h"
+#include "drivers/ata.h"
 #include "drivers/vga.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
@@ -121,6 +122,11 @@ static int port_in_cmd(size_t argc, char ** argv) {
     return 0;
 }
 
+static int identify_disk_cmd(size_t argc, char ** argv) {
+    disk_identify();
+    return 0;
+}
+
 void commands_init() {
     term_command_add("clear", clear_cmd);
     term_command_add("echo", echo_cmd);
@@ -128,4 +134,5 @@ void commands_init() {
     term_command_add("atoi", atoi_cmd);
     term_command_add("outb", port_out_cmd);
     term_command_add("inb", port_in_cmd);
+    term_command_add("id", identify_disk_cmd);
 }
