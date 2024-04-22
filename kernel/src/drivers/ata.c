@@ -54,7 +54,7 @@
 #define ATA_ADDRESS_FLAG_WTG 0x40 // Low when drive write is in progress
 
 static void disk_callback(registers_t regs) {
-    printf("disk\n");
+    printf("disk callback\n");
 }
 
 void init_disk() {
