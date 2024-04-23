@@ -79,7 +79,7 @@ void disk_identify() {
     port_byte_out(ATA_BUS_0_IO_CYLINDER_HIGH, 0x0);
 
     port_byte_out(ATA_BUS_0_IO_COMMAND, 0xEC); // IDENTIFY command
-    uint8_t status = port_byte_in(ATA_BUS_0_IO_STATUS);
+    uint16_t status = port_word_in(ATA_BUS_0_IO_STATUS);
 
     if (status == 0) {
         puts("Drive does not exist\n");
@@ -116,5 +116,7 @@ void disk_identify() {
         puts("Disk is ready\n");
     }
 
-    printf("Identify disk 0x%04X\n", status);
+    uint32_t size = port_word_in(60) << 16 | port_word_in(61);
+
+    printf("Identify disk 0x%04X size %u\n", status, size);
 }

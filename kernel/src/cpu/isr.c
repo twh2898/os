@@ -5,6 +5,7 @@
 #include "cpu/timer.h"
 #include "drivers/ata.h"
 #include "drivers/keyboard.h"
+#include "drivers/rtc.h"
 #include "libc/stdio.h"
 
 isr_t interrupt_handlers[256];
@@ -144,11 +145,13 @@ void irq_install() {
     /* Enable interruptions */
     asm volatile("sti");
     /* IRQ0: timer */
-    init_timer(1000);  // milliseconds
+    init_timer(1000); // milliseconds
     /* IRQ1: keyboard */
     init_keyboard();
     /* IRQ14: ata disk */
     init_disk();
+    /* IRQ8: real time clock */
+    init_rtc(RTC_RATE_1024_HZ);
 }
 
 void disable_interrupts() {
