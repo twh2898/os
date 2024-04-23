@@ -86,4 +86,7 @@ void irq_install();
 typedef void (*isr_t)(registers_t);
 void register_interrupt_handler(uint8_t n, isr_t handler);
 
+void disable_interrupts();
+void enable_interrupts();
+
 #endif // ISR_H

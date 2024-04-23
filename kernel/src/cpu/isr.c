@@ -150,3 +150,11 @@ void irq_install() {
     /* IRQ14: ata disk */
     init_disk();
 }
+
+void disable_interrupts() {
+    asm("cli");
+}
+
+void enable_interrupts() {
+    asm("sti");
+}
