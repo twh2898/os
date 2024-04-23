@@ -8,6 +8,7 @@
 #include "cpu/timer.h"
 #include "debug.h"
 #include "drivers/ata.h"
+#include "drivers/rtc.h"
 #include "drivers/vga.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
@@ -131,6 +132,7 @@ static int identify_disk_cmd(size_t argc, char ** argv) {
 static int time_cmd(size_t argc, char ** argv) {
     uint32_t ms = get_ticks();
     printf("System ticks: %u ~= %u s\n", ms, ms / 1000);
+    printf("RTC time: %u us = %u ms = %u s\n", time_us(), time_ms(), time_s());
     return 0;
 }
 
