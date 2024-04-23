@@ -203,6 +203,8 @@ size_t printf(const char * fmt, ...) {
     while (*fmt) {
         if (*fmt == '%') {
             int width = 0;
+            int fract = 0;
+            bool fill_fract = false;
             bool left_align = fmt[1] == '-';
             bool lead_zero = !left_align && fmt[1] == '0';
 
@@ -222,7 +224,13 @@ size_t printf(const char * fmt, ...) {
                 case '7':
                 case '8':
                 case '9':
-                    width = width * 10 + (*fmt - '0');
+                    if (!fill_fract)
+                        width = width * 10 + (*fmt - '0');
+                    else
+                        fract = fract * 10 + (*fmt - '0');
+                    goto start_format;
+                case '.':
+                    fill_fract = true;
                     goto start_format;
                 case 'd': {
                     int arg = va_arg(params, int);
@@ -265,6 +273,22 @@ size_t printf(const char * fmt, ...) {
                 case 'b': {
                     int arg = va_arg(params, int);
                     o_len += vga_print(arg ? "true" : "false");
+                } break;
+                case 'f': {
+                    float arg = va_arg(params, double);
+                    int lhs = (int)arg;
+                    size_t count = puti(lhs, 10, false);
+                    o_len += count;
+                    o_len += putc('.');
+                    if (!width) width = 8;
+                    float rem = arg - (float)lhs;
+                    if (!fract) fract = width;
+                    size_t f_count = 0;
+                    while (rem != 0 && count++ < width && f_count++ < fract) {
+                        rem *= 10;
+                        putu((int)rem, 10, false);
+                        rem -= (int)rem;
+                    }
                 } break;
                 case '%': {
                     o_len += vga_putc('%');

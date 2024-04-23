@@ -46,6 +46,7 @@ int demo(size_t argc, char ** argv) {
     void * data = malloc(10);
 
     printf("\nMalloc memory got pointer %p\n", data);
+    printf("Float number %f or shorter %3f or digits %.3f\n", 3.14, 31.45, 3.14);
 }
 
 void key_cb(uint8_t code, char c, keyboard_event_t event, keyboard_mod_t mod) {
