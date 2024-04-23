@@ -280,12 +280,14 @@ size_t printf(const char * fmt, ...) {
                     size_t count = puti(lhs, 10, false);
                     o_len += count;
                     o_len += putc('.');
-                    if (!width) width = 8;
                     float rem = arg - (float)lhs;
-                    if (!fract) fract = width;
+                    if (!fract)
+                        fract = 6;
                     size_t f_count = 0;
-                    while (rem != 0 && count++ < width && f_count++ < fract) {
+                    while ((!width || count++ < width) && f_count++ < fract) {
                         rem *= 10;
+                        // if (rem == 0)
+                        //     break;
                         putu((int)rem, 10, false);
                         rem -= (int)rem;
                     }
