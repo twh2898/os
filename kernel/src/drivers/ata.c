@@ -14,8 +14,11 @@
 #define ATA_BUS_0_IO_FEATURE (ATA_BUS_0_IO_BASE + 1) // W
 #define ATA_BUS_0_IO_SECTOR_COUNT (ATA_BUS_0_IO_BASE + 2) // R/W
 #define ATA_BUS_0_IO_SECTOR_NUMBER (ATA_BUS_0_IO_BASE + 3) // R/W
+#define ATA_BUS_0_IO_LBA_LOW ATA_BUS_0_IO_SECTOR_NUMBER // R/W
 #define ATA_BUS_0_IO_CYLINDER_LOW (ATA_BUS_0_IO_BASE + 4) // R/W
+#define ATA_BUS_0_IO_LBA_MID ATA_BUS_0_IO_CYLINDER_LOW // R/W
 #define ATA_BUS_0_IO_CYLINDER_HIGH (ATA_BUS_0_IO_BASE + 5) // R/W
+#define ATA_BUS_0_IO_LBA_HIGH ATA_BUS_0_IO_CYLINDER_HIGH // R/W
 #define ATA_BUS_0_IO_DRIVE_HEAD (ATA_BUS_0_IO_BASE + 6) // R/W
 #define ATA_BUS_0_IO_STATUS (ATA_BUS_0_IO_BASE + 7) // R
 #define ATA_BUS_0_IO_COMMAND (ATA_BUS_0_IO_BASE + 7) // W
@@ -74,9 +77,9 @@ void init_disk() {
 void disk_identify() {
     port_byte_out(ATA_BUS_0_IO_DRIVE_HEAD, 0xA0);
 
-    port_byte_out(ATA_BUS_0_IO_SECTOR_NUMBER, 0x0);
-    port_byte_out(ATA_BUS_0_IO_CYLINDER_LOW, 0x0);
-    port_byte_out(ATA_BUS_0_IO_CYLINDER_HIGH, 0x0);
+    port_byte_out(ATA_BUS_0_IO_LBA_LOW, 0x0);
+    port_byte_out(ATA_BUS_0_IO_LBA_MID, 0x0);
+    port_byte_out(ATA_BUS_0_IO_LBA_HIGH, 0x0);
 
     port_byte_out(ATA_BUS_0_IO_COMMAND, 0xEC); // IDENTIFY command
     uint16_t status = port_word_in(ATA_BUS_0_IO_STATUS);
@@ -93,8 +96,7 @@ void disk_identify() {
     }
     putc('\n');
 
-    if (port_byte_in(ATA_BUS_0_IO_CYLINDER_LOW)
-        || port_byte_in(ATA_BUS_0_IO_CYLINDER_HIGH)) {
+    if (port_byte_in(ATA_BUS_0_IO_LBA_MID) || port_byte_in(ATA_BUS_0_IO_LBA_HIGH)) {
         puts("Disk does not support ATA\n");
         return;
     }
@@ -116,7 +118,36 @@ void disk_identify() {
         puts("Disk is ready\n");
     }
 
-    uint32_t size = port_word_in(60) << 16 | port_word_in(61);
+    uint16_t data[256];
+    for (size_t i = 0; i < 256; i++) {
+        data[i] = port_word_in(ATA_BUS_0_IO_DATA);
+    }
 
-    printf("Identify disk 0x%04X size %u\n", status, size);
+    printf("Data is:\n");
+    size_t step = 8;
+    for (size_t i = 0; i < (256 / step); i++) {
+        printf("%4u", i * step);
+        for (size_t s = 0; s < step; s++) {
+            printf(" %04X", data[(i * step) + s]);
+        }
+        putc('\n');
+    }
+
+    bool has_lba = (data[83] & (1 << 10));
+    if (has_lba) {
+        printf("Drive has LBA48 Mode\n");
+    }
+
+    uint32_t size = data[60];
+    size = size << 16;
+    size |= data[61];
+
+    printf("LDA28 has %u sectors\n", size);
+
+    uint64_t size48 = data[100];
+    size48 = (size48 << 16) | data[101];
+    size48 = (size48 << 16) | data[102];
+    size48 = (size48 << 16) | data[103];
+
+    printf("LDA48 has %u sectors\n", size48);
 }
