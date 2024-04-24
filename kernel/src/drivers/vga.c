@@ -10,7 +10,7 @@
 #define MAX_INDEX (VGA_ROWS * VGA_COLS)
 
 static int index = 0;
-static char color = VGA_WHITE_ON_BLACK;
+static char color = RESET;
 static char * screen = (char *)VGA_ADDRESS;
 
 static void update_cursor();
@@ -24,11 +24,11 @@ void vga_clear() {
     for (int row = 0; row < VGA_ROWS; row++) {
         for (int col = 0; col < VGA_COLS; col++) {
             index = vga_index(row, col);
-            vga_put(index, ' ', VGA_WHITE_ON_BLACK);
+            vga_put(index, ' ', RESET);
         }
     }
     index = 0;
-    color = VGA_WHITE_ON_BLACK;
+    color = RESET;
 }
 
 void vga_put(int index, char c, unsigned char attr) {
@@ -100,7 +100,7 @@ size_t vga_putc(char c) {
     else if (c == '\b') {
         if (index > 0)
             index--;
-        vga_put(index, ' ', VGA_WHITE_ON_BLACK);
+        vga_put(index, ' ', RESET);
     }
     else {
         vga_put(index++, c, color);
@@ -144,6 +144,6 @@ static void shift_lines() {
     memmove(screen, screen + (VGA_COLS * 2), ((VGA_ROWS - 1) * VGA_COLS * 2));
     for (int col = 0; col < VGA_COLS; col++) {
         int index = vga_index(VGA_ROWS - 1, col);
-        vga_put(index, ' ', VGA_WHITE_ON_BLACK);
+        vga_put(index, ' ', RESET);
     }
 }

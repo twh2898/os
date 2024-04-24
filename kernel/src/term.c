@@ -40,7 +40,7 @@ static void key_cb(uint8_t code, char c, keyboard_event_t event, keyboard_mod_t 
         if (code == KEY_ENTER) {
             vga_putc(c);
             exec_buff();
-            vga_color(VGA_WHITE_ON_BLACK);
+            vga_color(RESET);
             vga_print("> ");
             return;
         }
