@@ -2,6 +2,7 @@
 
 #include "cpu/isr.h"
 #include "cpu/ports.h"
+#include "debug.h"
 #include "libc/stdio.h"
 
 // https://wiki.osdev.org/ATA_PIO_Mode
@@ -57,7 +58,7 @@
 #define ATA_ADDRESS_FLAG_WTG 0x40 // Low when drive write is in progress
 
 static void disk_callback(registers_t regs) {
-    printf("disk callback\n");
+    // printf("disk callback\n");
 }
 
 void init_disk() {
@@ -123,14 +124,16 @@ void disk_identify() {
         data[i] = port_word_in(ATA_BUS_0_IO_DATA);
     }
 
-    printf("Data is:\n");
-    size_t step = 8;
-    for (size_t i = 0; i < (256 / step); i++) {
-        printf("%4u", i * step);
-        for (size_t s = 0; s < step; s++) {
-            printf(" %04X", data[(i * step) + s]);
+    if (debug) {
+        printf("Data is:\n");
+        size_t step = 8;
+        for (size_t i = 0; i < (256 / step); i++) {
+            printf("%4u", i * step);
+            for (size_t s = 0; s < step; s++) {
+                printf(" %04X", data[(i * step) + s]);
+            }
+            putc('\n');
         }
-        putc('\n');
     }
 
     bool has_lba = (data[83] & (1 << 10));
@@ -138,11 +141,11 @@ void disk_identify() {
         printf("Drive has LBA48 Mode\n");
     }
 
-    uint32_t size = data[60];
-    size = size << 16;
-    size |= data[61];
+    uint32_t size28 = data[61];
+    size28 = size28 << 16;
+    size28 |= data[60];
 
-    printf("LDA28 has %u sectors\n", size);
+    printf("LDA28 has %u sectors\n", size28);
 
     uint64_t size48 = data[100];
     size48 = (size48 << 16) | data[101];
@@ -150,4 +153,7 @@ void disk_identify() {
     size48 = (size48 << 16) | data[103];
 
     printf("LDA48 has %u sectors\n", size48);
+
+    uint32_t size = (size28 >> 10) * 7;
+    printf("Disk size is %u kb\n", size);
 }
