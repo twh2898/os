@@ -14,7 +14,7 @@ static int num_width(unsigned int n, int base) {
         n /= base;
         width++;
     }
-    return width;
+    return (width ? width : 1);
 }
 
 void itoa(int n, char * str) {
