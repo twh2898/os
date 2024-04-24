@@ -136,6 +136,11 @@ static int time_cmd(size_t argc, char ** argv) {
     return 0;
 }
 
+static int write_cmd(size_t argc, char ** argv) {
+    disk_write(1);
+    return 0;
+}
+
 void commands_init() {
     term_command_add("clear", clear_cmd);
     term_command_add("echo", echo_cmd);
@@ -145,4 +150,5 @@ void commands_init() {
     term_command_add("inb", port_in_cmd);
     term_command_add("id", identify_disk_cmd);
     term_command_add("time", time_cmd);
+    term_command_add("write", write_cmd);
 }

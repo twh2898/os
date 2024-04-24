@@ -58,7 +58,7 @@
 #define ATA_ADDRESS_FLAG_WTG 0x40 // Low when drive write is in progress
 
 static void disk_callback(registers_t regs) {
-    // printf("disk callback\n");
+    printf("disk callback\n");
 }
 
 void init_disk() {
@@ -156,4 +156,16 @@ void disk_identify() {
 
     uint32_t size = (size28 >> 10) * 7;
     printf("Disk size is %u kb\n", size);
+}
+
+void disk_write(uint32_t lba) {
+    port_byte_out(ATA_BUS_0_IO_DRIVE_HEAD, (0xF0 | (lba >> 24) & 0xF));
+    port_byte_out(0x1F1, 0); // delay?
+    port_byte_out(ATA_BUS_0_IO_SECTOR_COUNT, 1);
+    port_byte_out(ATA_BUS_0_IO_LBA_LOW, lba & 0xFF);
+    port_byte_out(ATA_BUS_0_IO_LBA_MID, (lba >> 8) & 0xFF);
+    port_byte_out(ATA_BUS_0_IO_LBA_HIGH, (lba >> 16) & 0xFF);
+    port_byte_out(ATA_BUS_0_IO_COMMAND, 0x20); // read sectors
+
+    // TODO poll or wait for IRQ then read next (count) sectors
 }
