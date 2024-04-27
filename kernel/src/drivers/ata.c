@@ -3,9 +3,29 @@
 #include "cpu/isr.h"
 #include "cpu/ports.h"
 #include "debug.h"
+#include "drivers/rtc.h"
 #include "libc/stdio.h"
 
 // https://wiki.osdev.org/ATA_PIO_Mode
+
+#define TIMEOUT_MS 1000
+#define START_TIMEOUT uint32_t __timeout = time_ms() + TIMEOUT_MS;
+#define TEST_TIMEOUT                                          \
+    if (time_ms() > __timeout) {                              \
+        puts("TIMEOUT\n");                                    \
+        return 0;                                             \
+    }                                                         \
+    else if (debug) {                                         \
+        printf("no timeout %u < %u\n", time_ms(), __timeout); \
+    }
+#define TEST_TIMEOUT_VOID                                     \
+    if (time_ms() > __timeout) {                              \
+        puts("TIMEOUT\n");                                    \
+        return;                                               \
+    }                                                         \
+    else if (debug) {                                         \
+        printf("no timeout %u < %u\n", time_ms(), __timeout); \
+    }
 
 #define ATA_BUS_0_IO_BASE 0x1F0
 #define ATA_BUS_0_CTL_BASE 0x3F6
@@ -57,8 +77,23 @@
 #define ATA_ADDRESS_FLAG_HS 0x3C // 1's complement selected head
 #define ATA_ADDRESS_FLAG_WTG 0x40 // Low when drive write is in progress
 
+#define ATA_SECTOR_WORDS 256
+
 static void disk_callback(registers_t regs) {
-    printf("disk callback\n");
+    puts("disk callback\n");
+}
+
+static void print_block(uint16_t * block) {
+    size_t step = 16;
+    for (size_t i = 0; i < (ATA_SECTOR_WORDS / step); i++) {
+        // printf("%4u", i * step);
+        for (size_t s = 0; s < step; s++) {
+            if (s)
+                putc(' ');
+            printf("%04X", block[(i * step) + s]);
+        }
+        putc('\n');
+    }
 }
 
 void init_disk() {
@@ -75,7 +110,8 @@ void init_disk() {
     // port_byte_out(0x40, high);
 }
 
-void disk_identify() {
+size_t disk_identify() {
+    START_TIMEOUT
     port_byte_out(ATA_BUS_0_IO_DRIVE_HEAD, 0xA0);
 
     port_byte_out(ATA_BUS_0_IO_LBA_LOW, 0x0);
@@ -87,19 +123,20 @@ void disk_identify() {
 
     if (status == 0) {
         puts("Drive does not exist\n");
-        return;
+        return 0;
     }
 
     puts("Polling");
     while (status & ATA_STATUS_FLAG_BSY) {
         putc('.');
         status = port_byte_in(ATA_BUS_0_IO_STATUS);
+        TEST_TIMEOUT
     }
     putc('\n');
 
     if (port_byte_in(ATA_BUS_0_IO_LBA_MID) || port_byte_in(ATA_BUS_0_IO_LBA_HIGH)) {
         puts("Disk does not support ATA\n");
-        return;
+        return 0;
     }
     puts("Drive is ATA\n");
 
@@ -107,27 +144,28 @@ void disk_identify() {
     while (!(status & (ATA_STATUS_FLAG_DRQ | ATA_STATUS_FLAG_ERR))) {
         putc('.');
         status = port_byte_in(ATA_BUS_0_IO_STATUS);
+        TEST_TIMEOUT
     }
     putc('\n');
 
     if (status & ATA_STATUS_FLAG_ERR) {
         puts("Disk initialized with errors\n");
-        return;
+        return 0;
     }
 
     if (status & ATA_STATUS_FLAG_DRQ) {
         puts("Disk is ready\n");
     }
 
-    uint16_t data[256];
-    for (size_t i = 0; i < 256; i++) {
+    uint16_t data[ATA_SECTOR_WORDS];
+    for (size_t i = 0; i < ATA_SECTOR_WORDS; i++) {
         data[i] = port_word_in(ATA_BUS_0_IO_DATA);
     }
 
     if (debug) {
         printf("Data is:\n");
         size_t step = 8;
-        for (size_t i = 0; i < (256 / step); i++) {
+        for (size_t i = 0; i < (ATA_SECTOR_WORDS / step); i++) {
             printf("%4u", i * step);
             for (size_t s = 0; s < step; s++) {
                 printf(" %04X", data[(i * step) + s]);
@@ -156,10 +194,69 @@ void disk_identify() {
 
     uint32_t size = (size28 >> 10) * 7;
     printf("Disk size is %u kb\n", size);
+    return size;
 }
 
-void disk_write(uint32_t lba) {
-    port_byte_out(ATA_BUS_0_IO_DRIVE_HEAD, (0xF0 | (lba >> 24) & 0xF));
+void software_reset() {
+    START_TIMEOUT
+    port_byte_out(ATA_BUS_0_CTL_CONTROL, ATA_CONTROL_FLAG_SRST);
+    disk_status();
+    port_byte_out(ATA_BUS_0_CTL_CONTROL, 0);
+
+    // delay 400 ns
+    port_byte_in(ATA_BUS_0_CTL_ALT_STATUS);
+    port_byte_in(ATA_BUS_0_CTL_ALT_STATUS);
+    port_byte_in(ATA_BUS_0_CTL_ALT_STATUS);
+    port_byte_in(ATA_BUS_0_CTL_ALT_STATUS);
+
+    uint8_t status = port_byte_in(ATA_BUS_0_CTL_ALT_STATUS);
+    // while ((status & (ATA_STATUS_FLAG_RDY | ATA_STATUS_FLAG_BSY)) !=
+    // ATA_STATUS_FLAG_RDY) {
+    while ((status & 0xc0) != 0x40) {
+        if (debug)
+            disk_status();
+        status = port_byte_in(ATA_BUS_0_CTL_ALT_STATUS);
+        TEST_TIMEOUT_VOID
+    }
+}
+
+void disk_status() {
+    uint8_t status = port_byte_in(ATA_BUS_0_CTL_ALT_STATUS);
+    printf("Status is %02X\n", status);
+    if (status & ATA_STATUS_FLAG_ERR)
+        puts("ERR ");
+    if (status & ATA_STATUS_FLAG_DRQ)
+        puts("DRQ ");
+    if (status & ATA_STATUS_FLAG_SRV)
+        puts("SRV ");
+    if (status & ATA_STATUS_FLAG_DF)
+        puts("DF ");
+    if (status & ATA_STATUS_FLAG_RDY)
+        puts("RDY ");
+    if (status & ATA_STATUS_FLAG_BSY)
+        puts("BSY ");
+    putc('\n');
+}
+
+// size_t disk_read(uint8_t * data, size_t count, uint32_t lba) {
+// if (count > 0x3fffff) {
+//     puts("[ERROR] Size is more than 2GB\n");
+//     return 0;
+// }
+
+size_t disk_read(uint32_t lba) {
+    software_reset();
+    START_TIMEOUT
+    puts("waiting for drive ready");
+    while (port_byte_in(ATA_BUS_0_CTL_ALT_STATUS)
+           & (ATA_STATUS_FLAG_DRQ | ATA_STATUS_FLAG_BSY)) {
+        if (debug)
+            putc('.');
+        TEST_TIMEOUT
+    }
+    putc('\n');
+
+    port_byte_out(ATA_BUS_0_IO_DRIVE_HEAD, (0xE0 | ((lba >> 24) & 0xF)));
     port_byte_out(0x1F1, 0); // delay?
     port_byte_out(ATA_BUS_0_IO_SECTOR_COUNT, 1);
     port_byte_out(ATA_BUS_0_IO_LBA_LOW, lba & 0xFF);
@@ -168,4 +265,62 @@ void disk_write(uint32_t lba) {
     port_byte_out(ATA_BUS_0_IO_COMMAND, 0x20); // read sectors
 
     // TODO poll or wait for IRQ then read next (count) sectors
+    puts("waiting for data");
+    // while (!(port_byte_in(ATA_BUS_0_IO_STATUS) & ATA_STATUS_FLAG_DRQ)) {
+    //     if (debug)
+    //         putc('.');
+    // }
+    putc('\n');
+
+    uint16_t data[ATA_SECTOR_WORDS];
+    for (size_t i = 0; i < ATA_SECTOR_WORDS; i++) {
+        while (!(port_byte_in(ATA_BUS_0_CTL_ALT_STATUS) & ATA_STATUS_FLAG_DRQ)) {
+            disk_status();
+            TEST_TIMEOUT
+        }
+        data[i] = port_word_in(ATA_BUS_0_IO_DATA);
+    }
+    print_block(data);
+    return 0;
+}
+
+size_t disk_write(uint32_t lba) {
+    software_reset();
+    START_TIMEOUT
+    uint32_t start = time_ms();
+    puts("waiting for drive ready");
+    while (port_byte_in(ATA_BUS_0_CTL_ALT_STATUS)
+           & (ATA_STATUS_FLAG_DRQ | ATA_STATUS_FLAG_BSY)) {
+        if (debug)
+            putc('.');
+        if (time_ms() > start + TIMEOUT_MS)
+            return 0;
+        TEST_TIMEOUT
+    }
+    putc('\n');
+
+    port_byte_out(ATA_BUS_0_IO_DRIVE_HEAD, (0xE0 | ((lba >> 24) & 0xF)));
+    port_byte_out(0x1F1, 0); // delay?
+    port_byte_out(ATA_BUS_0_IO_SECTOR_COUNT, 1);
+    port_byte_out(ATA_BUS_0_IO_LBA_LOW, lba & 0xFF);
+    port_byte_out(ATA_BUS_0_IO_LBA_MID, (lba >> 8) & 0xFF);
+    port_byte_out(ATA_BUS_0_IO_LBA_HIGH, (lba >> 16) & 0xFF);
+    port_byte_out(ATA_BUS_0_IO_COMMAND, 0x30); // write sectors
+
+    // TODO poll or wait for IRQ then read next (count) sectors
+    puts("waiting for data");
+    // while (!(port_byte_in(ATA_BUS_0_IO_STATUS) & ATA_STATUS_FLAG_DRQ)) {
+    //     if (debug)
+    //         putc('.');
+    // }
+    putc('\n');
+
+    uint16_t data[ATA_SECTOR_WORDS];
+    for (uint16_t i = 0; i < ATA_SECTOR_WORDS; i++) {
+        data[i] = i;
+    }
+    for (size_t i = 0; i < ATA_SECTOR_WORDS; i++) {
+        port_word_out(ATA_BUS_0_IO_DATA, data[i]);
+    }
+    return 0;
 }

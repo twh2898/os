@@ -136,6 +136,21 @@ static int time_cmd(size_t argc, char ** argv) {
     return 0;
 }
 
+static int reset_cmd(size_t argc, char ** argv) {
+    software_reset();
+    return 0;
+}
+
+static int status_cmd(size_t argc, char ** argv) {
+    disk_status();
+    return 0;
+}
+
+static int read_cmd(size_t argc, char ** argv) {
+    disk_read(1);
+    return 0;
+}
+
 static int write_cmd(size_t argc, char ** argv) {
     disk_write(1);
     return 0;
@@ -150,5 +165,8 @@ void commands_init() {
     term_command_add("inb", port_in_cmd);
     term_command_add("id", identify_disk_cmd);
     term_command_add("time", time_cmd);
+    term_command_add("reset", reset_cmd);
+    term_command_add("status", status_cmd);
+    term_command_add("read", read_cmd);
     term_command_add("write", write_cmd);
 }
