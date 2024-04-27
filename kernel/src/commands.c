@@ -158,7 +158,7 @@ static int read_cmd(size_t argc, char ** argv) {
 
 static int write_cmd(size_t argc, char ** argv) {
     char data[10] = "123456789";
-    disk_write(1);
+    disk_write(data, 10, 1);
     return 0;
 }
 
