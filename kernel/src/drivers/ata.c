@@ -78,6 +78,9 @@
 #define ATA_ADDRESS_FLAG_WTG 0x40 // Low when drive write is in progress
 
 #define ATA_SECTOR_WORDS 256
+#define ATA_SECTOR_BYTES (ATA_SECTOR_WORDS * 2)
+
+static uint32_t disk_size;
 
 static void disk_callback(registers_t regs) {
     puts("disk callback\n");
@@ -99,6 +102,7 @@ static void print_block(uint16_t * block) {
 void init_disk() {
     /* Primary Drive */
     register_interrupt_handler(IRQ14, disk_callback);
+    disk_size = disk_identify();
 
     // /* Get the PIT value: hardware clock at 1193180 Hz */
     // uint32_t divisor = 1193180 / freq;
@@ -220,7 +224,7 @@ void software_reset() {
     }
 }
 
-void disk_status() {
+bool disk_status() {
     uint8_t status = port_byte_in(ATA_BUS_0_CTL_ALT_STATUS);
     printf("Status is %02X\n", status);
     if (status & ATA_STATUS_FLAG_ERR)
@@ -236,52 +240,109 @@ void disk_status() {
     if (status & ATA_STATUS_FLAG_BSY)
         puts("BSY ");
     putc('\n');
+
+    if (status & ATA_STATUS_FLAG_ERR) {
+        uint8_t error = port_byte_in(ATA_BUS_0_IO_ERROR);
+        if (error & ATA_ERROR_FLAG_AMNF)
+            puts("ERROR: AMNF - Address mark not found\n");
+        if (error & ATA_ERROR_FLAG_TKZNK)
+            puts("ERROR: TKZNK - Track zero not found\n");
+        if (error & ATA_ERROR_FLAG_ABRT)
+            puts("ERROR: ABRT - Aborted command\n");
+        if (error & ATA_ERROR_FLAG_MCR)
+            puts("ERROR: MCR - Media change request\n");
+        if (error & ATA_ERROR_FLAG_IDNF)
+            puts("ERROR: IDNF - ID not found\n");
+        if (error & ATA_ERROR_FLAG_MC)
+            puts("ERROR: MC - Media changed\n");
+        if (error & ATA_ERROR_FLAG_UNC)
+            puts("ERROR: UNC - Uncorrectable data error\n");
+        if (error & ATA_ERROR_FLAG_BBK)
+            puts("ERROR: BBK - Bad block detected\n");
+        return true;
+    }
+
+    return false;
 }
 
-// size_t disk_read(uint8_t * data, size_t count, uint32_t lba) {
-// if (count > 0x3fffff) {
-//     puts("[ERROR] Size is more than 2GB\n");
-//     return 0;
-// }
+size_t sector_read(uint8_t * buff, size_t count, uint8_t sec_count, uint32_t lba) {
+    if (count == 0)
+        return 0;
 
-size_t disk_read(uint32_t lba) {
+    size_t total_sec = (sec_count == 0 ? 256 : sec_count);
+    if (lba > disk_size) {
+        puts("[ERROR] not enough disk space\n");
+        return 0;
+    }
+    else if (lba + count > disk_size) {
+        count = disk_size - lba;
+    }
+
     software_reset();
     START_TIMEOUT
-    puts("waiting for drive ready");
     while (port_byte_in(ATA_BUS_0_CTL_ALT_STATUS)
            & (ATA_STATUS_FLAG_DRQ | ATA_STATUS_FLAG_BSY)) {
-        if (debug)
-            putc('.');
         TEST_TIMEOUT
     }
-    putc('\n');
 
     port_byte_out(ATA_BUS_0_IO_DRIVE_HEAD, (0xE0 | ((lba >> 24) & 0xF)));
     port_byte_out(0x1F1, 0); // delay?
-    port_byte_out(ATA_BUS_0_IO_SECTOR_COUNT, 1);
+    port_byte_out(ATA_BUS_0_IO_SECTOR_COUNT, sec_count);
     port_byte_out(ATA_BUS_0_IO_LBA_LOW, lba & 0xFF);
     port_byte_out(ATA_BUS_0_IO_LBA_MID, (lba >> 8) & 0xFF);
     port_byte_out(ATA_BUS_0_IO_LBA_HIGH, (lba >> 16) & 0xFF);
     port_byte_out(ATA_BUS_0_IO_COMMAND, 0x20); // read sectors
 
-    // TODO poll or wait for IRQ then read next (count) sectors
-    puts("waiting for data");
-    // while (!(port_byte_in(ATA_BUS_0_IO_STATUS) & ATA_STATUS_FLAG_DRQ)) {
-    //     if (debug)
-    //         putc('.');
-    // }
-    putc('\n');
+    size_t o_len = 0;
+    for (size_t s = 0; s < total_sec; s++) {
+        // Read entire sector
+        for (size_t i = 0; i < ATA_SECTOR_WORDS; i++) {
+            // Wait for drive to be ready
+            while (!(port_byte_in(ATA_BUS_0_CTL_ALT_STATUS) & ATA_STATUS_FLAG_DRQ)) {
+                disk_status();
+                TEST_TIMEOUT
+            }
 
-    uint16_t data[ATA_SECTOR_WORDS];
-    for (size_t i = 0; i < ATA_SECTOR_WORDS; i++) {
-        while (!(port_byte_in(ATA_BUS_0_CTL_ALT_STATUS) & ATA_STATUS_FLAG_DRQ)) {
-            disk_status();
-            TEST_TIMEOUT
+            // read drive data
+            uint16_t word = port_word_in(ATA_BUS_0_IO_DATA);
+
+            // Don't append to buff if past count
+            if (o_len < count) {
+                // TODO This might be flipped
+                buff[o_len++] = word & 0xFF;
+
+                // Check for odd byte
+                if (o_len < count)
+                    buff[o_len++] = (word >> 8) & 0xFF;
+            }
         }
-        data[i] = port_word_in(ATA_BUS_0_IO_DATA);
     }
-    print_block(data);
-    return 0;
+
+    return o_len;
+}
+
+size_t disk_read(uint8_t * data, size_t count, uint32_t lba) {
+    /*
+    - Read 255 sectors until sec_count is < 255
+    - Read sce_count sectors
+
+    - Read up to 512 bytes into buff
+    - Increment buff to next 512 section
+    */
+    size_t sec_count = count / ATA_SECTOR_BYTES;
+    if (count % ATA_SECTOR_BYTES)
+        sec_count++;
+
+    size_t o_len = 0;
+    for (size_t s = 0; s < sec_count; s+=256) {
+        size_t to_read = 265;
+        if (s + to_read > sec_count)
+            to_read = sec_count - s;
+
+        o_len += sector_read(data, count, to_read, lba + s * ATA_SECTOR_BYTES);
+    }
+
+    return o_len;
 }
 
 size_t disk_write(uint32_t lba) {
@@ -320,7 +381,13 @@ size_t disk_write(uint32_t lba) {
         data[i] = i;
     }
     for (size_t i = 0; i < ATA_SECTOR_WORDS; i++) {
+        while (!(port_byte_in(ATA_BUS_0_CTL_ALT_STATUS) & ATA_STATUS_FLAG_DRQ)) {
+            disk_status();
+            TEST_TIMEOUT
+        }
         port_word_out(ATA_BUS_0_IO_DATA, data[i]);
     }
+
+    port_byte_out(ATA_BUS_0_IO_COMMAND, 0xE7); // cache flush
     return 0;
 }

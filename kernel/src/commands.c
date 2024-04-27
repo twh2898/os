@@ -147,11 +147,17 @@ static int status_cmd(size_t argc, char ** argv) {
 }
 
 static int read_cmd(size_t argc, char ** argv) {
-    disk_read(1);
+    char data[10];
+    size_t read = disk_read(data, 9, 1);
+    data[9] = 0;
+    if (read < 9)
+        data[read] = 0;
+    printf("read data %s\n", data);
     return 0;
 }
 
 static int write_cmd(size_t argc, char ** argv) {
+    char data[10] = "123456789";
     disk_write(1);
     return 0;
 }
