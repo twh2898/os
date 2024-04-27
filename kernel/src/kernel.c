@@ -64,6 +64,9 @@ void console() {
     term_init();
     commands_init();
     term_command_add("demo", demo);
+    for(;;) {
+        asm volatile("hlt");
+    }
 }
 
 void kernel_main() {
