@@ -22,7 +22,7 @@ int test_Circbuff() {
     ASSERT_EQ(1, circbuff_len(cbuff));
     ASSERT_EQ(3, circbuff_at(cbuff, 0));
 
-    // TODO: edge case push and pop
+    // TODO: edge case for at, push and pop
 
     size_t len = circbuff_len(cbuff);
     ASSERT(len > 0);

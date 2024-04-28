@@ -19,6 +19,7 @@ uint8_t circbuff_pop(circbuff_t * cbuff);
 size_t circbuff_insert(circbuff_t * cbuff, uint8_t * data, size_t count);
 size_t circbuff_read(const circbuff_t * cbuff, uint8_t * data, size_t count);
 size_t circbuff_remove(circbuff_t * cbuff, uint8_t * data, size_t count);
+
 size_t circbuff_clear(circbuff_t * cbuff);
 
 #endif // CIRCBUFF_H
