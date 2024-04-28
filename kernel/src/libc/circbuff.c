@@ -72,7 +72,7 @@ size_t circbuff_buff_size(circbuff_t * cbuff) {
     return cbuff->buff_size;
 }
 
-size_t circbuff_lens(circbuff_t * cbuff) {
+size_t circbuff_len(circbuff_t * cbuff) {
     TEST_PTR(cbuff)
     return cbuff->len;
 }

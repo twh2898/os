@@ -8,6 +8,7 @@
 #include "libc/stdio.h"
 #include "libc/string.h"
 #include "term.h"
+#include "test.h"
 
 void cursor() {
     vga_cursor(3, 3);
@@ -64,9 +65,13 @@ void console() {
     term_init();
     commands_init();
     term_command_add("demo", demo);
-    for(;;) {
+    for (;;) {
         asm volatile("hlt");
     }
+}
+
+static int test_cmd(size_t argc, char ** argv) {
+    return run_tests();
 }
 
 void kernel_main() {
@@ -77,6 +82,8 @@ void kernel_main() {
     // cursor();
     // test_interrupt();
     // demo(0, 0);
+
+    term_command_add("test", test_cmd);
 
     console();
 }
