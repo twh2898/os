@@ -16,7 +16,7 @@ BOOTDIR:=boot
 OBJDIR:=build
 
 # =======
-#  BUILD 
+#  BUILD
 # =======
 PWD :=
 PWD := $(shell pwd)/
@@ -87,4 +87,4 @@ debugbuild:
 clean:
 	rm -rf os-image.bin $(PWD)$(OBJDIR)
 
-.PHONY: all clean run debug debugbuild
+.PHONY: all run debug debugbuild clean
