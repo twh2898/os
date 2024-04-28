@@ -61,17 +61,19 @@ void key_cb(uint8_t code, char c, keyboard_event_t event, keyboard_mod_t mod) {
     }
 }
 
+static int test_cmd(size_t argc, char ** argv) {
+    return run_tests();
+}
+
 void console() {
     term_init();
     commands_init();
     term_command_add("demo", demo);
+    term_command_add("test", test_cmd);
+    test_cmd(0, 0);
     for (;;) {
         asm volatile("hlt");
     }
-}
-
-static int test_cmd(size_t argc, char ** argv) {
-    return run_tests();
 }
 
 void kernel_main() {
@@ -82,8 +84,6 @@ void kernel_main() {
     // cursor();
     // test_interrupt();
     // demo(0, 0);
-
-    term_command_add("test", test_cmd);
 
     console();
 }
