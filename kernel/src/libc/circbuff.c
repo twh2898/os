@@ -106,20 +106,33 @@ uint8_t circbuff_pop(circbuff_t * cbuff) {
 
 size_t circbuff_insert(circbuff_t * cbuff, uint8_t * data, size_t count) {
     TEST_PTR(cbuff)
-    size_t o_len = 0;
+    size_t remainder = cbuff->buff_size - cbuff->len;
+    if (count > remainder)
+        count = remainder;
     for (size_t i = 0; i < count; i++) {
-        if (cbuff->len < cbuff->buff_size)
-            circbuff_push(cbuff, data[o_len++]);
+        circbuff_push(cbuff, data[i]);
     }
-    return o_len;
+    return count;
 }
 
 size_t circbuff_read(circbuff_t * cbuff, uint8_t * data, size_t count) {
     TEST_PTR(cbuff)
-    size_t o_len = 0;
+    if (count > cbuff->len)
+        count = cbuff->len;
+    size_t curr = cbuff->start;
     for (size_t i = 0; i < count; i++) {
-        if (cbuff->len > 0)
-            data[o_len++] = circbuff_pop(cbuff);
+        data[i] = circbuff_at(cbuff, curr);
+        curr = _next_index(cbuff, curr);
     }
-    return o_len;
+    return count;
+}
+
+size_t circbuff_remove(circbuff_t * cbuff, uint8_t * data, size_t count) {
+    TEST_PTR(cbuff)
+    if (count > cbuff->len)
+        count = cbuff->len;
+    for (size_t i = 0; i < count; i++) {
+        data[i] = circbuff_pop(cbuff);
+    }
+    return count;
 }
