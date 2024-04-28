@@ -147,6 +147,13 @@ size_t circbuff_remove(circbuff_t * cbuff, uint8_t * data, size_t count) {
     TEST_PTR(cbuff)
     if (count > cbuff->len)
         count = cbuff->len;
+
+    if (!data) {
+        cbuff->start = _wrap_index(cbuff, cbuff->start + count);
+        cbuff->len -= count;
+        return 0;
+    }
+
     for (size_t i = 0; i < count; i++) {
         data[i] = circbuff_pop(cbuff);
     }

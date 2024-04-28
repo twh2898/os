@@ -23,6 +23,15 @@ int test_Circbuff() {
     ASSERT_EQ(3, circbuff_at(cbuff, 0));
 
     // TODO: edge case for at, push and pop
+    // TODO: edge case for len
+
+    circbuff_clear(cbuff);
+    ASSERT_EQ(0, circbuff_at(cbuff, 0));
+    ASSERT_EQ(0, circbuff_at(cbuff, 1));
+
+    ASSERT_EQ(1, circbuff_push(cbuff, 4));
+    ASSERT_EQ(4, circbuff_at(cbuff, 0));
+    ASSERT_EQ(0, circbuff_at(cbuff, 1));
 
     size_t len = circbuff_len(cbuff);
     ASSERT(len > 0);
@@ -35,6 +44,29 @@ int test_Circbuff() {
     for (size_t i = 0; i < 3; i++) {
         ASSERT_EQ(tmp[i], circbuff_at(cbuff, i));
     }
+
+    uint8_t out[4] = {0};
+    ASSERT_EQ(3, circbuff_read(cbuff, out, 3));
+    ASSERT_EQ(3, circbuff_len(cbuff));
+    for (size_t i = 0; i < 3; i++) {
+        ASSERT_EQ(tmp[i], out[i]);
+    }
+
+    ASSERT_EQ(3, circbuff_remove(cbuff, out, 3));
+    ASSERT_EQ(0, circbuff_len(cbuff));
+    for (size_t i = 0; i < 3; i++) {
+        ASSERT_EQ(tmp[i], out[i]);
+    }
+
+    ASSERT_EQ(0, circbuff_remove(cbuff, out, 3));
+    ASSERT_EQ(0, circbuff_len(cbuff));
+
+    // TODO: edge case for insert, read and remove
+
+    ASSERT_EQ(3, circbuff_insert(cbuff, tmp, 3));
+    ASSERT_EQ(3, circbuff_len(cbuff));
+    ASSERT_EQ(0, circbuff_remove(cbuff, 0, 3));
+    ASSERT_EQ(0, circbuff_len(cbuff));
 
     circbuff_free(cbuff);
     return 0;

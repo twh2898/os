@@ -39,7 +39,7 @@ os-image.bin: $(PWD)$(OBJDIR)/bootsect.bin $(PWD)$(OBJDIR)/kernel.bin
 	cat $^ > $@
 	@echo "Final image size"
 	@du -sh $@
-	@echo Remember the limit is 50K? in bootsect.asm
+	@echo Remember the limit is 32K? in bootsect.asm
 
 drive.img:
 	qemu-img create -f qcow2 drive.img 100M
@@ -55,10 +55,10 @@ $(PWD)$(OBJDIR)/bootsect.bin: $(PWD)$(BOOTDIR)/bootsect.asm
 #  KERNEL
 # ========
 $(PWD)$(OBJDIR)/kernel.bin: $(OBJ)
-	$(LD) -Ttext 0x1000 --oformat binary -o $@ $^
+	$(LD) -Ttext 0x8000 --oformat binary -o $@ $^
 
 $(PWD)$(OBJDIR)/kernel.elf: ${OBJ}
-	$(LD) -Ttext 0x1000 -o $@ $^
+	$(LD) -Ttext 0x8000 -o $@ $^
 
 $(PWD)$(OBJDIR)/%.o: %.c $(HEADERS)
 	@mkdir -p $(shell dirname $@)
