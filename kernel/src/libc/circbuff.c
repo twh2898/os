@@ -2,18 +2,27 @@
 
 #include "libc/mem.h"
 
-#define SAFETY 0
+#ifndef SAFETY
+#define SAFETY 1
+#endif
 
 #if SAFETY
-#define TEST_PTR(REF) \
-    if (!(REF))       \
-        return 0;
-#define TEST_MIN(REF)                  \
-    if ((REF)->len < (REF)->buff_size) \
-        return 0;
-#define TEST_MAX(REF)                   \
-    if ((REF)->len >= (REF)->buff_size) \
-        return 0;
+#include "libc/stdio.h"
+#define TEST_PTR(REF)                           \
+    if (!(REF)) {                               \
+        puts("[ERROR] Null circular buffer\n"); \
+        return 0;                               \
+    }
+#define TEST_MIN(REF)                               \
+    if ((REF)->len < (REF)->buff_size) {            \
+        puts("[ERROR] Circular buffer is empty\n"); \
+        return 0;                                   \
+    }
+#define TEST_MAX(REF)                              \
+    if ((REF)->len >= (REF)->buff_size) {          \
+        puts("[ERROR] Circular buffer is full\n"); \
+        return 0;                                  \
+    }
 #else
 #define TEST_PTR(REF)
 #define TEST_MIN(REF)
