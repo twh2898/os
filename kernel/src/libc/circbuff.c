@@ -82,17 +82,17 @@ void circbuff_free(circbuff_t * cbuff) {
     }
 }
 
-size_t circbuff_buff_size(circbuff_t * cbuff) {
+size_t circbuff_buff_size(const circbuff_t * cbuff) {
     TEST_PTR(cbuff)
     return cbuff->buff_size;
 }
 
-size_t circbuff_len(circbuff_t * cbuff) {
+size_t circbuff_len(const circbuff_t * cbuff) {
     TEST_PTR(cbuff)
     return cbuff->len;
 }
 
-uint8_t circbuff_at(circbuff_t * cbuff, size_t index) {
+uint8_t circbuff_at(const circbuff_t * cbuff, size_t index) {
     TEST_PTR(cbuff)
     TEST_MIN(cbuff)
     return cbuff->buff[_wrap_index(cbuff, cbuff->start + index)];
@@ -131,7 +131,7 @@ size_t circbuff_insert(circbuff_t * cbuff, uint8_t * data, size_t count) {
     return count;
 }
 
-size_t circbuff_read(circbuff_t * cbuff, uint8_t * data, size_t count) {
+size_t circbuff_read(const circbuff_t * cbuff, uint8_t * data, size_t count) {
     TEST_PTR(cbuff)
     if (count > cbuff->len)
         count = cbuff->len;
