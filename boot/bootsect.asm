@@ -3,7 +3,7 @@ KERNEL_OFFSET equ 0x8000
 KERNEL_OFFSET2 equ 0x10000
 
 mov [BOOT_DRIVE], dl
-mov bp, 0x7c00
+mov bp, 0x7bff
 mov sp, bp
 
 mov bx, MSG_REAL_MODE
@@ -11,12 +11,12 @@ call print
 call print_nl
 
 call load_kernel
-call switch_to_pm
+; call switch_to_pm
 jmp $
 
-%include "boot/boot_sect_print.asm"
-%include "boot/boot_sect_print_hex.asm"
-%include "boot/boot_sect_disk.asm"
+%include "boot/print.asm"
+%include "boot/print_hex.asm"
+%include "boot/disk.asm"
 %include "boot/gdt.asm"
 %include "boot/32bit_print.asm"
 %include "boot/switch.asm"
@@ -28,7 +28,7 @@ load_kernel:
     call print_nl
 
     mov bx, KERNEL_OFFSET
-    mov dh, 64  ; sector is 512 bytes, so 64 = 32K
+    mov dh, 128  ; sector is 512 bytes, so 64 = 32K
     mov dl, [BOOT_DRIVE]
     call disk_load
     ret
