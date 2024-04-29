@@ -22,6 +22,7 @@ PWD :=
 PWD := $(shell pwd)/
 CFLAGS += -I$(PWD)$(INCDIR)
 
+BOOT_SOURCES := $(shell find "$(BOOTDIR)" -name '*.asm')
 C_SOURCES := $(shell find "$(SRCDIR)" -name '*.c')
 ASM_SOURCES := $(shell find "$(SRCDIR)" -name '*.asm')
 HEADERS := $(shell find "$(INCDIR)" -name '*.h')
@@ -47,7 +48,7 @@ drive.img:
 # ==========
 #  BOOTSECT
 # ==========
-$(PWD)$(OBJDIR)/bootsect.bin: $(PWD)$(BOOTDIR)/bootsect.asm
+$(PWD)$(OBJDIR)/bootsect.bin: $(PWD)$(BOOTDIR)/bootsect.asm $(BOOT_SOURCES)
 	@mkdir -p $(shell dirname $@)
 	$(ASM) -f bin $< -o $@
 
