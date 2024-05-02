@@ -36,7 +36,7 @@ OBJ := $(addprefix $(PWD), $(OBJ))
 # ==========
 #  OS IMAGE
 # ==========
-os-image.bin: $(PWD)$(OBJDIR)/bootsect.bin $(PWD)$(OBJDIR)/kernel.bin
+os-image.bin: $(PWD)$(OBJDIR)/bootsect.bin $(PWD)$(OBJDIR)/second.bin $(PWD)$(OBJDIR)/kernel.bin
 	cat $^ > $@
 	@echo "Final image size"
 	@du -sh $@
@@ -51,6 +51,13 @@ drive.img:
 $(PWD)$(OBJDIR)/bootsect.bin: $(PWD)$(BOOTDIR)/bootsect.asm $(BOOT_SOURCES)
 	@mkdir -p $(shell dirname $@)
 	$(ASM) -f bin $< -o $@
+
+$(PWD)$(OBJDIR)/second.bin: $(PWD)$(BOOTDIR)/second.asm $(BOOT_SOURCES)
+	@mkdir -p $(shell dirname $@)
+	$(ASM) -f bin $< -o $@
+
+$(PWD)$(OBJDIR)/zero:
+	dd if=/dev/zero of=$@ bs=512 count=2048
 
 # ========
 #  KERNEL
