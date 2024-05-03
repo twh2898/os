@@ -3,8 +3,7 @@ OUTPUT_FORMAT(elf32-i386)
 
 SECTIONS {
 	. = 1M;
-	.rodata BLOCK(4K) : ALIGN(4K) { *(.multiboot) }
-	.text BLOCK(4K) : ALIGN(4K) { *(.text) }
-	.rodata BLOCK(4K) : ALIGN(4K) { *(.rodata) }
-	.data BLOCK(4K) : ALIGN(4K) { *(.data) }
+	.text : ALIGN(4K) { *(.multiboot) }
+	.text : ALIGN(4K) { *(.text) }
+	.unused_section : ALIGN(4K) { kernel_end = . ; }
 }
