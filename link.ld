@@ -1,33 +1,10 @@
-ENTRY(kernel_main)
-OUTPUT_FORMAT(binary)
+ENTRY(__start)
+OUTPUT_FORMAT(elf32-i386)
 
 SECTIONS {
-    . = 4k;
-
-	/* First put the multiboot header, as it is required to be put very early
-	   in the image or the bootloader won't recognize the file format.
-	   Next we'll put the .text section. */
-	.text BLOCK(4K) : ALIGN(4K)
-	{
-		*(.text)
-	}
-
-	/* Read-only data. */
-	.rodata BLOCK(4K) : ALIGN(4K)
-	{
-		*(.rodata)
-	}
-
-	/* Read-write data (initialized) */
-	.data BLOCK(4K) : ALIGN(4K)
-	{
-		*(.data)
-	}
-
-	/* Read-write data (uninitialized) and stack */
-	.bss BLOCK(4K) : ALIGN(4K)
-	{
-		*(COMMON)
-		*(.bss)
-	}
+	. = 1M;
+	.rodata BLOCK(4K) : ALIGN(4K) { *(.multiboot) }
+	.text BLOCK(4K) : ALIGN(4K) { *(.text) }
+	.rodata BLOCK(4K) : ALIGN(4K) { *(.rodata) }
+	.data BLOCK(4K) : ALIGN(4K) { *(.data) }
 }
