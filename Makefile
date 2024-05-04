@@ -32,8 +32,17 @@ HEADERS := $(addprefix $(PWD), $(HEADERS))
 OBJ := $(addprefix $(PWD), $(OBJ))
 
 # ========
+#  OS Image
+# ========
+os.iso: $(PWD)isofiles/boot/kernel.bin $(PWD)isofiles/boot/grub/grub.cfg
+	grub-mkrescue -o $@ $(PWD)isofiles
+
+# ========
 #  KERNEL
 # ========
+$(PWD)isofiles/boot/kernel.bin: $(PWD)$(OBJDIR)/kernel.elf
+	cp $< $@
+
 $(PWD)$(OBJDIR)/kernel.elf: link.ld $(OBJ)
 	$(LD) -T link.ld -o $@ $(OBJ)
 
@@ -48,8 +57,8 @@ $(PWD)$(OBJDIR)/%.o: %.asm
 # ===============
 #  LAUNCH & UTIL
 # ===============
-run: $(PWD)$(OBJDIR)/kernel.elf drive.img
-	$(QEMU) -kernel $< -drive format=qcow2,file=drive.img
+run: os.iso drive.img
+	$(QEMU) -cdrom $< -drive format=qcow2,file=drive.img
 
 debug: $(PWD)$(OBJDIR)/kernel.elf
 	$(QEMU) -s -kernel $< -drive format=qcow2,file=drive.img &
@@ -65,6 +74,6 @@ drive.img:
 	qemu-img create -f qcow2 drive.img 100M
 
 clean:
-	rm -rf os-image.bin kernel.bin $(PWD)$(OBJDIR)
+	rm -rf os.iso drive.img isofiles/boot/kernel.bin os-image.bin kernel.bin $(PWD)$(OBJDIR)
 
 .PHONY: all run debug debugbuild clean

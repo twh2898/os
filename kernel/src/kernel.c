@@ -79,17 +79,17 @@ void console() {
 
 void kernel_main() {
     vga_clear();
-    multiboot_init();
+    // // multiboot_init();
 
-    isr_install();
-    irq_install();
+    // isr_install();
+    // irq_install();
 
-    // cursor();
-    // test_interrupt();
-    // demo(0, 0);
+    // // cursor();
+    // // test_interrupt();
+    // // demo(0, 0);
 
     printf("Kernel end is %p\n", kernel_end);
-    printf("Multiboot is at %p\n", MULTIBOOT_SECTOR);
+    // printf("Multiboot is at %p\n", MULTIBOOT_SECTOR);
 
     console();
 }
