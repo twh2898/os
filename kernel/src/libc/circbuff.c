@@ -16,7 +16,7 @@
             __LINE__);                    \
         return 0;                         \
     }
-#define TEST_MIN(REF)                         \
+#define TEST_EMPTY(REF)                         \
     if ((REF)->len == 0) {                    \
         printf(                               \
             "[ERROR] "__FILE__                \
@@ -24,7 +24,7 @@
             __LINE__);                        \
         return 0;                             \
     }
-#define TEST_MAX(REF)                        \
+#define TEST_FULL(REF)                        \
     if ((REF)->len >= (REF)->buff_size) {    \
         printf(                              \
             "[ERROR] "__FILE__               \
@@ -34,8 +34,8 @@
     }
 #else
 #define TEST_PTR(REF)
-#define TEST_MIN(REF)
-#define TEST_MAX(REF)
+#define TEST_EMPTY(REF)
+#define TEST_FULL(REF)
 #endif
 
 struct _circbuff {
@@ -94,7 +94,7 @@ size_t circbuff_len(const circbuff_t * cbuff) {
 
 uint8_t circbuff_at(const circbuff_t * cbuff, size_t index) {
     TEST_PTR(cbuff)
-    TEST_MIN(cbuff)
+    TEST_EMPTY(cbuff)
     return cbuff->buff[_wrap_index(cbuff, cbuff->start + index)];
 }
 
