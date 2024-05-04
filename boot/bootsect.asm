@@ -11,8 +11,8 @@ call print
 call print_nl
 
 call load_kernel
-; call switch_to_pm
-jmp KERNEL_OFFSET
+call switch_to_pm
+; jmp KERNEL_OFFSET
 jmp $
 
 %include "boot/print.asm"

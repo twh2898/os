@@ -36,7 +36,7 @@ OBJ := $(addprefix $(PWD), $(OBJ))
 # ==========
 #  OS IMAGE
 # ==========
-os-image.bin: $(PWD)$(OBJDIR)/bootsect.bin $(PWD)$(OBJDIR)/second.bin $(PWD)$(OBJDIR)/kernel.bin
+os-image.bin: $(PWD)$(OBJDIR)/bootsect.bin $(PWD)$(OBJDIR)/kernel.bin
 	cat $^ > $@
 	@echo "Final image size"
 	@du -sh $@
