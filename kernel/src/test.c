@@ -95,6 +95,45 @@ int test_circbuff_push_pop() {
     return 0;
 }
 
+int test_circbuff_insert() {
+    uint8_t tmp[4] = {1, 2, 3, 4};
+    circbuff_t * cbuff = NEW_BUFFER(4);
+
+    // insert 0
+    ASSERT_EQ(0, circbuff_insert(cbuff, tmp, 0));
+
+    // insert 1
+
+    // insert 1+
+
+    // insert 0 full
+
+    // insert 1 full
+
+    // insert 1+ full
+
+    circbuff_free(cbuff);
+    return 0;
+}
+
+// int test_circbuff_read() {
+//     uint8_t tmp[4] = {1, 2, 3, 4};
+//     uint8_t out[4] = {0};
+//     circbuff_t * cbuff = NEW_BUFFER(4);
+
+//     circbuff_free(cbuff);
+//     return 0;
+// }
+
+// int test_circbuff_remove() {
+//     uint8_t tmp[4] = {1, 2, 3, 4};
+//     uint8_t out[4] = {0};
+//     circbuff_t * cbuff = NEW_BUFFER(4);
+
+//     circbuff_free(cbuff);
+//     return 0;
+// }
+
 int test_Circbuff() {
     circbuff_t * cbuff = circbuff_new(4);
     ASSERT_NOT_EQ(0, cbuff);
@@ -151,6 +190,9 @@ int run_tests() {
     TEST(test_circbuff_new)
     TEST(test_circbuff_at)
     TEST(test_circbuff_push_pop)
+    TEST(test_circbuff_insert)
+    // TEST(test_circbuff_read)
+    // TEST(test_circbuff_remove)
     TEST(test_Circbuff)
     END_TESTS
 }
