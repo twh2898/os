@@ -7,8 +7,12 @@
 #include "libc/mem.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
+#include "multiboot.h"
 #include "term.h"
 #include "test.h"
+
+extern uint32_t kernel_end;
+extern uint32_t MULTIBOOT_SECTOR;
 
 void cursor() {
     vga_cursor(3, 3);
@@ -75,12 +79,17 @@ void console() {
 
 void kernel_main() {
     vga_clear();
+    multiboot_init();
+
     isr_install();
     irq_install();
 
     // cursor();
     // test_interrupt();
     // demo(0, 0);
+
+    printf("Kernel end is %p\n", kernel_end);
+    printf("Multiboot is at %p\n", MULTIBOOT_SECTOR);
 
     console();
 }
