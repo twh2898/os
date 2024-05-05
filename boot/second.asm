@@ -2,6 +2,8 @@
 
 jmp do_thing
 
+db "Near", 0
+
 %include "boot/print.asm"
 %include "boot/print_hex.asm"
 
@@ -14,6 +16,12 @@ do_thing:
 exit:
     jmp $
 
+times (16*512)-($-$$) db 'b'
+times (32*512)-($-$$) db 'C'
+times (48*512)-($-$$) db 'd'
+times (60*512)-($-$$) db 'E'
+times (63*512)-($-$$) db 'f'
+
 MSG_LOAD_KERNEL db "Far jump", 0
 
 do_other_thing:
@@ -23,3 +31,5 @@ do_other_thing:
     jmp exit
 
 MSG_FAR_JUMP db "yoo hoo, over here", 0
+
+times 0x512 db 'a'
