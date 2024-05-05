@@ -6,10 +6,6 @@ mov [BOOT_DRIVE], dl
 mov bp, 0x7bff
 mov sp, bp
 
-mov bx, MSG_REAL_MODE
-call print
-call print_nl
-
 call load_kernel
 call switch_to_pm
 ; jmp KERNEL_OFFSET
@@ -19,50 +15,71 @@ jmp $
 %include "boot/print_hex.asm"
 %include "boot/disk.asm"
 %include "boot/gdt.asm"
-; %include "boot/32bit_print.asm"
 %include "boot/switch.asm"
 
 [bits 16]
 load_kernel:
-    mov bx, MSG_LOAD_KERNEL
-    call print
-    call print_nl
+    call disk_init
+
+    mov eax, 512
+    call disk_lba
+
+    ; xor dx, dx
+
+    ; mov dl, [C]
+    ; call print_hex
+    ; call print_nl
+
+    ; mov dl, [H]
+    ; call print_hex
+    ; call print_nl
+
+    ; mov dl, [S]
+    ; call print_hex
+    ; call print_nl
+
+    ; mov dh, 0
+    ; mov dl, [FD_SPT]
+    ; call print_hex
+    ; call print_nl
+
+    ; mov dl, [FD_HPC]
+    ; call print_hex
+    ; call print_nl
+
+    ; mov dx, [FD_CYLS]
+    ; call print_hex
+    ; call print_nl
 
     mov ebx, KERNEL_OFFSET >> 4
     mov es, ebx
     mov bx, 0
     mov al, 64  ; sector is 512 bytes, so 64 = 32K
     mov dl, [BOOT_DRIVE]
-    mov dh, 0
-    mov ch, 0x00
-    mov cl, 0x02
     call disk_load
+
+    mov eax, 0x8000 ; = 64 * 512 = 32k
+    call disk_lba
 
     mov ebx, KERNEL_OFFSET2 >> 4
     mov es, ebx
     mov bx, 0
     mov al, 64  ; sector is 512 bytes, so 64 = 32K
     mov dl, [BOOT_DRIVE]
-    mov dh, 0x01
-    mov ch, 0x00
-    mov cl, 0x1e
     call disk_load
-    
+
     mov ebx, 0
     mov es, ebx
     ret
 
 [bits 32]
 BEGIN_PM:
-    mov ebx, MSG_PROT_MODE
+    ; mov ebx, MSG_PROT_MODE
     ; call print_string_pm
     call KERNEL_OFFSET
     jmp $
 
 BOOT_DRIVE db 0
-MSG_REAL_MODE db "Started in 16 bit real mode", 0
-MSG_PROT_MODE db "Loaded 32-bit protected mode", 0
-MSG_LOAD_KERNEL db "Loading kernel into memory", 0
 
 times 510-($-$$) db 0
 dw 0xaa55

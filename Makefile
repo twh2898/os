@@ -83,11 +83,11 @@ $(PWD)$(OBJDIR)/%.o: %.asm
 run: os-image.bin drive.img
 	$(QEMU) -drive format=raw,file=os-image.bin,index=0,if=floppy -drive format=qcow2,file=drive.img
 
-debug: os-image.bin $(PWD)$(OBJDIR)/kernel.elf $(PWD)$(OBJDIR)/bootsect.elf
+debug: os-image.bin $(PWD)$(OBJDIR)/kernel.elf
 	$(QEMU) -s -S -drive format=raw,file=os-image.bin,index=0,if=floppy -drive format=qcow2,file=drive.img &
-	$(GDB) -ex "target remote localhost:1234" -ex "symbol-file $(PWD)$(OBJDIR)/kernel.elf" -ex "b __start" -ex "b kernel_main"
+	$(GDB) -ex "target remote localhost:1234" -ex "symbol-file $(PWD)$(OBJDIR)/kernel.elf" -ex "b *0x7c00" -ex "b *0x8000" -ex "b __start" -ex "b kernel_main"
 
-dump: os-image.bin $(PWD)$(OBJDIR)/kernel.elf $(PWD)$(OBJDIR)/bootsect.elf
+dump: os-image.bin $(PWD)$(OBJDIR)/kernel.elf
 	$(QEMU) -s -S -drive format=raw,file=os-image.bin,index=0,if=floppy -drive format=qcow2,file=drive.img &
 	$(GDB) -ex "target remote localhost:1234" -ex "b *0x8000" -ex "c" -ex "dump binary memory second.bin 0x8000 0x18000" -ex "kill" -ex "quit"
 
