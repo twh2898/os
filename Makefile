@@ -37,10 +37,11 @@ OBJ := $(addprefix $(PWD), $(OBJ))
 #  OS IMAGE
 # ==========
 os-image.bin: $(PWD)$(OBJDIR)/bootsect.bin $(PWD)$(OBJDIR)/kernel.bin
+# os-image.bin: $(PWD)$(OBJDIR)/bootsect.bin $(PWD)$(OBJDIR)/second.bin
 	cat $^ > $@
 	@echo "Final image size"
 	@du -sh $@
-	@echo Remember the limit is 32K? in bootsect.asm
+	@echo Remember the limit is 64K? in bootsect.asm
 
 drive.img:
 	qemu-img create -f qcow2 drive.img 100M
@@ -82,9 +83,13 @@ $(PWD)$(OBJDIR)/%.o: %.asm
 run: os-image.bin drive.img
 	$(QEMU) -drive format=raw,file=os-image.bin,index=0,if=floppy -drive format=qcow2,file=drive.img
 
-debug: os-image.bin $(PWD)$(OBJDIR)/kernel.elf
-	$(QEMU) -s -drive format=raw,file=os-image.bin,index=0,if=floppy -drive format=qcow2,file=drive.img &
+debug: os-image.bin $(PWD)$(OBJDIR)/kernel.elf $(PWD)$(OBJDIR)/bootsect.elf
+	$(QEMU) -s -S -drive format=raw,file=os-image.bin,index=0,if=floppy -drive format=qcow2,file=drive.img &
 	$(GDB) -ex "target remote localhost:1234" -ex "symbol-file $(PWD)$(OBJDIR)/kernel.elf" -ex "b __start" -ex "b kernel_main"
+
+dump: os-image.bin $(PWD)$(OBJDIR)/kernel.elf $(PWD)$(OBJDIR)/bootsect.elf
+	$(QEMU) -s -S -drive format=raw,file=os-image.bin,index=0,if=floppy -drive format=qcow2,file=drive.img &
+	$(GDB) -ex "target remote localhost:1234" -ex "b *0x8000" -ex "c" -ex "dump binary memory second.bin 0x8000 0x18000" -ex "kill" -ex "quit"
 
 debugbuild:
 	@echo -e "CFLAGS\n$(CFLAGS)\n"

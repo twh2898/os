@@ -1,41 +1,24 @@
 disk_load:
     pusha
 
-    push dx
+    push ax
 
     mov ah, 0x02
-    mov al, dh
-    mov cl, 0x02
-
-    mov ch, 0x00
-    mov dh, 0x00
-    jmp do_int
-
-disk_load_2:
-    pusha
-
-    push dx
-
-    mov ah, 0x02
-    mov al, dh
-    mov cl, 0x02
-
-    mov ch, 0x00
-    mov dh, 0x01
-
-do_int:
     int 0x13
     jc disk_error
 
     pop dx
-    cmp al, dh
+    cmp al, dl
     jne sectors_error
+
     mov bx, DISK_FINISH
     call print
-    mov dh, 0
+
+    mov dh, ah
     mov dl, al
     call print_hex
     call print_nl
+
     popa
     ret
 

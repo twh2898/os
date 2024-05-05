@@ -28,19 +28,28 @@ load_kernel:
     call print
     call print_nl
 
+    mov ebx, KERNEL_OFFSET >> 4
+    mov es, ebx
     mov bx, 0
-    mov es, bx
-    mov bx, KERNEL_OFFSET
-    mov dh, 64  ; sector is 512 bytes, so 64 = 32K
+    mov al, 64  ; sector is 512 bytes, so 64 = 32K
     mov dl, [BOOT_DRIVE]
+    mov dh, 0
+    mov ch, 0x00
+    mov cl, 0x02
     call disk_load
 
     mov ebx, KERNEL_OFFSET2 >> 4
     mov es, ebx
     mov bx, 0
-    mov dh, 64  ; sector is 512 bytes, so 64 = 32K
+    mov al, 64  ; sector is 512 bytes, so 64 = 32K
     mov dl, [BOOT_DRIVE]
-    call disk_load_2
+    mov dh, 0x01
+    mov ch, 0x00
+    mov cl, 0x1e
+    call disk_load
+    
+    mov ebx, 0
+    mov es, ebx
     ret
 
 [bits 32]
@@ -57,4 +66,3 @@ MSG_LOAD_KERNEL db "Loading kernel into memory", 0
 
 times 510-($-$$) db 0
 dw 0xaa55
-
