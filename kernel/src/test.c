@@ -116,23 +116,23 @@ int test_circbuff_insert() {
     return 0;
 }
 
-// int test_circbuff_read() {
-//     uint8_t tmp[4] = {1, 2, 3, 4};
-//     uint8_t out[4] = {0};
-//     circbuff_t * cbuff = NEW_BUFFER(4);
+int test_circbuff_read() {
+    uint8_t tmp[4] = {1, 2, 3, 4};
+    uint8_t out[4] = {0};
+    circbuff_t * cbuff = NEW_BUFFER(4);
 
-//     circbuff_free(cbuff);
-//     return 0;
-// }
+    circbuff_free(cbuff);
+    return 0;
+}
 
-// int test_circbuff_remove() {
-//     uint8_t tmp[4] = {1, 2, 3, 4};
-//     uint8_t out[4] = {0};
-//     circbuff_t * cbuff = NEW_BUFFER(4);
+int test_circbuff_remove() {
+    uint8_t tmp[4] = {1, 2, 3, 4};
+    uint8_t out[4] = {0};
+    circbuff_t * cbuff = NEW_BUFFER(4);
 
-//     circbuff_free(cbuff);
-//     return 0;
-// }
+    circbuff_free(cbuff);
+    return 0;
+}
 
 int test_Circbuff() {
     circbuff_t * cbuff = circbuff_new(4);

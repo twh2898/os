@@ -20,7 +20,7 @@ disk_init:
     and dl, 0x1f
     mov [FD_SPT], dl
 
-    ; last index of cylinder number
+    ; ; last index of cylinder number
     ; mov dl, ch
     ; mov dh, cl
     ; shr dh, 5
@@ -64,7 +64,7 @@ disk_lba:
     ; ah = al % HPC
     xor ah, ah
     mov bl, [FD_HPC]
-    div bx
+    div bl
     mov [H], ah
 
     ;S = (LBA % SPT) + 1
@@ -129,9 +129,9 @@ disk_loop:
     jmp $
 
 LBA dw 0
-FD_SPT db 0
-FD_HPC db 0
-; FD_CYLS dw 0
+FD_SPT db 35
+FD_HPC db 17
+FD_CYLS dw 68
 C db 0
 H db 0
 S db 0

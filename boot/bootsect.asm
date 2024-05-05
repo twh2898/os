@@ -19,9 +19,19 @@ jmp $
 
 [bits 16]
 load_kernel:
-    call disk_init
+    ; call disk_init
 
     mov eax, 512
+    call disk_lba
+
+    mov ebx, KERNEL_OFFSET >> 4
+    mov es, ebx
+    mov bx, 0
+    mov al, 64  ; sector is 512 bytes, so 64 = 32K
+    mov dl, [BOOT_DRIVE]
+    call disk_load
+
+    mov eax, 0x8000 ; = 64 * 512 = 32k
     call disk_lba
 
     ; xor dx, dx
@@ -38,34 +48,14 @@ load_kernel:
     ; call print_hex
     ; call print_nl
 
-    ; mov dh, 0
-    ; mov dl, [FD_SPT]
-    ; call print_hex
-    ; call print_nl
-
-    ; mov dl, [FD_HPC]
-    ; call print_hex
-    ; call print_nl
-
-    ; mov dx, [FD_CYLS]
-    ; call print_hex
-    ; call print_nl
-
-    mov ebx, KERNEL_OFFSET >> 4
-    mov es, ebx
-    mov bx, 0
-    mov al, 64  ; sector is 512 bytes, so 64 = 32K
-    mov dl, [BOOT_DRIVE]
-    call disk_load
-
-    mov eax, 0x8000 ; = 64 * 512 = 32k
-    call disk_lba
-
     mov ebx, KERNEL_OFFSET2 >> 4
     mov es, ebx
     mov bx, 0
     mov al, 64  ; sector is 512 bytes, so 64 = 32K
     mov dl, [BOOT_DRIVE]
+    ; mov ch, 0x00
+    ; mov dh, 0x01
+    ; mov cl, 0x1e
     call disk_load
 
     mov ebx, 0
@@ -74,8 +64,6 @@ load_kernel:
 
 [bits 32]
 BEGIN_PM:
-    ; mov ebx, MSG_PROT_MODE
-    ; call print_string_pm
     call KERNEL_OFFSET
     jmp $
 
