@@ -100,17 +100,15 @@ size_t circbuff_insert(circbuff_t * cbuff, uint8_t * data, size_t count);
 size_t circbuff_read(const circbuff_t * cbuff, uint8_t * data, size_t count);
 
 /**
- * @brief Read and remove count elements from the buffer.
+ * @brief Remove count elements from the buffer.
  *
- * If data is null, skip reading the data before removing it. If count is >
- * the length of the buffer, return the length of the buffer.
+ * If count is > the length of the buffer, return the length of the buffer.
  *
  * @param cbuff buffer
- * @param data null or pointer to read data into
- * @param count number of elements to read and remove
+ * @param count number of elements to remove
  * @return size_t number of elements removed
  */
-size_t circbuff_remove(circbuff_t * cbuff, uint8_t * data, size_t count);
+size_t circbuff_remove(circbuff_t * cbuff, size_t count);
 
 /**
  * @brief Clear all elements and set the length to 0.
