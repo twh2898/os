@@ -3,7 +3,7 @@
 #include "libc/mem.h"
 
 #ifndef SAFETY
-#define SAFETY 1
+#define SAFETY 0
 #endif
 
 #if SAFETY
@@ -112,6 +112,15 @@ uint8_t circbuff_pop(circbuff_t * cbuff) {
     return val;
 }
 
+uint8_t circbuff_rpop(circbuff_t * cbuff) {
+    TEST_PTR(cbuff)
+    if (cbuff->len == 0)
+        return 0;
+    cbuff->len--;
+    uint8_t val = circbuff_at(cbuff, _wrap_index(cbuff, cbuff->start + cbuff->len));
+    return val;
+}
+
 size_t circbuff_insert(circbuff_t * cbuff, uint8_t * data, size_t count) {
     TEST_PTR(cbuff)
     size_t remainder = cbuff->buff_size - cbuff->len;
@@ -127,10 +136,8 @@ size_t circbuff_read(const circbuff_t * cbuff, uint8_t * data, size_t count) {
     TEST_PTR(cbuff)
     if (count > cbuff->len)
         count = cbuff->len;
-    size_t curr = cbuff->start;
     for (size_t i = 0; i < count; i++) {
-        data[i] = circbuff_at(cbuff, curr);
-        curr = _wrap_index(cbuff, curr + 1);
+        data[i] = circbuff_at(cbuff, i);
     }
     return count;
 }

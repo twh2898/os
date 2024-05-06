@@ -91,6 +91,8 @@ int test_circbuff_push_pop() {
     ASSERT_EQ(0, circbuff_pop(cbuff)); // [x, x]
     ASSERT_EQ(0, circbuff_len(cbuff));
 
+    // TODO test circbuff_rpop
+
     circbuff_free(cbuff);
     return 0;
 }
@@ -181,6 +183,8 @@ int test_circbuff_read() {
     ASSERT_EQ(tmp[1], out[1]);
     ASSERT_EQ(tmp[2], out[2]);
     ASSERT_EQ(tmp[3], out[3]);
+
+    // TODO edge case read after remove where start has changed
 
     circbuff_free(cbuff);
     return 0;

@@ -75,6 +75,16 @@ size_t circbuff_push(circbuff_t * cbuff, uint8_t data);
 uint8_t circbuff_pop(circbuff_t * cbuff);
 
 /**
+ * @brief Remove and return an element from the end of the buffer.
+ *
+ * If the buffer is empty, return 0.
+ *
+ * @param cbuff buffer
+ * @return uint8_t element or 0 if buffer is empty
+ */
+uint8_t circbuff_rpop(circbuff_t * cbuff);
+
+/**
  * @brief Insert count elements from data into the buffer.
  *
  * If count is > the remaining space, return the number of elements added from

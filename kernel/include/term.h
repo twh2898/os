@@ -11,6 +11,8 @@ extern int term_last_ret;
 
 void term_init();
 
+void term_update();
+
 void term_command_add(const char * command, command_cb_t cb);
 
 #endif // TERM_H
