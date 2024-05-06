@@ -117,7 +117,7 @@ uint8_t circbuff_rpop(circbuff_t * cbuff) {
     if (cbuff->len == 0)
         return 0;
     cbuff->len--;
-    uint8_t val = circbuff_at(cbuff, _wrap_index(cbuff, cbuff->start + cbuff->len));
+    uint8_t val = circbuff_at(cbuff, cbuff->len);
     return val;
 }
 
