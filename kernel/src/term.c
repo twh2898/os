@@ -124,6 +124,13 @@ void term_update() {
     vga_print("> ");
 }
 
+void term_run() {
+    for (;;) {
+        asm("hlt");
+        term_update();
+    }
+}
+
 void term_command_add(const char * command, command_cb_t cb) {
     if (n_commands > MAX_COMMANDS) {
         ERROR("TERMINAL COMMAND REGISTER OVERFLOW!\n");

@@ -72,10 +72,7 @@ void console() {
     term_command_add("test", test_cmd);
     test_cmd(0, 0);
 
-    for (;;) {
-        asm("hlt");
-        term_update();
-    }
+    term_run();
 }
 
 void kernel_main() {
