@@ -19,8 +19,6 @@ jmp $
 
 [bits 16]
 load_kernel:
-    ; call disk_init
-
     mov eax, 512
     call disk_lba
 
@@ -34,28 +32,11 @@ load_kernel:
     mov eax, 0x8000 ; = 64 * 512 = 32k
     call disk_lba
 
-    ; xor dx, dx
-
-    ; mov dl, [C]
-    ; call print_hex
-    ; call print_nl
-
-    ; mov dl, [H]
-    ; call print_hex
-    ; call print_nl
-
-    ; mov dl, [S]
-    ; call print_hex
-    ; call print_nl
-
     mov ebx, KERNEL_OFFSET2 >> 4
     mov es, ebx
     mov bx, 0
     mov al, 64  ; sector is 512 bytes, so 64 = 32K
     mov dl, [BOOT_DRIVE]
-    ; mov ch, 0x00
-    ; mov dh, 0x01
-    ; mov cl, 0x1e
     call disk_load
 
     mov ebx, 0

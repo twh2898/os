@@ -1,35 +1,3 @@
-disk_init:
-    pusha
-
-    ; reset drive
-    ; mov ebx, 0
-    ; mov es, ebx
-    ; mov di, bx
-
-    mov ah, 0x08
-    mov dl, [BOOT_DRIVE]
-    int 0x13
-    jc disk_error
-
-    inc dh
-    mov [FD_HPC], dh
-
-    ; last index of sector per track
-    mov dl, cl
-    inc dl
-    and dl, 0x1f
-    mov [FD_SPT], dl
-
-    ; ; last index of cylinder number
-    ; mov dl, ch
-    ; mov dh, cl
-    ; shr dh, 5
-    ; inc dx
-    ; mov [FD_CYLS], dx
-
-    popa
-    ret
-
 ; lba in ax
 disk_lba:
     mov bx, 512
