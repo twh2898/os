@@ -101,16 +101,44 @@ int test_circbuff_insert() {
 
     // insert 0
     ASSERT_EQ(0, circbuff_insert(cbuff, tmp, 0));
+    ASSERT_EQ(0, circbuff_len(cbuff));
 
     // insert 1
+    ASSERT_EQ(1, circbuff_insert(cbuff, tmp, 1));
+    ASSERT_EQ(1, circbuff_len(cbuff));
+    ASSERT_EQ(tmp[0], circbuff_at(cbuff, 0));
 
     // insert 1+
+    ASSERT_EQ(3, circbuff_insert(cbuff, tmp, 3));
+    ASSERT_EQ(4, circbuff_len(cbuff));
+    ASSERT_EQ(tmp[0], circbuff_at(cbuff, 0));
+    ASSERT_EQ(tmp[0], circbuff_at(cbuff, 1));
+    ASSERT_EQ(tmp[1], circbuff_at(cbuff, 2));
+    ASSERT_EQ(tmp[2], circbuff_at(cbuff, 3));
 
     // insert 0 full
+    ASSERT_EQ(0, circbuff_insert(cbuff, tmp, 0));
+    ASSERT_EQ(4, circbuff_len(cbuff));
+    ASSERT_EQ(tmp[0], circbuff_at(cbuff, 0));
+    ASSERT_EQ(tmp[0], circbuff_at(cbuff, 1));
+    ASSERT_EQ(tmp[1], circbuff_at(cbuff, 2));
+    ASSERT_EQ(tmp[2], circbuff_at(cbuff, 3));
 
     // insert 1 full
+    ASSERT_EQ(0, circbuff_insert(cbuff, tmp, 1));
+    ASSERT_EQ(4, circbuff_len(cbuff));
+    ASSERT_EQ(tmp[0], circbuff_at(cbuff, 0));
+    ASSERT_EQ(tmp[0], circbuff_at(cbuff, 1));
+    ASSERT_EQ(tmp[1], circbuff_at(cbuff, 2));
+    ASSERT_EQ(tmp[2], circbuff_at(cbuff, 3));
 
     // insert 1+ full
+    ASSERT_EQ(0, circbuff_insert(cbuff, tmp, 2));
+    ASSERT_EQ(4, circbuff_len(cbuff));
+    ASSERT_EQ(tmp[0], circbuff_at(cbuff, 0));
+    ASSERT_EQ(tmp[0], circbuff_at(cbuff, 1));
+    ASSERT_EQ(tmp[1], circbuff_at(cbuff, 2));
+    ASSERT_EQ(tmp[2], circbuff_at(cbuff, 3));
 
     circbuff_free(cbuff);
     return 0;
@@ -191,8 +219,8 @@ int run_tests() {
     TEST(test_circbuff_at)
     TEST(test_circbuff_push_pop)
     TEST(test_circbuff_insert)
-    // TEST(test_circbuff_read)
-    // TEST(test_circbuff_remove)
+    TEST(test_circbuff_read)
+    TEST(test_circbuff_remove)
     TEST(test_Circbuff)
     END_TESTS
 }
