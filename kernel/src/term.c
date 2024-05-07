@@ -47,25 +47,37 @@ static void key_cb(uint8_t code, char c, keyboard_event_t event, keyboard_mod_t 
             return;
         }
 
+        if (code == KEY_BACKSPACE) {
+            if (circbuff_len(keybuff) > 0) {
+                vga_putc(c);
+                circbuff_rpop(keybuff);
+            }
+            return;
+        }
+
         if (circbuff_push(keybuff, c) != 1) {
             ERROR("key buffer write error");
             return;
         }
 
-        vga_putc(c);
-
-        if (code == KEY_BACKSPACE) {
-            if (circbuff_len(keybuff) > 0)
-                circbuff_rpop(keybuff);
-            return;
-        }
-
         if (code == KEY_ENTER)
             command_ready++;
+
+        vga_putc(c);
     }
 }
 
+static int help_cmd(size_t argc, char ** argv) {
+    for (size_t i = 0; i < n_commands; i++) {
+        puts(commands[i].command);
+        putc('\n');
+    }
+    return 0;
+}
+
 void term_init() {
+    term_command_add("help", help_cmd);
+
     keybuff = circbuff_new(MAX_CHARS);
     command_ready = false;
     vga_print("> ");
@@ -94,7 +106,6 @@ void term_update() {
         ERROR("key buffer without newline");
         return;
     }
-
 
     if (cmd_len > 0) {
         size_t res;
