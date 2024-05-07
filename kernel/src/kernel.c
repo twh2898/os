@@ -65,24 +65,15 @@ static int test_cmd(size_t argc, char ** argv) {
     return run_tests();
 }
 
-void console() {
-    term_init();
-    commands_init();
-    term_command_add("demo", demo);
-    term_command_add("test", test_cmd);
-    // test_cmd(0, 0);
-
-    term_run();
-}
-
 void kernel_main() {
     vga_clear();
     isr_install();
     irq_install();
+    term_init();
+    commands_init();
 
-    // cursor();
-    // test_interrupt();
-    // demo(0, 0);
+    term_command_add("demo", demo);
+    term_command_add("test", test_cmd);
 
-    console();
+    term_run();
 }
