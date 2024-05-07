@@ -306,11 +306,11 @@ size_t sector_read(uint8_t * buff, size_t count, uint8_t sec_count, uint32_t lba
             // Don't append to buff if past count
             if (o_len < count) {
                 // TODO This might be flipped
-                buff[o_len++] = (word >> 8) & 0xFF;
+                buff[o_len++] = word & 0xFF;
 
                 // Check for odd byte
                 if (o_len < count)
-                    buff[o_len++] = word & 0xFF;
+                    buff[o_len++] = (word >> 8) & 0xFF;
             }
         }
     }
@@ -379,11 +379,11 @@ size_t sector_write(uint8_t * buff, size_t count, uint8_t sec_count, uint32_t lb
             // Don't append to buff if past count
             if (o_len < count) {
                 // TODO This might be flipped
-                word |= (buff[o_len++] << 8);
+                word |= buff[o_len++];
 
                 // Check for odd byte
                 if (o_len < count)
-                    word |= buff[o_len++];
+                    word |= (buff[o_len++] << 8);
             }
 
             port_word_out(ATA_BUS_0_IO_DATA, word);
