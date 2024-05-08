@@ -124,20 +124,10 @@ static int port_in_cmd(size_t argc, char ** argv) {
     return 0;
 }
 
-static int identify_disk_cmd(size_t argc, char ** argv) {
-    disk_identify();
-    return 0;
-}
-
 static int time_cmd(size_t argc, char ** argv) {
     uint32_t ms = get_ticks();
     printf("System ticks: %u ~= %u s\n", ms, ms / 1000);
     printf("RTC time: %u us = %u ms = %u s\n", time_us(), time_ms(), time_s());
-    return 0;
-}
-
-static int reset_cmd(size_t argc, char ** argv) {
-    software_reset();
     return 0;
 }
 
@@ -147,18 +137,27 @@ static int status_cmd(size_t argc, char ** argv) {
 }
 
 static int read_cmd(size_t argc, char ** argv) {
-    char data[10];
-    size_t read = disk_read(data, 9, 1);
+    char data[ATA_SECTOR_BYTES];
+    size_t read = disk_sect_read(data, 1, 0);
     data[9] = 0;
-    if (read < 9)
-        data[read] = 0;
     printf("read data %s\n", data);
     return 0;
 }
 
 static int write_cmd(size_t argc, char ** argv) {
-    char data[10] = "123456789";
-    disk_write(data, 10, 1);
+    char data[ATA_SECTOR_BYTES] = {0};
+    for (size_t i = 0; i < ATA_SECTOR_WORDS; i++) {
+        if ((i >> 4) < 10)
+            data[i * 2] = (i >> 4) + '0';
+        else
+            data[i * 2] = (i >> 4) + 'a' - 10;
+
+        if ((i & 0xf) < 10)
+            data[i * 2 + 1] = (i & 0xf) + '0';
+        else
+            data[i * 2 + 1] = (i & 0xf) + 'a' - 10;
+    }
+    disk_sect_write(data, 1, 0);
     return 0;
 }
 
@@ -169,9 +168,7 @@ void commands_init() {
     term_command_add("atoi", atoi_cmd);
     term_command_add("outb", port_out_cmd);
     term_command_add("inb", port_in_cmd);
-    term_command_add("id", identify_disk_cmd);
     term_command_add("time", time_cmd);
-    term_command_add("reset", reset_cmd);
     term_command_add("status", status_cmd);
     term_command_add("read", read_cmd);
     term_command_add("write", write_cmd);

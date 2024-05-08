@@ -5,11 +5,17 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define ATA_SECTOR_WORDS 256
+#define ATA_SECTOR_BYTES (ATA_SECTOR_WORDS * 2)
+
 void init_disk();
-size_t disk_identify();
-void software_reset();
+// size in bytes = # of sectors * ATA_SECTOR_BYTES
+size_t disk_size();
 bool disk_status();
-size_t disk_read(uint8_t * buff, size_t count, uint32_t lba);
-size_t disk_write(uint8_t * buff, size_t count, uint32_t lba);
+
+// Read / write whole sector block (read / write bytes in file system driver)
+// buff must be of size sect_count * ATA_SECTOR_BYTES
+size_t disk_sect_read(uint8_t * buff, size_t sect_count, uint32_t lba);
+size_t disk_sect_write(uint8_t * buff, size_t sect_count, uint32_t lba);
 
 #endif // ATA_H
