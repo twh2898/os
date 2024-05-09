@@ -91,7 +91,7 @@ enum ATA_ADDRESS_FLAG {
 };
 
 static void print_block(uint16_t * block);
-static void disk_identify(disk_t * disk);
+static bool disk_identify(disk_t * disk);
 static void software_reset(disk_t * disk);
 
 struct _disk {
@@ -110,7 +110,11 @@ disk_t * disk_open(uint8_t id) {
     if (disk) {
         disk->io_base = ATA_BUS_0_IO_BASE;
         disk->ct_base = ATA_BUS_0_CTL_BASE;
-        disk_identify(disk);
+        if (!disk_identify(disk)) {
+            puts("ERROR: failed to identify disk\n");
+            free(disk);
+            return 0;
+        }
     }
     return disk;
 }
@@ -185,11 +189,11 @@ size_t disk_sect_read(disk_t * disk, uint8_t * buff, size_t sect_count, uint32_t
     if (sect_count > 256)
         sect_count = 256;
 
-    if (lba > disk_sector_count) {
+    if (lba > disk->sect_count) {
         return 0;
     }
-    else if (lba + sect_count > disk_sector_count) {
-        sect_count = disk_sector_count - lba;
+    else if (lba + sect_count > disk->sect_count) {
+        sect_count = disk->sect_count - lba;
     }
 
     software_reset(disk);
@@ -237,11 +241,11 @@ size_t disk_sect_write(disk_t * disk, uint8_t * buff, size_t sect_count, uint32_
     if (sect_count > 256)
         sect_count = 256;
 
-    if (lba > disk_sector_count) {
+    if (lba > disk->sect_count) {
         return 0;
     }
-    else if (lba + sect_count > disk_sector_count) {
-        sect_count = disk_sector_count - lba;
+    else if (lba + sect_count > disk->sect_count) {
+        sect_count = disk->sect_count - lba;
     }
 
     software_reset(disk);
@@ -295,7 +299,7 @@ static void print_block(uint16_t * block) {
     }
 }
 
-static void disk_identify(disk_t * disk) {
+static bool disk_identify(disk_t * disk) {
     START_TIMEOUT
     port_byte_out(disk->io_base + ATA_IO_DRIVE_HEAD, 0xA0);
 
@@ -308,7 +312,7 @@ static void disk_identify(disk_t * disk) {
 
     if (status == 0) {
         puts("Drive does not exist\n");
-        return 0;
+        return false;
     }
 
     if (debug)
@@ -325,7 +329,7 @@ static void disk_identify(disk_t * disk) {
     if (port_byte_in(disk->io_base + ATA_IO_LBA_MID)
         || port_byte_in(disk->io_base + ATA_IO_LBA_HIGH)) {
         puts("Disk does not support ATA\n");
-        return 0;
+        return false;
     }
     if (debug)
         puts("Drive is ATA\n");
@@ -343,7 +347,7 @@ static void disk_identify(disk_t * disk) {
 
     if (status & ATA_STATUS_FLAG_ERR) {
         puts("Disk initialized with errors\n");
-        return 0;
+        return false;
     }
 
     if (status & ATA_STATUS_FLAG_DRQ) {
@@ -390,6 +394,7 @@ static void disk_identify(disk_t * disk) {
         printf("LDA48 has %u sectors\n", size48);
 
     disk->sect_count = size28;
+    return true;
 }
 
 static void software_reset(disk_t * disk) {
