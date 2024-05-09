@@ -2,6 +2,7 @@
 #include "cpu/isr.h"
 #include "cpu/ports.h"
 #include "cpu/timer.h"
+#include "drivers/ata.h"
 #include "drivers/keyboard.h"
 #include "drivers/vga.h"
 #include "libc/mem.h"
@@ -71,6 +72,8 @@ void kernel_main() {
 
     isr_install();
     irq_install();
+
+    init_disk();
 
     term_init();
     commands_init();

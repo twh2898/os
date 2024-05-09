@@ -132,13 +132,13 @@ static int time_cmd(size_t argc, char ** argv) {
 }
 
 static int status_cmd(size_t argc, char ** argv) {
-    disk_status();
+    // disk_status();
     return 0;
 }
 
 static int read_cmd(size_t argc, char ** argv) {
     char data[ATA_SECTOR_BYTES];
-    size_t read = disk_sect_read(data, 1, 0);
+    // size_t read = disk_sect_read(data, 1, 0);
     data[9] = 0;
     printf("read data %s\n", data);
     return 0;
@@ -157,7 +157,7 @@ static int write_cmd(size_t argc, char ** argv) {
         else
             data[i * 2 + 1] = (i & 0xf) + 'a' - 10;
     }
-    disk_sect_write(data, 1, 0);
+    // disk_sect_write(data, 1, 0);
     return 0;
 }
 
@@ -169,7 +169,7 @@ void commands_init() {
     term_command_add("outb", port_out_cmd);
     term_command_add("inb", port_in_cmd);
     term_command_add("time", time_cmd);
-    term_command_add("status", status_cmd);
-    term_command_add("read", read_cmd);
-    term_command_add("write", write_cmd);
+    // term_command_add("status", status_cmd);
+    // term_command_add("read", read_cmd);
+    // term_command_add("write", write_cmd);
 }
