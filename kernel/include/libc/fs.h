@@ -34,7 +34,8 @@ FILE * file_open(filesystem_t * fs, const char * name);
 void file_close(FILE * file);
 
 void file_seek(file_t * file);
-void file_read(file_t * file);
-void file_write(file_t * file);
+size_t file_tell(file_t * file);
+size_t file_read(file_t * file, uint8_t * buff, size_t count);
+size_t file_write(file_t * file, uint8_t * buff, size_t count);
 
 #endif // FS_H
