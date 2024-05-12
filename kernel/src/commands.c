@@ -183,9 +183,15 @@ static int mount_cmd(size_t argc, char ** argv) {
     return 0;
 }
 
-static int umount_cmd(size_t argc, char ** argv) {
-    disk = 0;
-    fs = 0;
+static int unmount_cmd(size_t argc, char ** argv) {
+    if (fs) {
+        fs_free(fs);
+        fs = 0;
+    }
+    if (disk) {
+        disk_close(disk);
+        disk = 0;
+    }
     return 0;
 }
 
@@ -230,7 +236,7 @@ void commands_init() {
     term_command_add("ret", ret_cmd);
     term_command_add("format", format_cmd);
     term_command_add("mount", mount_cmd);
-    term_command_add("umount", umount_cmd);
+    term_command_add("unmount", unmount_cmd);
     // term_command_add("status", status_cmd);
     // term_command_add("read", read_cmd);
     // term_command_add("write", write_cmd);
