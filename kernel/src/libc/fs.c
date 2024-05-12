@@ -195,8 +195,11 @@ static void fs_format_dnode(dnode_t * node) {
 filesystem_t * fs_new(disk_t * disk) {
     filesystem_t * fs = malloc(sizeof(filesystem_t));
     if (fs) {
-        // TODO handle errors
-        disk_sect_read(disk, page_buff, 1, 0);
+        if (disk_sect_read(disk, page_buff, 1, 0) != 1) {
+            puts("[ERROR] failed to read first sector of disk\n");
+            free(fs);
+            return 0;
+        }
 
         fs->super_block = *(superblock_t *)page_buff;
         if (fs->super_block.magic != MAGIC) {
