@@ -10,11 +10,14 @@
 #include "drivers/ata.h"
 #include "drivers/rtc.h"
 #include "drivers/vga.h"
+#include "libc/fs.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
 #include "term.h"
 
 bool debug = false;
+static disk_t * disk = 0;
+static filesystem_t * fs = 0;
 
 static int clear_cmd(size_t argc, char ** argv) {
     vga_clear();
@@ -131,35 +134,87 @@ static int time_cmd(size_t argc, char ** argv) {
     return 0;
 }
 
-static int status_cmd(size_t argc, char ** argv) {
-    // disk_status();
+static int ret_cmd(size_t argc, char ** argv) {
+    printf("Last command exit code was %u\n", term_last_ret);
     return 0;
 }
 
-static int read_cmd(size_t argc, char ** argv) {
-    char data[ATA_SECTOR_BYTES];
-    // size_t read = disk_sect_read(data, 1, 0);
-    data[9] = 0;
-    printf("read data %s\n", data);
-    return 0;
-}
-
-static int write_cmd(size_t argc, char ** argv) {
-    char data[ATA_SECTOR_BYTES] = {0};
-    for (size_t i = 0; i < ATA_SECTOR_WORDS; i++) {
-        if ((i >> 4) < 10)
-            data[i * 2] = (i >> 4) + '0';
-        else
-            data[i * 2] = (i >> 4) + 'a' - 10;
-
-        if ((i & 0xf) < 10)
-            data[i * 2 + 1] = (i & 0xf) + '0';
-        else
-            data[i * 2 + 1] = (i & 0xf) + 'a' - 10;
+static int format_cmd(size_t argc, char ** argv) {
+    if (fs) {
+        puts("Unmount disk before format\n");
+        return 1;
     }
-    // disk_sect_write(data, 1, 0);
+
+    if (!disk) {
+        disk = disk_open(0);
+        if (!disk) {
+            puts("Failed to open disk\n");
+            return 1;
+        }
+    }
+
+    fs_format(disk);
     return 0;
 }
+
+static int mount_cmd(size_t argc, char ** argv) {
+    if (fs) {
+        puts("Filesystem already mounted\n");
+        return 0;
+    }
+
+    if (!disk) {
+        disk = disk_open(0);
+        if (!disk) {
+            puts("Failed to open disk\n");
+            return 1;
+        }
+    }
+
+    fs = fs_new(disk);
+    if (!fs) {
+        puts("Failed to mount filesystem\n");
+        return 1;
+    }
+
+    return 0;
+}
+
+static int umount_cmd(size_t argc, char ** argv) {
+    disk = 0;
+    fs = 0;
+    return 0;
+}
+
+// static int status_cmd(size_t argc, char ** argv) {
+//     // disk_status();
+//     return 0;
+// }
+
+// static int read_cmd(size_t argc, char ** argv) {
+//     char data[ATA_SECTOR_BYTES];
+//     // size_t read = disk_sect_read(data, 1, 0);
+//     data[9] = 0;
+//     printf("read data %s\n", data);
+//     return 0;
+// }
+
+// static int write_cmd(size_t argc, char ** argv) {
+//     char data[ATA_SECTOR_BYTES] = {0};
+//     for (size_t i = 0; i < ATA_SECTOR_WORDS; i++) {
+//         if ((i >> 4) < 10)
+//             data[i * 2] = (i >> 4) + '0';
+//         else
+//             data[i * 2] = (i >> 4) + 'a' - 10;
+
+//         if ((i & 0xf) < 10)
+//             data[i * 2 + 1] = (i & 0xf) + '0';
+//         else
+//             data[i * 2 + 1] = (i & 0xf) + 'a' - 10;
+//     }
+//     // disk_sect_write(data, 1, 0);
+//     return 0;
+// }
 
 void commands_init() {
     term_command_add("clear", clear_cmd);
@@ -169,6 +224,10 @@ void commands_init() {
     term_command_add("outb", port_out_cmd);
     term_command_add("inb", port_in_cmd);
     term_command_add("time", time_cmd);
+    term_command_add("ret", ret_cmd);
+    term_command_add("format", format_cmd);
+    term_command_add("mount", mount_cmd);
+    term_command_add("umount", umount_cmd);
     // term_command_add("status", status_cmd);
     // term_command_add("read", read_cmd);
     // term_command_add("write", write_cmd);

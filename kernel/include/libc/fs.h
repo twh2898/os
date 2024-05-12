@@ -12,6 +12,7 @@ typedef file_t FILE;
 void fs_format(disk_t * disk);
 
 filesystem_t * fs_new(disk_t * disk);
+// REMEMBER THIS DOES NOt CLOSE THE DISK!!!
 void fs_free(filesystem_t * fs);
 
 disk_t * fs_get_disk(filesystem_t * fs);

@@ -55,11 +55,12 @@ typedef struct {
 ## Superblock
 
 The root dnode is the first dnode in a dnode block. The root id is always 1 (0
-is reserved to indicate invalid parent). root has a parent of 0.
+is reserved to indicate invalid parent). root has a parent of 0 and a null ptr
+for name.
 
 | start | size | name                      |
 | ----: | ---: | ------------------------- |
-|     0 |    4 | magic 0x73664653 ("fsFS") |
+|     0 |    4 | magic 0x53467366 ("fsFS") |
 |     4 |    4 | block_size (in bytes)     |
 |     8 |    4 | block count per group     |
 |    12 |    4 | block group count         |
@@ -129,3 +130,13 @@ has 256 blocks, the bitmask is 256 bits (32 bytes) long.
 | start | size | name                             |
 | ----: | ---: | -------------------------------- |
 |     0 |   32 | bitmask for free and used blocks |
+
+# Formatting
+
+1. x Read disk size
+2. x Calculate count of block groups
+3. x Generate superblock
+4. x Generate first block group
+5. x Generate first dnode list
+6. x Generate root dnode
+7. Generate remaining block groups
