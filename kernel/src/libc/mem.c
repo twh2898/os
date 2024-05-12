@@ -5,7 +5,7 @@
 
 #include "libc/string.h"
 
-#define PAGE_START 0x10000
+#define PAGE_START 0x90001
 
 #include "libc/intern/page.h"
 #include "libc/intern/block.h"
