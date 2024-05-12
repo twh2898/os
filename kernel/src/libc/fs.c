@@ -1,5 +1,6 @@
 #include "libc/fs.h"
 
+#include "debug.h"
 #include "drivers/ata.h"
 #include "libc/mem.h"
 #include "libc/stdio.h"
@@ -11,6 +12,7 @@
 
 #define BLOCK_SIZE_BYTES 64
 #define BLOCKS_PER_GROUP 256 // 8 bit max
+#define GROUP_SIZE_BYTES ((BLOCK_SIZE_BYTES) * (BLOCKS_PER_GROUP))
 
 #define DNODE_PER_BLOCK (sizeof(dnode_t) / (BLOCK_SIZE_BYTES))
 
@@ -91,37 +93,54 @@ static void fs_format_superblock(superblock_t * sb, uint32_t size);
 static void fs_format_block_group(group_t * group);
 static void fs_format_dnode(dnode_t * buff);
 
-void fs_format(disk_t * disk) {
-    // memset(page_buff, 0, PAGE_SIZE);
-
+bool fs_format(disk_t * disk) {
     size_t size = disk_size(disk);
 
-    // TODO handle error
     fs_format_superblock((superblock_t *)page_buff, size);
 
-    group_t * group = (group_t *)page_buff + BLOCK_SIZE_BYTES;
+    uint8_t * group = page_buff + BLOCK_SIZE_BYTES;
     memset(group + sizeof(group_t), 0, BLOCK_SIZE_BYTES - sizeof(group_t));
 
-    // TODO handle error
-    fs_format_block_group(group);
+    fs_format_block_group((group_t *)group);
 
     // Set root dnode block to used
-    group_set_block(group, 1, false);
+    group_set_block((group_t *)group, 1, false);
 
-    dnode_t * root_dnode = (dnode_t *)page_buff + BLOCK_SIZE_BYTES * 2;
+    uint8_t * root_dnode = page_buff + BLOCK_SIZE_BYTES * 2;
 
-    // TODO handle error
-    fs_format_dnode(root_dnode);
-    root_dnode->id = 1;
+    fs_format_dnode((dnode_t *)root_dnode);
+    ((dnode_t *)root_dnode)->id = 1;
 
     // block has 2 dnodes
-    fs_format_dnode(root_dnode + sizeof(dnode_t));
+    fs_format_dnode(((dnode_t *)(root_dnode + sizeof(dnode_t))));
 
     // TODO handle error
-    disk_sect_write(disk, page_buff, 1, 0);
+    if (disk_sect_write(disk, page_buff, 1, 0) != 1) {
+        puts("[ERROR] failed to write superblock\n");
+        return false;
+    }
 
-    // TODO generate remaining groups bitmask
-    // for (size_t i = 1; i < )
+    size_t sect_offset = BLOCK_SIZE_BYTES;
+
+    // create template sector to write in each group location
+    fs_format_block_group((group_t *)(page_buff + sect_offset));
+
+    size_t _block_size = BLOCK_SIZE_BYTES;
+    size_t _block_count = BLOCKS_PER_GROUP;
+    size_t _sect_size = ATA_SECTOR_BYTES;
+    size_t sects_step = (_block_size * _block_count) / _sect_size;
+    size_t n_sects = disk_sector_count(disk) / sects_step;
+    // // TODO generate remaining groups bitmask
+    for (size_t i = 1; i < n_sects; i++) {
+        if (i % 1000 == 0 && debug)
+            printf("Write block group %u/%u\n", i, n_sects);
+        if (disk_sect_write(disk, page_buff, 1, sects_step * i) != 1) {
+            printf("[ERROR] failed to write block group %u\n", i);
+            return false;
+        }
+    }
+
+    return true;
 }
 
 static bool group_get_block(const group_t * group, size_t block) {
@@ -153,7 +172,7 @@ static void fs_format_superblock(superblock_t * sb, uint32_t size) {
 }
 
 static void fs_format_block_group(group_t * group) {
-    memset(group->bitmask, 1, sizeof(group->bitmask));
+    memset(group->bitmask, 0xff, sizeof(group->bitmask));
     group_set_block(group, 0, false);
 }
 

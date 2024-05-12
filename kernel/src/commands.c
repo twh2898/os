@@ -153,7 +153,10 @@ static int format_cmd(size_t argc, char ** argv) {
         }
     }
 
+    puts("Formatting disk, this may take some time\n");
     fs_format(disk);
+    puts("Done!\n");
+
     return 0;
 }
 

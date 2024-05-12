@@ -9,6 +9,34 @@
 
 // https://wiki.osdev.org/ATA_PIO_Mode
 
+#ifndef SAFETY
+#define SAFETY 0
+#endif
+
+#if SAFETY
+#include "libc/stdio.h"
+#define TEST_PTR(REF)          \
+    if (!(REF)) {              \
+        printf(                \
+            "[ERROR] "__FILE__ \
+            ":%u Null ptr\n",  \
+            __LINE__);         \
+        return;                \
+    }
+#define TEST_PTR_RET(REF)      \
+    if (!(REF)) {              \
+        printf(                \
+            "[ERROR] "__FILE__ \
+            ":%u Null ptr\n",  \
+            __LINE__);         \
+        return 0;              \
+    }
+#else
+#define TEST_PTR(REF)
+#define TEST_PTR_RET(REF)
+#endif
+
+#define MAX_RETRY 5000
 #define TIMEOUT_MS 1000
 #define START_TIMEOUT uint32_t __timeout = time_ms() + TIMEOUT_MS;
 #define TEST_TIMEOUT                                          \
@@ -120,6 +148,7 @@ disk_t * disk_open(uint8_t id) {
 }
 
 void disk_close(disk_t * disk) {
+    TEST_PTR(disk)
     free(disk);
 }
 
@@ -129,14 +158,17 @@ void init_disk() {
 }
 
 size_t disk_size(disk_t * disk) {
+    TEST_PTR_RET(disk)
     return disk->sect_count * ATA_SECTOR_BYTES;
 }
 
 size_t disk_sector_count(disk_t * disk) {
+    TEST_PTR_RET(disk)
     return disk->sect_count;
 }
 
 bool disk_status(disk_t * disk) {
+    TEST_PTR_RET(disk)
     uint8_t status = port_byte_in(disk->ct_base + ATA_CTL_ALT_STATUS);
     if (debug) {
         printf("Status is %02X\n", status);
@@ -182,6 +214,8 @@ bool disk_status(disk_t * disk) {
 }
 
 size_t disk_sect_read(disk_t * disk, uint8_t * buff, size_t sect_count, uint32_t lba) {
+    TEST_PTR_RET(disk)
+    TEST_PTR_RET(buff)
     if (sect_count == 0)
         return 0;
 
@@ -198,9 +232,14 @@ size_t disk_sect_read(disk_t * disk, uint8_t * buff, size_t sect_count, uint32_t
 
     software_reset(disk);
     START_TIMEOUT
+    size_t retry = 0;
     while (port_byte_in(disk->ct_base + ATA_CTL_ALT_STATUS)
            & (ATA_STATUS_FLAG_DRQ | ATA_STATUS_FLAG_BSY)) {
         TEST_TIMEOUT
+        if (retry++ > MAX_RETRY) {
+            puts("[ERROR] max retries for disk_sect_read wait for first status\n");
+            return 0;
+        }
     }
 
     port_byte_out(disk->io_base + ATA_IO_DRIVE_HEAD, (0xE0 | ((lba >> 24) & 0xF)));
@@ -216,9 +255,14 @@ size_t disk_sect_read(disk_t * disk, uint8_t * buff, size_t sect_count, uint32_t
         // Read entire sector
         for (size_t i = 0; i < ATA_SECTOR_WORDS; i++) {
             // Wait for drive to be ready
+            retry = 0;
             while (!(port_byte_in(disk->ct_base + ATA_CTL_ALT_STATUS)
                      & ATA_STATUS_FLAG_DRQ)) {
                 TEST_TIMEOUT
+                if (retry++ > MAX_RETRY) {
+                    puts("[ERROR] max retries for disk_sect_read wait to read next sect\n");
+                    return 0;
+                }
             }
 
             // read drive data
@@ -234,6 +278,8 @@ size_t disk_sect_read(disk_t * disk, uint8_t * buff, size_t sect_count, uint32_t
 }
 
 size_t disk_sect_write(disk_t * disk, uint8_t * buff, size_t sect_count, uint32_t lba) {
+    TEST_PTR_RET(disk)
+    TEST_PTR_RET(buff)
     if (sect_count == 0)
         return 0;
 
@@ -251,9 +297,14 @@ size_t disk_sect_write(disk_t * disk, uint8_t * buff, size_t sect_count, uint32_
     software_reset(disk);
     START_TIMEOUT
     uint32_t start = time_ms();
+    size_t retry = 0;
     while (port_byte_in(disk->ct_base + ATA_CTL_ALT_STATUS)
            & (ATA_STATUS_FLAG_DRQ | ATA_STATUS_FLAG_BSY)) {
         TEST_TIMEOUT
+        if (retry++ > MAX_RETRY) {
+            puts("[ERROR] max retries for disk_sect_write wait for first status\n");
+            return 0;
+        }
     }
 
     port_byte_out(disk->io_base + ATA_IO_DRIVE_HEAD, (0xE0 | ((lba >> 24) & 0xF)));
@@ -270,9 +321,14 @@ size_t disk_sect_write(disk_t * disk, uint8_t * buff, size_t sect_count, uint32_
         // Read entire sector
         for (size_t i = 0; i < ATA_SECTOR_WORDS; i++) {
             // Wait for drive to be ready
+            retry = 0;
             while (!(port_byte_in(disk->ct_base + ATA_CTL_ALT_STATUS)
                      & ATA_STATUS_FLAG_DRQ)) {
                 TEST_TIMEOUT
+                if (retry++ > MAX_RETRY) {
+                    puts("[ERROR] max retries for disk_sect_write wait to write next sect\n");
+                    return 0;
+                }
             }
 
             // write drive data
@@ -287,6 +343,7 @@ size_t disk_sect_write(disk_t * disk, uint8_t * buff, size_t sect_count, uint32_
 }
 
 static void print_block(uint16_t * block) {
+    TEST_PTR(block)
     size_t step = 16;
     for (size_t i = 0; i < (ATA_SECTOR_WORDS / step); i++) {
         // printf("%4u", i * step);
@@ -300,6 +357,7 @@ static void print_block(uint16_t * block) {
 }
 
 static bool disk_identify(disk_t * disk) {
+    TEST_PTR_RET(disk)
     START_TIMEOUT
     port_byte_out(disk->io_base + ATA_IO_DRIVE_HEAD, 0xA0);
 
@@ -317,11 +375,16 @@ static bool disk_identify(disk_t * disk) {
 
     if (debug)
         puts("Polling");
+    size_t retry = 0;
     while (status & ATA_STATUS_FLAG_BSY) {
         if (debug)
             putc('.');
         status = port_byte_in(disk->io_base + ATA_IO_STATUS);
         TEST_TIMEOUT
+        if (retry++ > MAX_RETRY) {
+            puts("[ERROR] max retries for disk_identity wait for first status\n");
+            return 0;
+        }
     }
     if (debug)
         putc('\n');
@@ -336,11 +399,16 @@ static bool disk_identify(disk_t * disk) {
 
     if (debug)
         puts("Polling");
+    retry = 0;
     while (!(status & (ATA_STATUS_FLAG_DRQ | ATA_STATUS_FLAG_ERR))) {
         if (debug)
             putc('.');
         status = port_byte_in(disk->io_base + ATA_IO_STATUS);
         TEST_TIMEOUT
+        if (retry++ > MAX_RETRY) {
+            puts("[ERROR] max retries for disk_identity wait for second status\n");
+            return 0;
+        }
     }
     if (debug)
         putc('\n');
@@ -398,6 +466,7 @@ static bool disk_identify(disk_t * disk) {
 }
 
 static void software_reset(disk_t * disk) {
+    TEST_PTR(disk)
     START_TIMEOUT
     port_byte_out(disk->ct_base + ATA_CTL_CONTROL, ATA_CONTROL_FLAG_SRST);
     port_byte_out(disk->ct_base + ATA_CTL_CONTROL, 0);
@@ -411,8 +480,13 @@ static void software_reset(disk_t * disk) {
     uint8_t status = port_byte_in(disk->ct_base + ATA_CTL_ALT_STATUS);
     // while ((status & (ATA_STATUS_FLAG_RDY | ATA_STATUS_FLAG_BSY)) !=
     // ATA_STATUS_FLAG_RDY) {
+    size_t retry = 0;
     while ((status & 0xc0) != 0x40) {
         status = port_byte_in(disk->ct_base + ATA_CTL_ALT_STATUS);
         TEST_TIMEOUT_VOID
+        if (retry++ > MAX_RETRY) {
+            puts("[ERROR] max retries for software_reset wait for drive\n");
+            return;
+        }
     }
 }

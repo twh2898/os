@@ -9,7 +9,7 @@ typedef struct _filesystem filesystem_t;
 typedef struct _file file_t;
 typedef file_t FILE;
 
-void fs_format(disk_t * disk);
+bool fs_format(disk_t * disk);
 
 filesystem_t * fs_new(disk_t * disk);
 // REMEMBER THIS DOES NOt CLOSE THE DISK!!!

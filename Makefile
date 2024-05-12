@@ -46,7 +46,7 @@ os-image-dump.bin: $(PWD)$(OBJDIR)/bootsect.bin $(PWD)$(OBJDIR)/second.bin
 	cat $^ > $@
 
 drive.img:
-	qemu-img create -f qcow2 drive.img 1G
+	qemu-img create -f qcow2 drive.img 100M
 
 # ==========
 #  BOOTSECT
