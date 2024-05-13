@@ -5,10 +5,10 @@ print:
 ; while (string[i] != 0) { print string[i]; i++ }
 
 ; the comparison for string end (null byte)
-start:
+.print_start:
     mov al, [bx] ; 'bx' is the base address for the string
     cmp al, 0 
-    je done
+    je .print_done
 
     ; the part where we print with the BIOS help
     mov ah, 0x0e
@@ -16,13 +16,11 @@ start:
 
     ; increment pointer and do next loop
     add bx, 1
-    jmp start
+    jmp .print_start
 
-done:
+.print_done:
     popa
     ret
-
-
 
 print_nl:
     pusha

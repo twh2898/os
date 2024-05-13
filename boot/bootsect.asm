@@ -9,7 +9,9 @@ mov sp, bp
 call load_kernel
 call switch_to_pm
 ; jmp KERNEL_OFFSET
-jmp $
+halt:
+    hlt
+    jmp halt
 
 %include "boot/print.asm"
 %include "boot/print_hex.asm"
@@ -17,36 +19,13 @@ jmp $
 %include "boot/gdt.asm"
 %include "boot/switch.asm"
 
-[bits 16]
-load_kernel:
-    mov ebx, KERNEL_OFFSET >> 4
-    mov es, ebx
-    mov bx, 0
-    mov al, 64  ; sector is 512 bytes, so 64 = 32K
-    mov dl, [BOOT_DRIVE]
-    mov ch, 0x00
-    mov dh, 0x00
-    mov cl, 0x02
-    call disk_load
-
-    mov ebx, KERNEL_OFFSET2 >> 4
-    mov es, ebx
-    mov bx, 0
-    mov al, 64  ; sector is 512 bytes, so 64 = 32K
-    mov dl, [BOOT_DRIVE]
-    mov ch, 0x00
-    mov dh, 0x01
-    mov cl, 0x1e
-    call disk_load
-
-    mov ebx, 0
-    mov es, ebx
-    ret
-
 [bits 32]
 BEGIN_PM:
     call KERNEL_OFFSET
-    jmp $
+
+halt_32:
+    hlt
+    jmp halt_32
 
 BOOT_DRIVE db 0
 
