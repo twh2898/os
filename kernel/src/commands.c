@@ -214,22 +214,24 @@ static void print_upper(upper_mem_t * upper) {
     puts(" | ");
     print_64(upper->base_addr + upper->length);
     puts(" | ");
-    switch(upper->type) {
+    print_64(upper->length);
+    puts(" | ");
+    switch (upper->type) {
         case 1:
-        puts("Usable RAM");
-        break;
+            puts("Usable RAM");
+            break;
         case 2:
-        puts("Reserved");
-        break;
+            puts("Reserved");
+            break;
         case 3:
-        puts("ACPI Reclaimable");
-        break;
+            puts("ACPI Reclaimable");
+            break;
         case 4:
-        puts("ACPI NVS");
-        break;
+            puts("ACPI NVS");
+            break;
         case 5:
-        puts("BAD MEMORY");
-        break;
+            puts("BAD MEMORY");
+            break;
     }
     putc('\n');
 }
@@ -238,9 +240,15 @@ static int mem_cmd(size_t argc, char ** argv) {
     uint16_t low_mem = *(uint16_t *)0x7E00;
     printf("Lower memory is %u\n", low_mem);
 
-    puts("| Start              | End                | Type\n");
+    uint16_t count = *(uint16_t *)0x7E02;
+
+    printf("Total of %u blocks\n", count);
+
+    puts("| Start              | End                | Size               | Type\n");
     upper_mem_t * upper = (upper_mem_t *)0x7E04;
-    print_upper(upper);
+    for (size_t i = 0; i < count; i++) {
+        print_upper(&upper[i]);
+    }
 
     return 0;
 }
