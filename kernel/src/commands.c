@@ -195,6 +195,56 @@ static int unmount_cmd(size_t argc, char ** argv) {
     return 0;
 }
 
+typedef struct {
+    uint64_t base_addr;
+    uint64_t length;
+    uint32_t type;
+    uint32_t ext;
+} __attribute__((packed)) upper_mem_t;
+
+static void print_64(uint64_t v) {
+    uint32_t u = v >> 32;
+    uint32_t l = v & 0xffffffff;
+    printf("0x%08X%08X", u, l);
+}
+
+static void print_upper(upper_mem_t * upper) {
+    puts("| ");
+    print_64(upper->base_addr);
+    puts(" | ");
+    print_64(upper->base_addr + upper->length);
+    puts(" | ");
+    switch(upper->type) {
+        case 1:
+        puts("Usable RAM");
+        break;
+        case 2:
+        puts("Reserved");
+        break;
+        case 3:
+        puts("ACPI Reclaimable");
+        break;
+        case 4:
+        puts("ACPI NVS");
+        break;
+        case 5:
+        puts("BAD MEMORY");
+        break;
+    }
+    putc('\n');
+}
+
+static int mem_cmd(size_t argc, char ** argv) {
+    uint16_t low_mem = *(uint16_t *)0x7E00;
+    printf("Lower memory is %u\n", low_mem);
+
+    puts("| Start              | End                | Type\n");
+    upper_mem_t * upper = (upper_mem_t *)0x7E04;
+    print_upper(upper);
+
+    return 0;
+}
+
 // static int status_cmd(size_t argc, char ** argv) {
 //     // disk_status();
 //     return 0;
@@ -237,6 +287,7 @@ void commands_init() {
     term_command_add("format", format_cmd);
     term_command_add("mount", mount_cmd);
     term_command_add("unmount", unmount_cmd);
+    term_command_add("mem", mem_cmd);
     // term_command_add("status", status_cmd);
     // term_command_add("read", read_cmd);
     // term_command_add("write", write_cmd);

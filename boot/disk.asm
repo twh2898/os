@@ -36,14 +36,6 @@ disk_load:
     cmp al, dl
     jne .sectors_error
 
-    mov bx, DISK_FINISH
-    call print
-
-    mov dh, ah
-    mov dl, al
-    call print_hex
-    call print_nl
-
     popa
     ret
 
@@ -62,9 +54,6 @@ disk_load:
     mov dh, 0
     call print_hex
     call print_nl
-
-DISK_FINISH:
-    db "Done read ", 0
 
 DISK_ERROR:
     db "Disk read error ", 0
