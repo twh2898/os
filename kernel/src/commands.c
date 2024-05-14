@@ -4,11 +4,11 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "cpu/memory.h"
 #include "cpu/ports.h"
 #include "cpu/timer.h"
 #include "debug.h"
 #include "drivers/ata.h"
+#include "drivers/ram.h"
 #include "drivers/rtc.h"
 #include "drivers/vga.h"
 #include "libc/fs.h"
@@ -202,10 +202,7 @@ static void print_64(uint64_t v) {
     printf("0x%08X%08X", u, l);
 }
 
-static void print_upper(uint64_t start,
-                        uint64_t end,
-                        uint64_t size,
-                        enum MEMORY_TYPE type) {
+static void print_upper(uint64_t start, uint64_t end, uint64_t size, enum RAM_TYPE type) {
     puts("| ");
     print_64(start);
     puts(" | ");
@@ -234,19 +231,19 @@ static void print_upper(uint64_t start,
 }
 
 static int mem_cmd(size_t argc, char ** argv) {
-    uint16_t low_mem = memory_lower_size();
+    uint16_t low_mem = ram_lower_size();
     printf("Lower memory is %u\n", low_mem);
 
-    uint16_t count = memory_upper_count();
+    uint16_t count = ram_upper_count();
 
     printf("Total of %u blocks\n", count);
 
     puts("| Start              | End                | Size               | Type\n");
     for (size_t i = 0; i < count; i++) {
-        print_upper(memory_upper_start(i),
-                    memory_upper_end(i),
-                    memory_upper_size(i),
-                    memory_upper_type(i));
+        print_upper(ram_upper_start(i),
+                    ram_upper_end(i),
+                    ram_upper_size(i),
+                    ram_upper_type(i));
     }
     return 0;
 }
