@@ -13,13 +13,11 @@ Following the tutorials under https://github.com/cfenollosa/os-tutorial
   - [ ] Actually manage memory
   - [ ] Need to find end of kernel to not overflow at runtime (for malloc start)
   - [ ] Detect max memory for malloc
-  - [ ] Do that fancy memory map
+  - [x] Do that fancy memory map
 - [ ] Date and Time
 - [ ] Optional don't disable interrupts during interrupt
 - [ ] Better key event buffer (with mods) (maybe in addition to char buffer)
 - [ ] Change stdlib names with k prefix for namespace during testing
-- [ ] 64 bit support printf
-
 ### Long Term
 
 - [ ] Switch to 2d graphics mode
@@ -29,6 +27,7 @@ Following the tutorials under https://github.com/cfenollosa/os-tutorial
 - [ ] Testing
 - [ ] FAT or EXT2 filesystem driver
 - [ ] Audio Driver
+- [ ] 64 bit support printf (needs libgcc)
 
 ### Long Long Term
 

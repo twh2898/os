@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "cpu/memory.h"
 #include "cpu/ports.h"
 #include "cpu/timer.h"
 #include "debug.h"
@@ -195,28 +196,24 @@ static int unmount_cmd(size_t argc, char ** argv) {
     return 0;
 }
 
-typedef struct {
-    uint64_t base_addr;
-    uint64_t length;
-    uint32_t type;
-    uint32_t ext;
-} __attribute__((packed)) upper_mem_t;
-
 static void print_64(uint64_t v) {
     uint32_t u = v >> 32;
     uint32_t l = v & 0xffffffff;
     printf("0x%08X%08X", u, l);
 }
 
-static void print_upper(upper_mem_t * upper) {
+static void print_upper(uint64_t start,
+                        uint64_t end,
+                        uint64_t size,
+                        enum MEMORY_TYPE type) {
     puts("| ");
-    print_64(upper->base_addr);
+    print_64(start);
     puts(" | ");
-    print_64(upper->base_addr + upper->length);
+    print_64(end);
     puts(" | ");
-    print_64(upper->length);
+    print_64(size);
     puts(" | ");
-    switch (upper->type) {
+    switch (type) {
         case 1:
             puts("Usable RAM");
             break;
@@ -237,19 +234,20 @@ static void print_upper(upper_mem_t * upper) {
 }
 
 static int mem_cmd(size_t argc, char ** argv) {
-    uint16_t low_mem = *(uint16_t *)0x7E00;
+    uint16_t low_mem = memory_lower_size();
     printf("Lower memory is %u\n", low_mem);
 
-    uint16_t count = *(uint16_t *)0x7E02;
+    uint16_t count = memory_upper_count();
 
     printf("Total of %u blocks\n", count);
 
     puts("| Start              | End                | Size               | Type\n");
-    upper_mem_t * upper = (upper_mem_t *)0x7E04;
     for (size_t i = 0; i < count; i++) {
-        print_upper(&upper[i]);
+        print_upper(memory_upper_start(i),
+                    memory_upper_end(i),
+                    memory_upper_size(i),
+                    memory_upper_type(i));
     }
-
     return 0;
 }
 
