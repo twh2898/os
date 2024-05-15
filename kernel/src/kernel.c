@@ -1,3 +1,5 @@
+#include "kernel.h"
+
 #include "commands.h"
 #include "cpu/isr.h"
 #include "cpu/ports.h"
@@ -11,6 +13,20 @@
 #include "libc/string.h"
 #include "term.h"
 #include "test.h"
+
+void kernel_panic(const char * msg) {
+    vga_color(VGA_FG_WHITE | VGA_BG_RED);
+    vga_print("[KERNEL PANIC]");
+    if (msg) {
+        vga_putc(' ');
+        vga_print(msg);
+    }
+    vga_cursor_hide();
+    asm("cli");
+    for (;;) {
+        asm("hlt");
+    }
+}
 
 void cursor() {
     vga_cursor(3, 3);
