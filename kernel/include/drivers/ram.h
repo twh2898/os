@@ -13,7 +13,6 @@ enum RAM_TYPE {
 };
 
 void init_ram();
-void print_ram();
 
 uint16_t ram_lower_size();
 
