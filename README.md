@@ -18,6 +18,7 @@ Following the tutorials under https://github.com/cfenollosa/os-tutorial
 - [ ] Optional don't disable interrupts during interrupt
 - [ ] Better key event buffer (with mods) (maybe in addition to char buffer)
 - [ ] Change stdlib names with k prefix for namespace during testing
+
 ### Long Term
 
 - [ ] Switch to 2d graphics mode
