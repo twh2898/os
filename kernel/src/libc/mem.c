@@ -3,13 +3,45 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "drivers/ram.h"
+#include "kernel.h"
 #include "libc/string.h"
 
-#define PAGE_START 0x90001
+#define STACK_START 0x90000
 
-#include "libc/intern/page.h"
 #include "libc/intern/block.h"
+#include "libc/intern/page.h"
 
+uint32_t malloc_start;
+uint32_t malloc_end;
+
+void init_malloc() {
+    size_t largest_i = 0;
+    uint64_t largest_size = 0;
+    bool found = false;
+
+    for (size_t i = 0; i < ram_upper_count(); i++) {
+        if (ram_upper_usable(i)) {
+            uint64_t curr_size = ram_upper_size(i);
+            if (ram_upper_start(i) > STACK_START && curr_size > largest_size) {
+                largest_i = i;
+                largest_size = curr_size;
+                found = true;
+            }
+        }
+    }
+
+    if (!found) {
+        kernel_panic("Could not find area for malloc");
+    }
+
+    if (ram_upper_end(largest_i) > 0xffffffff) {
+        kernel_panic("malloc ends above 4 GB limit");
+    }
+
+    malloc_start = ram_upper_start(largest_i);
+    malloc_end = ram_upper_end(largest_i);
+}
 
 // typedef struct _page_t {
 //     struct _page_t * next;

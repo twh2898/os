@@ -3,6 +3,8 @@
 
 #include <stddef.h>
 
+void init_malloc();
+
 /* At this stage there is no 'free' implemented. */
 void * malloc(size_t size);
 

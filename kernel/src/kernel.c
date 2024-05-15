@@ -91,6 +91,7 @@ void kernel_main() {
     irq_install();
 
     init_ram();
+    init_malloc();
     init_disk();
 
     term_init();
