@@ -13,7 +13,7 @@ type.
 
 |    bits | name        |
 | ------: | ----------- |
-|     0-8 | block index |
+|   0 - 8 | block index |
 |  9 - 30 | group index |
 | 31 - 31 | type        |
 
