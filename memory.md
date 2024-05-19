@@ -32,8 +32,6 @@
    1. split block
 4. Return
 
-### Realloc
-
 ### Free
 
 1. Find block for pointer
