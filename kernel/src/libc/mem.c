@@ -12,34 +12,29 @@
 #define PAGE_ALIGNED_DOWN(PTR) ((PTR) & 0xfffff000)
 #define PAGE_ALIGNED_UP(PTR) ((PAGE_ALIGNED_DOWN(PTR)) + PAGE_SIZE)
 #define PAGE_ALIGNED(PTR) (((PTR) & 0xffff) ? PAGE_ALIGNED_UP(PTR) : (PTR))
-#define PAGE_ADDR_PER_BLOCK \
-    (((PAGE_SIZE) - (sizeof(uint32_t) * 2)) / sizeof(page_address_t))
 
-#define PAGE_BLOCK_FROM_ADDR(ADDR) \
-    ((page_block_t *)PAGE_ALIGNED_DOWN((uint32_t)ADDR))
+#define R2U(REGION) ((uint32_t)(REGION))
+#define U2R(PTR) ((region_header_t *)(PTR))
+
+#define MIN_REGION_SIZE 8
+
+#define HEADER_TO_PTR(HEADER) ((void *)(HEADER) + sizeof(region_header_t))
+#define PTR_TO_HEADER(PTR) \
+    ((region_header_t *)((PTR) - sizeof(region_header_t)))
 
 typedef struct {
-    uint32_t index : 32;
-    uint32_t count : 31;
+    uint32_t next : 32;
+    uint32_t prev : 32;
+    uint32_t size : 31;
     bool free : 1;
-} __attribute__((packed)) page_address_t;
-
-typedef struct {
-    uint32_t next; // page_block_t *
-    uint32_t prev; // page_block_t *
-    page_address_t pages[PAGE_ADDR_PER_BLOCK];
-} __attribute__((packed)) page_block_t;
+} __attribute__((packed)) region_header_t;
 
 static uint32_t malloc_start;
 static uint32_t malloc_end;
-static page_block_t * first_block;
+static region_header_t * first_region;
 
-static void init_page_block(page_block_t * block, uint32_t next, uint32_t prev);
-static uint32_t reserve_page(size_t size);
-static page_address_t * find_page(void * ptr);
-static void collapse_page(page_address_t * page);
-static page_address_t * page_get_prev(page_address_t * page);
-static page_address_t * page_get_next(page_address_t * page);
+static region_header_t * region_split(region_header_t * region, size_t size);
+static region_header_t * region_remove(region_header_t * region);
 
 void init_malloc() {
     size_t largest_i = 0;
@@ -68,149 +63,67 @@ void init_malloc() {
     malloc_start = PAGE_ALIGNED(ram_upper_start(largest_i));
     malloc_end = PAGE_ALIGNED_DOWN(ram_upper_end(largest_i));
 
-    first_block = (page_block_t *)malloc_start;
-    init_page_block(first_block, 0, 0);
+    first_region = (region_header_t *)malloc_start;
+    first_region->next = 0;
+    first_region->prev = 0;
+    first_region->size = (malloc_end - malloc_start) - sizeof(region_header_t);
+    first_region->free = true;
 }
 
 void * malloc(size_t size) {
-    uint32_t addr = reserve_page(size);
-    return (void *)addr;
-}
+    if (size < MIN_REGION_SIZE)
+        size = MIN_REGION_SIZE;
 
-void free(void * ptr) {
-    page_address_t * page = find_block_entry(ptr);
-    page->free = true;
-    collapse_page(page);
-}
+    region_header_t * curr = first_region;
 
-static void init_page_block(page_block_t * block, uint32_t next, uint32_t prev) {
-    block->next = next;
-    block->prev = prev;
-    for (size_t i = 0; i < PAGE_ADDR_PER_BLOCK; i++) {
-        block->pages[i].index = 0;
-        block->pages[i].count = 0;
-        block->pages[i].free = true;
-    }
-}
+    while (curr) {
+        if (curr->free && curr->size >= size) {
+            size_t size_diff = curr->size - size;
 
-static uint32_t reserve_page(size_t size) {
-    size_t count = size / PAGE_SIZE;
-    if (size % PAGE_SIZE)
-        count++;
+            if (size_diff > sizeof(region_header_t) + MIN_REGION_SIZE)
+                region_split(curr, size);
 
-    page_address_t * curr = &first_block->pages[0];
-    if (!curr->index) {
-        curr->count = count;
-        curr->index = 
-    }
-
-    while (curr->index) {
-
-        curr_block = (page_block_t *)curr_block->next;
-        // TODO
-    }
-}
-
-static page_address_t * find_page(void * ptr) {
-    page_block_t * block = first_block;
-    while (block) {
-        for (size_t i = 0; i > PAGE_ADDR_PER_BLOCK; i++) {
-            page_address_t * page = &block->pages[i];
-            if ((uint32_t)ptr / PAGE_SIZE == (uint32_t)page) {
-                return page;
-            }
+            return HEADER_TO_PTR(curr);
         }
-        block = block->next;
+        curr = U2R(curr->next);
     }
+
     return 0;
 }
 
-static void collapse_page(page_address_t * page) {
-    page_address_t * start_page = page;
-    while (start_page) {
-        page_address_t * prev_page = page_get_prev(start_page);
-
-        if (!prev_page || !prev_page->free)
-            break;
-
-        start_page = prev_page;
-    }
-
-    page_address_t * end_page = page;
-    while (end_page) {
-        page_address_t * next_page = page_get_next(end_page);
-
-        if (!next_page || !next_page->free)
-            break;
-
-        end_page = next_page;
-    }
-
-    if (start_page == end_page)
-        return;
-
-    size_t page_count = 0;
-    page_address_t * curr = start_page;
-    while (curr != end_page) {
-        start_page->count += curr->count;
-        curr = page_get_next(curr);
-        page_count++;
-    }
-
-    page_address_t * to = page_get_next(start_page);
-    page_address_t * from = end_page;
-    while (from) {
-        to->index = from->index;
-        to->count = from->count;
-        to->free = from->free;
-
-        to = page_get_next(to);
-        from = page_get_next(from);
-    }
+void free(void * ptr) {
+    region_remove(PTR_TO_HEADER(ptr));
 }
 
-static page_address_t * page_get_prev(page_address_t * page) {
-    page_block_t * block = PAGE_BLOCK_FROM_ADDR(page);
+static region_header_t * region_split(region_header_t * region, size_t size) {
+    region_header_t * next_region = U2R(region->next);
+    region_header_t * new_region = U2R(R2U(region) + size);
 
-    size_t i;
-    for (i = 0; i < PAGE_ADDR_PER_BLOCK; i++) {
-        if (&block->pages[i] == page)
-            break;
-    }
+    new_region->size = region->size - size - sizeof(region_header_t);
+    new_region->next = R2U(next_region);
+    new_region->prev = R2U(region);
 
-    if (i > 0) {
-        return &block->pages[i - 1];
-    }
+    region->size = size;
 
-    block = (page_block_t *)block->prev;
+    next_region->prev = R2U(new_region);
 
-    if (!block)
-        return 0;
+    region->next = R2U(new_region);
 
-    return &block->pages[PAGE_ADDR_PER_BLOCK - 1];
+    return new_region;
 }
 
-static page_address_t * page_get_next(page_address_t * page) {
-    page_block_t * block = PAGE_BLOCK_FROM_ADDR(page);
+static region_header_t * region_remove(region_header_t * region) {
+    if (!region->prev)
+        return region;
 
-    size_t i;
-    for (i = 0; i < PAGE_ADDR_PER_BLOCK; i++) {
-        if (&block->pages[i] == page)
-            break;
-    }
+    region_header_t * prev_region = U2R(region->prev);
+    region_header_t * next_region = U2R(region->next);
 
-    if (i < PAGE_ADDR_PER_BLOCK - 1) {
-        i++;
-        if (!block->pages[i].index)
-            return 0;
+    prev_region->size += region->size + sizeof(region_header_t);
+    prev_region->next = region->next;
 
-        return &block->pages[i];
-    }
+    if (region->next)
+        next_region->prev = region->prev;
 
-    block = (page_block_t *)block->next;
-
-    if (!block || !block->pages[0].index)
-        return 0;
-
-    return &block->pages[0];
+    return prev_region;
 }
