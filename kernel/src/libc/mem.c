@@ -53,11 +53,11 @@ void init_malloc() {
     }
 
     if (!found) {
-        kernel_panic("Could not find area for malloc");
+        KERNEL_PANIC("Could not find area for malloc");
     }
 
     if (ram_upper_end(largest_i) > 0xffffffff) {
-        kernel_panic("malloc ends above 4 GB limit");
+        KERNEL_PANIC("malloc ends above 4 GB limit");
     }
 
     malloc_start = PAGE_ALIGNED(ram_upper_start(largest_i));

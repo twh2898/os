@@ -3,15 +3,16 @@
 #include "debug.h"
 #include "drivers/keyboard.h"
 #include "drivers/vga.h"
+#include "kernel.h"
 #include "libc/circbuff.h"
 #include "libc/mem.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
 
-#define ERROR(MSG)                   \
-    {                                \
-        vga_color(VGA_RED_ON_WHITE); \
-        vga_print(MSG);              \
+#define ERROR(MSG)                                \
+    {                                             \
+        vga_color(VGA_RED_ON_WHITE);              \
+        printf(__FILE__ ":%u %s", __LINE__, MSG); \
     }
 
 #define FATAL(MSG)         \
@@ -44,6 +45,8 @@ static void key_cb(uint8_t code, char c, keyboard_event_t event, keyboard_mod_t 
     if (event != KEY_EVENT_RELEASE && c) {
         if (circbuff_len(keybuff) >= MAX_CHARS) {
             ERROR("key buffer overflow");
+            printf("(%u out of %u)", circbuff_len(keybuff), MAX_CHARS);
+            KERNEL_PANIC("key buffer overflow");
             return;
         }
 
