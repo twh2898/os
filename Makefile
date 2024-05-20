@@ -3,12 +3,14 @@
 #  CONFIG
 # ========
 ASM:=nasm
-CC:=i386-elf-gcc
-LD:=i386-elf-ld
-GDB:=gdb
+CC:="${HOME}/.local/opt/cross/bin/i386-elf-gcc"
+LD:="${HOME}/.local/opt/cross/bin/i386-elf-ld"
+GDB:="${HOME}/.local/opt/cross/bin/i386-elf-gdb"
 QEMU:=qemu-system-i386
 
 CFLAGS := -g -Werror -ffreestanding
+# CXXFLAGS := -fno-exceptions -fno-rtti
+LDFLAGS := -nostdlib -L"${HOME}/.local/opt/cross/lib/gcc/i386-elf/12.2.0" -lgcc
 
 SRCDIR:=kernel/src
 INCDIR:=kernel/include
@@ -65,17 +67,17 @@ $(PWD)$(OBJDIR)/zero:
 # ========
 #  KERNEL
 # ========
-$(PWD)$(OBJDIR)/kernel.bin: $(OBJ)
-	$(LD) -Ttext 0x8000 --oformat binary -o $@ $^
+$(PWD)$(OBJDIR)/kernel.bin: Makefile $(OBJ)
+	$(LD) -Ttext 0x8000 --oformat binary -o $@ $(OBJ) $(LDFLAGS)
 
-$(PWD)$(OBJDIR)/kernel.elf: ${OBJ}
-	$(LD) -Ttext 0x8000 -o $@ $^
+$(PWD)$(OBJDIR)/kernel.elf: Makefile $(OBJ)
+	$(LD) -Ttext 0x8000 -o $@ $(OBJ) $(LDFLAGS)
 
-$(PWD)$(OBJDIR)/%.o: %.c $(HEADERS)
+$(PWD)$(OBJDIR)/%.o: %.c $(HEADERS) Makefile
 	@mkdir -p $(shell dirname $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(PWD)$(OBJDIR)/%.o: %.asm
+$(PWD)$(OBJDIR)/%.o: %.asm Makefile
 	@mkdir -p $(shell dirname $@)
 	$(ASM) -f elf $< -o $@
 

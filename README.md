@@ -2,6 +2,14 @@
 
 Following the tutorials under https://github.com/cfenollosa/os-tutorial
 
+## Goals
+
+The OS will be finished when all of the following are implemented.
+
+- [ ] Able to get and draw basic http web page
+- [ ] Compiler for at least Assembly or C
+- [ ] Playable Minecraft Clone
+
 ## ToDo
 
 - [ ] Kernel stats (stats command returns # disk io, keys, mounts, etc.)
