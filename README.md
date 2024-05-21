@@ -26,7 +26,7 @@ The OS will be finished when all of the following are implemented.
 - [ ] Date and Time
 - [ ] Optional don't disable interrupts during interrupt
 - [ ] Better key event buffer (with mods) (maybe in addition to char buffer)
-- [ ] Change stdlib names with k prefix for namespace during testing
+- [x] Change stdlib names with k prefix for namespace during testing
 
 ### Long Term
 
@@ -37,7 +37,7 @@ The OS will be finished when all of the following are implemented.
 - [ ] Testing
 - [ ] FAT or EXT2 filesystem driver
 - [ ] Audio Driver
-- [ ] 64 bit support printf (needs libgcc)
+- [x] 64 bit support printf (needs libgcc)
 
 ### Long Long Term
 
