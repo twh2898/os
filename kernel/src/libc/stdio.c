@@ -6,9 +6,9 @@
 #include "libc/string.h"
 
 static size_t int_width(int32_t n, uint8_t base);
-// static size_t long_int_width(int64_t n, uint8_t base);
+static size_t long_int_width(int64_t n, uint8_t base);
 static size_t uint_width(uint32_t n, uint8_t base);
-// static size_t long_uint_width(uint64_t n, uint8_t base);
+static size_t long_uint_width(uint64_t n, uint8_t base);
 
 static char digit(uint32_t num, uint8_t base, bool upper);
 
@@ -20,12 +20,12 @@ static size_t padded_int(size_t width,
                          uint8_t base,
                          bool upper,
                          bool lead_zero);
-// static size_t padded_long_int(size_t width,
-//                               bool left_align,
-//                               int64_t num,
-//                               uint8_t base,
-//                               bool upper,
-//                               bool lead_zero);
+static size_t padded_long_int(size_t width,
+                              bool left_align,
+                              int64_t num,
+                              uint8_t base,
+                              bool upper,
+                              bool lead_zero);
 
 static size_t padded_uint(size_t width,
                           bool left_align,
@@ -33,12 +33,12 @@ static size_t padded_uint(size_t width,
                           uint8_t base,
                           bool upper,
                           bool lead_zero);
-// static size_t padded_long_uint(size_t width,
-//                                bool left_align,
-//                                uint64_t num,
-//                                uint8_t base,
-//                                bool upper,
-//                                bool lead_zero);
+static size_t padded_long_uint(size_t width,
+                               bool left_align,
+                               uint64_t num,
+                               uint8_t base,
+                               bool upper,
+                               bool lead_zero);
 
 static size_t padded_str(size_t width, bool left_align, char * str);
 
@@ -76,49 +76,49 @@ size_t itoa(int32_t n, char * str) {
     return len;
 }
 
-// size_t ltoa(int64_t n, char * str) {
-//     bool is_neg = n < 0;
+size_t ltoa(int64_t n, char * str) {
+    bool is_neg = n < 0;
 
-//     if (is_neg) {
-//         *str++ = '-';
-//         n = -n;
-//     }
+    if (is_neg) {
+        *str++ = '-';
+        n = -n;
+    }
 
-//     size_t len = 0;
-//     uint64_t rev = 0;
-//     while (n > 0) {
-//         rev = (rev * 10) + (n % 10);
-//         n /= 10;
-//         len += 1;
-//     }
+    size_t len = 0;
+    uint64_t rev = 0;
+    while (n > 0) {
+        rev = (rev * 10) + (n % 10);
+        n /= 10;
+        len += 1;
+    }
 
-//     for (size_t i = 0; i < len; i++) {
-//         *str++ = '0' + (rev % 10);
-//         rev /= 10;
-//     }
+    for (size_t i = 0; i < len; i++) {
+        *str++ = '0' + (rev % 10);
+        rev /= 10;
+    }
 
-//     if (len == 0) {
-//         *str++ = '0';
-//         len++;
-//     }
+    if (len == 0) {
+        *str++ = '0';
+        len++;
+    }
 
-//     *str = 0;
+    *str = 0;
 
-//     if (is_neg)
-//         len++;
+    if (is_neg)
+        len++;
 
-//     return len;
-// }
+    return len;
+}
 
-size_t puts(const char * str) {
+size_t kputs(const char * str) {
     return vga_print(str);
 }
 
-size_t putc(char c) {
+size_t kputc(char c) {
     return vga_putc(c);
 }
 
-size_t puti(int32_t num, uint8_t base, bool upper) {
+size_t kputi(int32_t num, uint8_t base, bool upper) {
     if (num == 0) {
         return vga_putc('0');
     }
@@ -147,36 +147,36 @@ size_t puti(int32_t num, uint8_t base, bool upper) {
     return o_len;
 }
 
-// size_t putli(int64_t num, uint8_t base, bool upper) {
-//     if (num == 0) {
-//         return vga_putc('0');
-//     }
+size_t kputli(int64_t num, uint8_t base, bool upper) {
+    if (num == 0) {
+        return vga_putc('0');
+    }
 
-//     bool is_neg = num < 0;
+    bool is_neg = num < 0;
 
-//     size_t o_len = 0;
-//     if (num < 0) {
-//         o_len += vga_putc('-');
-//         num = -num;
-//     }
+    size_t o_len = 0;
+    if (num < 0) {
+        o_len += vga_putc('-');
+        num = -num;
+    }
 
-//     size_t len = 0;
-//     uint64_t rev = 0;
-//     while (num > 0) {
-//         rev = (rev * base) + (num % base);
-//         num /= base;
-//         len++;
-//     }
+    size_t len = 0;
+    uint64_t rev = 0;
+    while (num > 0) {
+        rev = (rev * base) + (num % base);
+        num /= base;
+        len++;
+    }
 
-//     for (size_t i = 0; i < len; i++) {
-//         o_len += vga_putc(digit(rev % base, base, upper));
-//         rev /= base;
-//     }
+    for (size_t i = 0; i < len; i++) {
+        o_len += vga_putc(digit(rev % base, base, upper));
+        rev /= base;
+    }
 
-//     return o_len;
-// }
+    return o_len;
+}
 
-size_t putu(uint32_t num, uint8_t base, bool upper) {
+size_t kputu(uint32_t num, uint8_t base, bool upper) {
     if (num == 0) {
         return vga_putc('0');
     }
@@ -198,29 +198,29 @@ size_t putu(uint32_t num, uint8_t base, bool upper) {
     return o_len;
 }
 
-// size_t putlu(uint64_t num, uint8_t base, bool upper) {
-//     if (num == 0) {
-//         return vga_putc('0');
-//     }
+size_t kputlu(uint64_t num, uint8_t base, bool upper) {
+    if (num == 0) {
+        return vga_putc('0');
+    }
 
-//     size_t len = 0;
-//     uint64_t rev = 0;
-//     while (num > 0) {
-//         rev = (rev * base) + (num % base);
-//         num /= base;
-//         len++;
-//     }
+    size_t len = 0;
+    uint64_t rev = 0;
+    while (num > 0) {
+        rev = (rev * base) + (num % base);
+        num /= base;
+        len++;
+    }
 
-//     size_t o_len = 0;
-//     for (size_t i = 0; i < len; i++) {
-//         o_len += vga_putc(digit(rev % base, base, upper));
-//         rev /= base;
-//     }
+    size_t o_len = 0;
+    for (size_t i = 0; i < len; i++) {
+        o_len += vga_putc(digit(rev % base, base, upper));
+        rev /= base;
+    }
 
-//     return o_len;
-// }
+    return o_len;
+}
 
-size_t printf(const char * fmt, ...) {
+size_t kprintf(const char * fmt, ...) {
     va_list params;
     va_start(params, fmt);
 
@@ -232,7 +232,7 @@ size_t printf(const char * fmt, ...) {
             bool fill_fract = false;
             bool left_align = fmt[1] == '-';
             bool lead_zero = !left_align && fmt[1] == '0';
-            // bool is_long = false;
+            bool is_long = false;
 
             if (left_align || lead_zero)
                 fmt++;
@@ -258,72 +258,72 @@ size_t printf(const char * fmt, ...) {
                 case '.':
                     fill_fract = true;
                     goto start_format;
-                // case 'l': {
-                //     is_long = true;
-                //     goto start_format;
-                // }
+                case 'l': {
+                    is_long = true;
+                    goto start_format;
+                }
                 case 'd': {
-                    // if (is_long) {
-                    //     int64_t arg = va_arg(params, int);
-                    //     o_len += padded_long_int(
-                    //         width, left_align, arg, 10, false, lead_zero);
-                    // }
-                    // else {
+                    if (is_long) {
+                        int64_t arg = va_arg(params, int);
+                        o_len += padded_long_int(
+                            width, left_align, arg, 10, false, lead_zero);
+                    }
+                    else {
                         int32_t arg = va_arg(params, int);
                         o_len += padded_int(
                             width, left_align, arg, 10, false, lead_zero);
-                    // }
+                    }
                 } break;
                 case 'u': {
-                    // if (is_long) {
-                    //     uint64_t arg = va_arg(params, unsigned int);
-                    //     o_len += padded_long_uint(
-                    //         width, left_align, arg, 10, false, lead_zero);
-                    // }
-                    // else {
+                    if (is_long) {
+                        uint64_t arg = va_arg(params, unsigned int);
+                        o_len += padded_long_uint(
+                            width, left_align, arg, 10, false, lead_zero);
+                    }
+                    else {
                         uint32_t arg = va_arg(params, unsigned int);
                         o_len += padded_uint(
                             width, left_align, arg, 10, false, lead_zero);
-                    // }
+                    }
                 } break;
                 case 'p': {
-                    // if (is_long) {
-                    //     uint64_t arg = va_arg(params, unsigned int);
-                    //     o_len += puts("0x");
-                    //     o_len += padded_long_uint(
-                    //         width, left_align, arg, 16, false, true);
-                    // }
-                    // else {
+                    if (is_long) {
+                        uint64_t arg = va_arg(params, unsigned int);
+                        o_len += kputs("0x");
+                        o_len += padded_long_uint(
+                            width, left_align, arg, 16, false, true);
+                    }
+                    else {
                         uint32_t arg = va_arg(params, unsigned int);
-                        o_len += puts("0x");
+                        o_len += kputs("0x");
                         o_len +=
                             padded_uint(width, left_align, arg, 16, false, true);
-                    // }
+                    }
                 } break;
                 case 'o': {
-                    // if (is_long) {
-                    //     uint64_t arg = va_arg(params, int);
-                    //     o_len += padded_long_uint(
-                    //         width, left_align, arg, 8, false, lead_zero);
-                    // }
-                    // else {
+                    if (is_long) {
+                        uint64_t arg = va_arg(params, int);
+                        o_len += padded_long_uint(
+                            width, left_align, arg, 8, false, lead_zero);
+                    }
+                    else {
                         uint32_t arg = va_arg(params, int);
                         o_len += padded_uint(
                             width, left_align, arg, 8, false, lead_zero);
-                    // }
+                    }
                 } break;
                 case 'x':
                 case 'X': {
-                    // if (is_long) {
-                    //     uint64_t arg = va_arg(params, int);
-                    //     o_len += padded_long_uint(
-                    //         width, left_align, arg, 16, *fmt == 'X', lead_zero);
-                    // }
-                    // else {
+                    if (is_long) {
+                        uint64_t arg = va_arg(params, int);
+                        o_len += padded_long_uint(
+                            width, left_align, arg, 16, *fmt == 'X', lead_zero);
+                    }
+                    else {
                         uint32_t arg = va_arg(params, int);
                         o_len += padded_uint(
                             width, left_align, arg, 16, *fmt == 'X', lead_zero);
-                    // }
+                    }
                 } break;
                 case 'c': {
                     char arg = va_arg(params, int);
@@ -344,9 +344,9 @@ size_t printf(const char * fmt, ...) {
                 case 'f': {
                     float arg = va_arg(params, double);
                     uint32_t lhs = (uint32_t)arg;
-                    size_t count = puti(lhs, 10, false);
+                    size_t count = kputi(lhs, 10, false);
                     o_len += count;
-                    o_len += putc('.');
+                    o_len += kputc('.');
                     float rem = arg - (float)lhs;
                     if (!fract)
                         fract = 6;
@@ -355,7 +355,7 @@ size_t printf(const char * fmt, ...) {
                         rem *= 10;
                         // if (rem == 0)
                         //     break;
-                        putu((int)rem, 10, false);
+                        kputu((int)rem, 10, false);
                         rem -= (int)rem;
                     }
                 } break;
@@ -381,11 +381,11 @@ static size_t int_width(int32_t n, uint8_t base) {
     return uint_width(n, base);
 }
 
-// static size_t long_int_width(int64_t n, uint8_t base) {
-//     if (n < 0)
-//         n = -n;
-//     return long_uint_width(n, base);
-// }
+static size_t long_int_width(int64_t n, uint8_t base) {
+    if (n < 0)
+        n = -n;
+    return long_uint_width(n, base);
+}
 
 static size_t uint_width(uint32_t n, uint8_t base) {
     size_t width = 0;
@@ -396,14 +396,14 @@ static size_t uint_width(uint32_t n, uint8_t base) {
     return (width ? width : 1);
 }
 
-// static size_t long_uint_width(uint64_t n, uint8_t base) {
-//     size_t width = 0;
-//     while (n > 0) {
-//         n /= base;
-//         width++;
-//     }
-//     return (width ? width : 1);
-// }
+static size_t long_uint_width(uint64_t n, uint8_t base) {
+    size_t width = 0;
+    while (n > 0) {
+        n /= base;
+        width++;
+    }
+    return (width ? width : 1);
+}
 
 static char digit(uint32_t num, uint8_t base, bool upper) {
     if (num < 10)
@@ -451,7 +451,7 @@ static size_t padded_int(size_t width,
         o_len += vga_putc('-');
     }
 
-    o_len += puti(num, base, upper);
+    o_len += kputi(num, base, upper);
 
     if (fill && left_align) {
         o_len += pad(' ', width - num_len);
@@ -460,44 +460,44 @@ static size_t padded_int(size_t width,
     return o_len;
 }
 
-// static size_t padded_long_int(size_t width,
-//                               bool left_align,
-//                               int64_t num,
-//                               uint8_t base,
-//                               bool upper,
-//                               bool lead_zero) {
-//     size_t num_len = long_int_width(num, base);
-//     bool is_neg = num < 0;
+static size_t padded_long_int(size_t width,
+                              bool left_align,
+                              int64_t num,
+                              uint8_t base,
+                              bool upper,
+                              bool lead_zero) {
+    size_t num_len = long_int_width(num, base);
+    bool is_neg = num < 0;
 
-//     if (is_neg) {
-//         num_len++;
-//         num = -num;
-//     }
+    if (is_neg) {
+        num_len++;
+        num = -num;
+    }
 
-//     bool fill = width > num_len;
+    bool fill = width > num_len;
 
-//     size_t o_len = 0;
-//     if (fill && !left_align) {
-//         if (lead_zero && is_neg) {
-//             o_len += vga_putc('-');
-//         }
-//         o_len += pad((lead_zero ? '0' : ' '), width - num_len);
-//         if (!lead_zero && is_neg) {
-//             o_len += vga_putc('-');
-//         }
-//     }
-//     else if (is_neg) {
-//         o_len += vga_putc('-');
-//     }
+    size_t o_len = 0;
+    if (fill && !left_align) {
+        if (lead_zero && is_neg) {
+            o_len += vga_putc('-');
+        }
+        o_len += pad((lead_zero ? '0' : ' '), width - num_len);
+        if (!lead_zero && is_neg) {
+            o_len += vga_putc('-');
+        }
+    }
+    else if (is_neg) {
+        o_len += vga_putc('-');
+    }
 
-//     o_len += putli(num, base, upper);
+    o_len += kputli(num, base, upper);
 
-//     if (fill && left_align) {
-//         o_len += pad(' ', width - num_len);
-//     }
+    if (fill && left_align) {
+        o_len += pad(' ', width - num_len);
+    }
 
-//     return o_len;
-// }
+    return o_len;
+}
 
 static size_t padded_uint(size_t width,
                           bool left_align,
@@ -514,7 +514,7 @@ static size_t padded_uint(size_t width,
         o_len += pad((lead_zero ? '0' : ' '), width - num_len);
     }
 
-    o_len += putu(num, base, upper);
+    o_len += kputu(num, base, upper);
 
     if (fill && left_align) {
         o_len += pad(' ', width - num_len);
@@ -523,29 +523,29 @@ static size_t padded_uint(size_t width,
     return o_len;
 }
 
-// static size_t padded_long_uint(size_t width,
-//                                bool left_align,
-//                                uint64_t num,
-//                                uint8_t base,
-//                                bool upper,
-//                                bool lead_zero) {
-//     size_t num_len = long_uint_width(num, base);
+static size_t padded_long_uint(size_t width,
+                               bool left_align,
+                               uint64_t num,
+                               uint8_t base,
+                               bool upper,
+                               bool lead_zero) {
+    size_t num_len = long_uint_width(num, base);
 
-//     bool fill = width > num_len;
+    bool fill = width > num_len;
 
-//     size_t o_len = 0;
-//     if (fill && !left_align) {
-//         o_len += pad((lead_zero ? '0' : ' '), width - num_len);
-//     }
+    size_t o_len = 0;
+    if (fill && !left_align) {
+        o_len += pad((lead_zero ? '0' : ' '), width - num_len);
+    }
 
-//     o_len += putu(num, base, upper);
+    o_len += kputu(num, base, upper);
 
-//     if (fill && left_align) {
-//         o_len += pad(' ', width - num_len);
-//     }
+    if (fill && left_align) {
+        o_len += pad(' ', width - num_len);
+    }
 
-//     return o_len;
-// }
+    return o_len;
+}
 
 static size_t padded_str(size_t width, bool left_align, char * str) {
     size_t str_len = strlen(str);

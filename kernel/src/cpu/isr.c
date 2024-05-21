@@ -120,7 +120,7 @@ char * exception_messages[] = {
 };
 
 void isr_handler(registers_t r) {
-    printf("received interrupt: %u\n%s\n", r.int_no, exception_messages[r.int_no]);
+    kprintf("received interrupt: %u\n%s\n", r.int_no, exception_messages[r.int_no]);
 }
 
 void register_interrupt_handler(uint8_t n, isr_t handler) {

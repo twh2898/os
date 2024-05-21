@@ -116,7 +116,7 @@ bool fs_format(disk_t * disk) {
 
     // TODO handle error
     if (disk_sect_write(disk, page_buff, 1, 0) != 1) {
-        puts("[ERROR] failed to write superblock\n");
+        kputs("[ERROR] failed to write superblock\n");
         return false;
     }
 
@@ -133,9 +133,9 @@ bool fs_format(disk_t * disk) {
     // // TODO generate remaining groups bitmask
     for (size_t i = 1; i < n_sects; i++) {
         if (i % 1000 == 0 && debug)
-            printf("Write block group %u/%u\n", i, n_sects);
+            kprintf("Write block group %u/%u\n", i, n_sects);
         if (disk_sect_write(disk, page_buff, 1, sects_step * i) != 1) {
-            printf("[ERROR] failed to write block group %u\n", i);
+            kprintf("[ERROR] failed to write block group %u\n", i);
             return false;
         }
     }
@@ -196,14 +196,14 @@ filesystem_t * fs_new(disk_t * disk) {
     filesystem_t * fs = malloc(sizeof(filesystem_t));
     if (fs) {
         if (disk_sect_read(disk, page_buff, 1, 0) != 1) {
-            puts("[ERROR] failed to read first sector of disk\n");
+            kputs("[ERROR] failed to read first sector of disk\n");
             free(fs);
             return 0;
         }
 
         fs->super_block = *(superblock_t *)page_buff;
         if (fs->super_block.magic != MAGIC) {
-            puts("[ERROR] disk is not formatted\n");
+            kputs("[ERROR] disk is not formatted\n");
             free(fs);
             return 0;
         }

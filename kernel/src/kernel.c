@@ -17,7 +17,7 @@
 void kernel_panic(const char * msg, const char * file, unsigned int line) {
     vga_color(VGA_FG_WHITE | VGA_BG_RED);
     vga_print("[KERNEL PANIC]");
-    printf("[%s]:%u", file, line);
+    kprintf("[%s]:%u", file, line);
     if (msg) {
         vga_putc(' ');
         vga_print(msg);
@@ -45,38 +45,38 @@ void test_interrupt() {
 }
 
 int demo(size_t argc, char ** argv) {
-    printf("Lets demo some cool features of printf\n");
-    int len = printf(
+    kprintf("Lets demo some cool features of kprintf\n");
+    int len = kprintf(
         "Like the percent sign %%, \na signed int %d, a signed int with width formatting %4d, \nleading zeros %04d, left align %-4d\n",
         10,
         10,
         10,
         10);
-    len += printf(
+    len += kprintf(
         "How about negative numbers: signed %d and unsigned %u\n", -10, -10);
-    len += printf(
+    len += kprintf(
         "Now for non decimal 0x%04x and 0x%04X or octal %o\n", 1234, 1234, 1234);
-    len += printf("There's booleans to %b and chars like %c and strings like %s\n",
+    len += kprintf("There's booleans to %b and chars like %c and strings like %s\n",
                   true,
                   'c',
                   "this");
     int store = 0;
-    len += printf("The last part is pointers %8p\n", &store);
+    len += kprintf("The last part is pointers %8p\n", &store);
 
     void * data = malloc(10);
 
-    printf("\nMalloc memory got pointer %p\n", data);
-    printf("Float number %f or shorter %3f or digits %.4f or lead %.04f\n",
+    kprintf("\nMalloc memory got pointer %p\n", data);
+    kprintf("Float number %f or shorter %3f or digits %.4f or lead %.04f\n",
            3.14,
            31.45,
            3.14,
            3.14);
-    printf("%f\n", 12345678.0);
+    kprintf("%f\n", 12345678.0);
 }
 
 void key_cb(uint8_t code, char c, keyboard_event_t event, keyboard_mod_t mod) {
     if (event != KEY_EVENT_RELEASE && c) {
-        putc(c);
+        kputc(c);
     }
 }
 

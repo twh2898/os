@@ -34,13 +34,13 @@ static int echo_cmd(size_t argc, char ** argv) {
     if (!next_line)
         i++;
     for (; i < argc; i++) {
-        puts(argv[i]);
+        kputs(argv[i]);
         if (i < argc)
-            putc(' ');
+            kputc(' ');
     }
 
     if (next_line)
-        putc('\n');
+        kputc('\n');
 
     return 0;
 }
@@ -48,20 +48,20 @@ static int echo_cmd(size_t argc, char ** argv) {
 static int debug_cmd(size_t argc, char ** argv) {
     debug = !debug;
     if (debug)
-        puts("Enable debug\n");
+        kputs("Enable debug\n");
     else
-        puts("Disabling debug\n");
+        kputs("Disabling debug\n");
     return 0;
 }
 
 static int atoi_cmd(size_t argc, char ** argv) {
     if (argc != 2) {
-        printf("Usage: %s <number>\n", argv[0]);
+        kprintf("Usage: %s <number>\n", argv[0]);
         return 1;
     }
 
     int i = atoi(argv[1]);
-    printf("%d\n", i);
+    kprintf("%d\n", i);
     return 0;
 }
 
@@ -90,18 +90,18 @@ static uint16_t parse_byte(const char * str) {
 
 static int port_out_cmd(size_t argc, char ** argv) {
     if (argc != 3) {
-        printf("Usage: %s <port> <byte>\n", argv[0]);
+        kprintf("Usage: %s <port> <byte>\n", argv[0]);
         return 1;
     }
 
     if (strlen(argv[1]) > 4) {
-        puts("port has max 4 hex digits\n");
+        kputs("port has max 4 hex digits\n");
         return 1;
     }
     uint16_t port = parse_byte(argv[1]);
 
     if (strlen(argv[2]) > 2) {
-        puts("byte has max 2 hex digits\n");
+        kputs("byte has max 2 hex digits\n");
         return 1;
     }
     uint8_t byte = parse_byte(argv[2]);
@@ -112,72 +112,72 @@ static int port_out_cmd(size_t argc, char ** argv) {
 
 static int port_in_cmd(size_t argc, char ** argv) {
     if (argc != 2) {
-        printf("Usage: %s <port>\n", argv[0]);
+        kprintf("Usage: %s <port>\n", argv[0]);
         return 1;
     }
 
     if (strlen(argv[1]) > 4) {
-        puts("port has max 4 hex digits\n");
+        kputs("port has max 4 hex digits\n");
         return 1;
     }
     uint16_t port = parse_byte(argv[1]);
 
     uint8_t byte = port_byte_in(port);
-    printf("0x%04X = 0x%02X\n", port, byte);
+    kprintf("0x%04X = 0x%02X\n", port, byte);
 
     return 0;
 }
 
 static int time_cmd(size_t argc, char ** argv) {
     uint32_t ms = get_ticks();
-    printf("System ticks: %u ~= %u s\n", ms, ms / 1000);
-    printf("RTC time: %u us = %u ms = %u s\n", time_us(), time_ms(), time_s());
+    kprintf("System ticks: %u ~= %u s\n", ms, ms / 1000);
+    kprintf("RTC time: %u us = %u ms = %u s\n", time_us(), time_ms(), time_s());
     return 0;
 }
 
 static int ret_cmd(size_t argc, char ** argv) {
-    printf("Last command exit code was %u\n", term_last_ret);
+    kprintf("Last command exit code was %u\n", term_last_ret);
     return 0;
 }
 
 static int format_cmd(size_t argc, char ** argv) {
     if (fs) {
-        puts("Unmount disk before format\n");
+        kputs("Unmount disk before format\n");
         return 1;
     }
 
     if (!disk) {
         disk = disk_open(0);
         if (!disk) {
-            puts("Failed to open disk\n");
+            kputs("Failed to open disk\n");
             return 1;
         }
     }
 
-    puts("Formatting disk, this may take some time\n");
+    kputs("Formatting disk, this may take some time\n");
     fs_format(disk);
-    puts("Done!\n");
+    kputs("Done!\n");
 
     return 0;
 }
 
 static int mount_cmd(size_t argc, char ** argv) {
     if (fs) {
-        puts("Filesystem already mounted\n");
+        kputs("Filesystem already mounted\n");
         return 0;
     }
 
     if (!disk) {
         disk = disk_open(0);
         if (!disk) {
-            puts("Failed to open disk\n");
+            kputs("Failed to open disk\n");
             return 1;
         }
     }
 
     fs = fs_new(disk);
     if (!fs) {
-        puts("Failed to mount filesystem\n");
+        kputs("Failed to mount filesystem\n");
         return 1;
     }
 
@@ -199,46 +199,46 @@ static int unmount_cmd(size_t argc, char ** argv) {
 static void print_64(uint64_t v) {
     uint32_t u = v >> 32;
     uint32_t l = v & 0xffffffff;
-    printf("0x%08X%08X", u, l);
+    kprintf("0x%08X%08X", u, l);
 }
 
 static void print_upper(uint64_t start, uint64_t end, uint64_t size, enum RAM_TYPE type) {
-    puts("| ");
+    kputs("| ");
     print_64(start);
-    puts(" | ");
+    kputs(" | ");
     print_64(end);
-    puts(" | ");
+    kputs(" | ");
     print_64(size);
-    puts(" | ");
+    kputs(" | ");
     switch (type) {
         case 1:
-            puts("Usable RAM");
+            kputs("Usable RAM");
             break;
         case 2:
-            puts("Reserved");
+            kputs("Reserved");
             break;
         case 3:
-            puts("ACPI Reclaimable");
+            kputs("ACPI Reclaimable");
             break;
         case 4:
-            puts("ACPI NVS");
+            kputs("ACPI NVS");
             break;
         case 5:
-            puts("BAD MEMORY");
+            kputs("BAD MEMORY");
             break;
     }
-    putc('\n');
+    kputc('\n');
 }
 
 static int mem_cmd(size_t argc, char ** argv) {
     uint16_t low_mem = ram_lower_size();
-    printf("Lower memory is %u\n", low_mem);
+    kprintf("Lower memory is %u\n", low_mem);
 
     uint16_t count = ram_upper_count();
 
-    printf("Total of %u blocks\n", count);
+    kprintf("Total of %u blocks\n", count);
 
-    puts("| Start              | End                | Size               | Type\n");
+    kputs("| Start              | End                | Size               | Type\n");
     for (size_t i = 0; i < count; i++) {
         print_upper(ram_upper_start(i),
                     ram_upper_end(i),
@@ -257,7 +257,7 @@ static int mem_cmd(size_t argc, char ** argv) {
 //     char data[ATA_SECTOR_BYTES];
 //     // size_t read = disk_sect_read(data, 1, 0);
 //     data[9] = 0;
-//     printf("read data %s\n", data);
+//     kprintf("read data %s\n", data);
 //     return 0;
 // }
 

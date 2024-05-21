@@ -12,7 +12,7 @@
 #define ERROR(MSG)                                \
     {                                             \
         vga_color(VGA_RED_ON_WHITE);              \
-        printf(__FILE__ ":%u %s", __LINE__, MSG); \
+        kprintf(__FILE__ ":%u %s", __LINE__, MSG); \
     }
 
 #define FATAL(MSG)         \
@@ -45,7 +45,7 @@ static void key_cb(uint8_t code, char c, keyboard_event_t event, keyboard_mod_t 
     if (event != KEY_EVENT_RELEASE && c) {
         if (circbuff_len(keybuff) >= MAX_CHARS) {
             ERROR("key buffer overflow");
-            printf("(%u out of %u)", circbuff_len(keybuff), MAX_CHARS);
+            kprintf("(%u out of %u)", circbuff_len(keybuff), MAX_CHARS);
             KERNEL_PANIC("key buffer overflow");
             return;
         }
@@ -72,8 +72,8 @@ static void key_cb(uint8_t code, char c, keyboard_event_t event, keyboard_mod_t 
 
 static int help_cmd(size_t argc, char ** argv) {
     for (size_t i = 0; i < n_commands; i++) {
-        puts(commands[i].command);
-        putc('\n');
+        kputs(commands[i].command);
+        kputc('\n');
     }
     return 0;
 }
@@ -170,7 +170,7 @@ static void exec_buff() {
     }
 
     if (debug)
-        printf("Trimmed line length %u starting at +%u\n",
+        kprintf("Trimmed line length %u starting at +%u\n",
                line_len,
                (line - command_buff));
 
@@ -189,13 +189,13 @@ static void exec_buff() {
         // Check length of command vs first word
         if (first_len < command_len) {
             if (debug)
-                printf("Command too short %u < %u\n", first_len, command_len);
+                kprintf("Command too short %u < %u\n", first_len, command_len);
             continue;
         }
 
         if (first_len > command_len) {
             if (debug)
-                printf("Command too long %u > %u\n", first_len, command_len);
+                kprintf("Command too long %u > %u\n", first_len, command_len);
             continue;
         }
 
@@ -203,7 +203,7 @@ static void exec_buff() {
         int match = memcmp(line, commands[i].command, command_len);
         if (match != 0) {
             if (debug)
-                printf("Command does not match %s\n", commands[i].command);
+                kprintf("Command does not match %s\n", commands[i].command);
             continue;
         }
 
@@ -231,7 +231,7 @@ static void exec_buff() {
 
     // No match was found
     if (!found) {
-        printf("Unknown command '%s'\n", line);
+        kprintf("Unknown command '%s'\n", line);
         term_last_ret = 1;
     }
 }
@@ -294,8 +294,8 @@ static char ** parse_args(const char * line, size_t * out_len) {
         if (arg_i > len) {
             FATAL("SYNTAX ERROR!\n");
             if (debug) {
-                printf("expected %u args but have %u\n", len, arg_i);
-                printf("current parse char is 0x%02x\n", *line);
+                kprintf("expected %u args but have %u\n", len, arg_i);
+                kprintf("current parse char is 0x%02x\n", *line);
             }
             return 0;
         }
@@ -337,8 +337,8 @@ static char ** parse_args(const char * line, size_t * out_len) {
     if (arg_i < len) {
         FATAL("SYNTAX ERROR!\n");
         if (debug) {
-            printf("expected %u args but have %u\n", len, arg_i);
-            printf("current parse char is 0x%02x\n", *line);
+            kprintf("expected %u args but have %u\n", len, arg_i);
+            kprintf("current parse char is 0x%02x\n", *line);
         }
         return 0;
     }

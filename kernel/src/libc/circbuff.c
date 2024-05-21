@@ -10,7 +10,7 @@
 #include "libc/stdio.h"
 #define TEST_PTR(REF)                     \
     if (!(REF)) {                         \
-        printf(                           \
+        kprintf(                           \
             "[ERROR] "__FILE__            \
             ":%u Null circular buffer\n", \
             __LINE__);                    \
@@ -18,7 +18,7 @@
     }
 #define TEST_EMPTY(REF)                       \
     if ((REF)->len == 0) {                    \
-        printf(                               \
+        kprintf(                               \
             "[ERROR] "__FILE__                \
             ":%u Circular buffer is empty\n", \
             __LINE__);                        \
@@ -26,7 +26,7 @@
     }
 #define TEST_FULL(REF)                       \
     if ((REF)->len >= (REF)->buff_size) {    \
-        printf(                              \
+        kprintf(                              \
             "[ERROR] "__FILE__               \
             ":%u Circular buffer is full\n", \
             __LINE__);                       \

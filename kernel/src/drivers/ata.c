@@ -17,7 +17,7 @@
 #include "libc/stdio.h"
 #define TEST_PTR(REF)          \
     if (!(REF)) {              \
-        printf(                \
+        kprintf(                \
             "[ERROR] "__FILE__ \
             ":%u Null ptr\n",  \
             __LINE__);         \
@@ -25,7 +25,7 @@
     }
 #define TEST_PTR_RET(REF)      \
     if (!(REF)) {              \
-        printf(                \
+        kprintf(                \
             "[ERROR] "__FILE__ \
             ":%u Null ptr\n",  \
             __LINE__);         \
@@ -41,19 +41,19 @@
 #define START_TIMEOUT uint32_t __timeout = time_ms() + TIMEOUT_MS;
 #define TEST_TIMEOUT                                          \
     if (time_ms() > __timeout) {                              \
-        puts("TIMEOUT\n");                                    \
+        kputs("TIMEOUT\n");                                    \
         return 0;                                             \
     }                                                         \
     else if (debug) {                                         \
-        printf("no timeout %u < %u\n", time_ms(), __timeout); \
+        kprintf("no timeout %u < %u\n", time_ms(), __timeout); \
     }
 #define TEST_TIMEOUT_VOID                                     \
     if (time_ms() > __timeout) {                              \
-        puts("TIMEOUT\n");                                    \
+        kputs("TIMEOUT\n");                                    \
         return;                                               \
     }                                                         \
     else if (debug) {                                         \
-        printf("no timeout %u < %u\n", time_ms(), __timeout); \
+        kprintf("no timeout %u < %u\n", time_ms(), __timeout); \
     }
 
 #define ATA_BUS_0_IO_BASE 0x1F0
@@ -130,7 +130,7 @@ struct _disk {
 
 static void disk_callback(registers_t regs) {
     if (debug)
-        puts("disk callback\n");
+        kputs("disk callback\n");
 }
 
 disk_t * disk_open(uint8_t id) {
@@ -139,7 +139,7 @@ disk_t * disk_open(uint8_t id) {
         disk->io_base = ATA_BUS_0_IO_BASE;
         disk->ct_base = ATA_BUS_0_CTL_BASE;
         if (!disk_identify(disk)) {
-            puts("ERROR: failed to identify disk\n");
+            kputs("ERROR: failed to identify disk\n");
             free(disk);
             return 0;
         }
@@ -171,41 +171,41 @@ bool disk_status(disk_t * disk) {
     TEST_PTR_RET(disk)
     uint8_t status = port_byte_in(disk->ct_base + ATA_CTL_ALT_STATUS);
     if (debug) {
-        printf("Status is %02X\n", status);
+        kprintf("Status is %02X\n", status);
         if (status & ATA_STATUS_FLAG_ERR)
-            puts("ERR ");
+            kputs("ERR ");
         if (status & ATA_STATUS_FLAG_DRQ)
-            puts("DRQ ");
+            kputs("DRQ ");
         if (status & ATA_STATUS_FLAG_SRV)
-            puts("SRV ");
+            kputs("SRV ");
         if (status & ATA_STATUS_FLAG_DF)
-            puts("DF ");
+            kputs("DF ");
         if (status & ATA_STATUS_FLAG_RDY)
-            puts("RDY ");
+            kputs("RDY ");
         if (status & ATA_STATUS_FLAG_BSY)
-            puts("BSY ");
-        putc('\n');
+            kputs("BSY ");
+        kputc('\n');
     }
 
     if (status & ATA_STATUS_FLAG_ERR) {
         if (debug) {
             uint8_t error = port_byte_in(disk->io_base + ATA_IO_ERROR);
             if (error & ATA_ERROR_FLAG_AMNF)
-                puts("ERROR: AMNF - Address mark not found\n");
+                kputs("ERROR: AMNF - Address mark not found\n");
             if (error & ATA_ERROR_FLAG_TKZNK)
-                puts("ERROR: TKZNK - Track zero not found\n");
+                kputs("ERROR: TKZNK - Track zero not found\n");
             if (error & ATA_ERROR_FLAG_ABRT)
-                puts("ERROR: ABRT - Aborted command\n");
+                kputs("ERROR: ABRT - Aborted command\n");
             if (error & ATA_ERROR_FLAG_MCR)
-                puts("ERROR: MCR - Media change request\n");
+                kputs("ERROR: MCR - Media change request\n");
             if (error & ATA_ERROR_FLAG_IDNF)
-                puts("ERROR: IDNF - ID not found\n");
+                kputs("ERROR: IDNF - ID not found\n");
             if (error & ATA_ERROR_FLAG_MC)
-                puts("ERROR: MC - Media changed\n");
+                kputs("ERROR: MC - Media changed\n");
             if (error & ATA_ERROR_FLAG_UNC)
-                puts("ERROR: UNC - Uncorrectable data error\n");
+                kputs("ERROR: UNC - Uncorrectable data error\n");
             if (error & ATA_ERROR_FLAG_BBK)
-                puts("ERROR: BBK - Bad block detected\n");
+                kputs("ERROR: BBK - Bad block detected\n");
         }
         return true;
     }
@@ -237,7 +237,7 @@ size_t disk_sect_read(disk_t * disk, uint8_t * buff, size_t sect_count, uint32_t
            & (ATA_STATUS_FLAG_DRQ | ATA_STATUS_FLAG_BSY)) {
         TEST_TIMEOUT
         if (retry++ > MAX_RETRY) {
-            puts("[ERROR] max retries for disk_sect_read wait for first status\n");
+            kputs("[ERROR] max retries for disk_sect_read wait for first status\n");
             return 0;
         }
     }
@@ -260,7 +260,7 @@ size_t disk_sect_read(disk_t * disk, uint8_t * buff, size_t sect_count, uint32_t
                      & ATA_STATUS_FLAG_DRQ)) {
                 TEST_TIMEOUT
                 if (retry++ > MAX_RETRY) {
-                    puts("[ERROR] max retries for disk_sect_read wait to read next sect\n");
+                    kputs("[ERROR] max retries for disk_sect_read wait to read next sect\n");
                     return 0;
                 }
             }
@@ -302,7 +302,7 @@ size_t disk_sect_write(disk_t * disk, uint8_t * buff, size_t sect_count, uint32_
            & (ATA_STATUS_FLAG_DRQ | ATA_STATUS_FLAG_BSY)) {
         TEST_TIMEOUT
         if (retry++ > MAX_RETRY) {
-            puts("[ERROR] max retries for disk_sect_write wait for first status\n");
+            kputs("[ERROR] max retries for disk_sect_write wait for first status\n");
             return 0;
         }
     }
@@ -326,7 +326,7 @@ size_t disk_sect_write(disk_t * disk, uint8_t * buff, size_t sect_count, uint32_
                      & ATA_STATUS_FLAG_DRQ)) {
                 TEST_TIMEOUT
                 if (retry++ > MAX_RETRY) {
-                    puts("[ERROR] max retries for disk_sect_write wait to write next sect\n");
+                    kputs("[ERROR] max retries for disk_sect_write wait to write next sect\n");
                     return 0;
                 }
             }
@@ -346,13 +346,13 @@ static void print_block(uint16_t * block) {
     TEST_PTR(block)
     size_t step = 16;
     for (size_t i = 0; i < (ATA_SECTOR_WORDS / step); i++) {
-        // printf("%4u", i * step);
+        // kprintf("%4u", i * step);
         for (size_t s = 0; s < step; s++) {
             if (s)
-                putc(' ');
-            printf("%04X", block[(i * step) + s]);
+                kputc(' ');
+            kprintf("%04X", block[(i * step) + s]);
         }
-        putc('\n');
+        kputc('\n');
     }
 }
 
@@ -369,58 +369,58 @@ static bool disk_identify(disk_t * disk) {
     uint16_t status = port_word_in(disk->io_base + ATA_IO_STATUS);
 
     if (status == 0) {
-        puts("Drive does not exist\n");
+        kputs("Drive does not exist\n");
         return false;
     }
 
     if (debug)
-        puts("Polling");
+        kputs("Polling");
     size_t retry = 0;
     while (status & ATA_STATUS_FLAG_BSY) {
         if (debug)
-            putc('.');
+            kputc('.');
         status = port_byte_in(disk->io_base + ATA_IO_STATUS);
         TEST_TIMEOUT
         if (retry++ > MAX_RETRY) {
-            puts("[ERROR] max retries for disk_identity wait for first status\n");
+            kputs("[ERROR] max retries for disk_identity wait for first status\n");
             return 0;
         }
     }
     if (debug)
-        putc('\n');
+        kputc('\n');
 
     if (port_byte_in(disk->io_base + ATA_IO_LBA_MID)
         || port_byte_in(disk->io_base + ATA_IO_LBA_HIGH)) {
-        puts("Disk does not support ATA\n");
+        kputs("Disk does not support ATA\n");
         return false;
     }
     if (debug)
-        puts("Drive is ATA\n");
+        kputs("Drive is ATA\n");
 
     if (debug)
-        puts("Polling");
+        kputs("Polling");
     retry = 0;
     while (!(status & (ATA_STATUS_FLAG_DRQ | ATA_STATUS_FLAG_ERR))) {
         if (debug)
-            putc('.');
+            kputc('.');
         status = port_byte_in(disk->io_base + ATA_IO_STATUS);
         TEST_TIMEOUT
         if (retry++ > MAX_RETRY) {
-            puts("[ERROR] max retries for disk_identity wait for second status\n");
+            kputs("[ERROR] max retries for disk_identity wait for second status\n");
             return 0;
         }
     }
     if (debug)
-        putc('\n');
+        kputc('\n');
 
     if (status & ATA_STATUS_FLAG_ERR) {
-        puts("Disk initialized with errors\n");
+        kputs("Disk initialized with errors\n");
         return false;
     }
 
     if (status & ATA_STATUS_FLAG_DRQ) {
         if (debug)
-            puts("Disk is ready\n");
+            kputs("Disk is ready\n");
     }
 
     uint16_t data[ATA_SECTOR_WORDS];
@@ -429,21 +429,21 @@ static bool disk_identify(disk_t * disk) {
     }
 
     if (debug) {
-        printf("Data is:\n");
+        kprintf("Data is:\n");
         size_t step = 8;
         for (size_t i = 0; i < (ATA_SECTOR_WORDS / step); i++) {
-            printf("%4u", i * step);
+            kprintf("%4u", i * step);
             for (size_t s = 0; s < step; s++) {
-                printf(" %04X", data[(i * step) + s]);
+                kprintf(" %04X", data[(i * step) + s]);
             }
-            putc('\n');
+            kputc('\n');
         }
     }
 
     bool has_lba = (data[83] & (1 << 10));
     if (has_lba) {
         if (debug)
-            printf("Drive has LBA48 Mode\n");
+            kprintf("Drive has LBA48 Mode\n");
     }
 
     uint32_t size28 = data[61];
@@ -451,7 +451,7 @@ static bool disk_identify(disk_t * disk) {
     size28 |= data[60];
 
     if (debug)
-        printf("LDA28 has %u sectors\n", size28);
+        kprintf("LDA28 has %u sectors\n", size28);
 
     uint64_t size48 = data[100];
     size48 = (size48 << 16) | data[101];
@@ -459,7 +459,7 @@ static bool disk_identify(disk_t * disk) {
     size48 = (size48 << 16) | data[103];
 
     if (debug)
-        printf("LDA48 has %u sectors\n", size48);
+        kprintf("LDA48 has %u sectors\n", size48);
 
     disk->sect_count = size28;
     return true;
@@ -485,7 +485,7 @@ static void software_reset(disk_t * disk) {
         status = port_byte_in(disk->ct_base + ATA_CTL_ALT_STATUS);
         TEST_TIMEOUT_VOID
         if (retry++ > MAX_RETRY) {
-            puts("[ERROR] max retries for software_reset wait for drive\n");
+            kputs("[ERROR] max retries for software_reset wait for drive\n");
             return;
         }
     }
