@@ -83,6 +83,7 @@ void * malloc(size_t size) {
             if (size_diff > sizeof(region_header_t) + MIN_REGION_SIZE)
                 region_split(curr, size);
 
+            curr->free = false;
             return HEADER_TO_PTR(curr);
         }
         curr = U2R(curr->next);
@@ -97,11 +98,13 @@ void free(void * ptr) {
 
 static region_header_t * region_split(region_header_t * region, size_t size) {
     region_header_t * next_region = U2R(region->next);
-    region_header_t * new_region = U2R(R2U(region) + size);
+    region_header_t * new_region =
+        U2R(R2U(region) + size + sizeof(region_header_t));
 
     new_region->size = region->size - size - sizeof(region_header_t);
     new_region->next = R2U(next_region);
     new_region->prev = R2U(region);
+    new_region->free = true;
 
     region->size = size;
 
