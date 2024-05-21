@@ -17,10 +17,11 @@ The OS will be finished when all of the following are implemented.
 - [ ] fs
   - [ ] Finish implementing fs functions
   - [ ] Implement file io
+- [x] basic malloc (linked list)
 - [ ] malloc
-  - [ ] Actually manage memory
+  - [x] Actually manage memory
   - [ ] Need to find end of kernel to not overflow at runtime (for malloc start)
-  - [ ] Detect max memory for malloc
+  - [x] Detect max memory for malloc
   - [x] Do that fancy memory map
 - [ ] Date and Time
 - [ ] Optional don't disable interrupts during interrupt
