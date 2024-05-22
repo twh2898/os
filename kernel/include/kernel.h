@@ -3,8 +3,17 @@
 
 #include "debug.h"
 
+#ifndef SAFETY
+/* Safety Modes
+1 - Memory Safety
+2 - Ptr Arg Safety
+*/
+#define SAFETY 1
+// #define SAFETY 2
+#endif
+
 #define KERNEL_PANIC(MSG) kernel_panic((MSG), __FILE__, __LINE__)
 
-void kernel_panic(const char * msg, const char * file, unsigned int line);
+_Noreturn void kernel_panic(const char * msg, const char * file, unsigned int line);
 
 #endif // KERNEL_H

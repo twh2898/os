@@ -14,7 +14,7 @@
 #include "term.h"
 #include "test.h"
 
-void kernel_panic(const char * msg, const char * file, unsigned int line) {
+_Noreturn void kernel_panic(const char * msg, const char * file, unsigned int line) {
     vga_color(VGA_FG_WHITE | VGA_BG_RED);
     vga_print("[KERNEL PANIC]");
     kprintf("[%s]:%u", file, line);
