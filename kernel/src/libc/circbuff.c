@@ -2,11 +2,7 @@
 
 #include "libc/mem.h"
 
-#ifndef SAFETY
-#define SAFETY 0
-#endif
-
-#if SAFETY
+#if SAFETY > 1
 #include "libc/stdio.h"
 #define TEST_PTR(REF)                     \
     if (!(REF)) {                         \

@@ -4,20 +4,17 @@
 #include "cpu/ports.h"
 #include "debug.h"
 #include "drivers/rtc.h"
+#include "kernel.h"
 #include "libc/mem.h"
 #include "libc/stdio.h"
 
 // https://wiki.osdev.org/ATA_PIO_Mode
 
-#ifndef SAFETY
-#define SAFETY 0
-#endif
-
-#if SAFETY
+#if SAFETY > 1
 #include "libc/stdio.h"
 #define TEST_PTR(REF)          \
     if (!(REF)) {              \
-        kprintf(                \
+        kprintf(               \
             "[ERROR] "__FILE__ \
             ":%u Null ptr\n",  \
             __LINE__);         \
@@ -25,7 +22,7 @@
     }
 #define TEST_PTR_RET(REF)      \
     if (!(REF)) {              \
-        kprintf(                \
+        kprintf(               \
             "[ERROR] "__FILE__ \
             ":%u Null ptr\n",  \
             __LINE__);         \
@@ -39,20 +36,20 @@
 #define MAX_RETRY 5000
 #define TIMEOUT_MS 1000
 #define START_TIMEOUT uint32_t __timeout = time_ms() + TIMEOUT_MS;
-#define TEST_TIMEOUT                                          \
-    if (time_ms() > __timeout) {                              \
+#define TEST_TIMEOUT                                           \
+    if (time_ms() > __timeout) {                               \
         kputs("TIMEOUT\n");                                    \
-        return 0;                                             \
-    }                                                         \
-    else if (debug) {                                         \
+        return 0;                                              \
+    }                                                          \
+    else if (debug) {                                          \
         kprintf("no timeout %u < %u\n", time_ms(), __timeout); \
     }
-#define TEST_TIMEOUT_VOID                                     \
-    if (time_ms() > __timeout) {                              \
+#define TEST_TIMEOUT_VOID                                      \
+    if (time_ms() > __timeout) {                               \
         kputs("TIMEOUT\n");                                    \
-        return;                                               \
-    }                                                         \
-    else if (debug) {                                         \
+        return;                                                \
+    }                                                          \
+    else if (debug) {                                          \
         kprintf("no timeout %u < %u\n", time_ms(), __timeout); \
     }
 

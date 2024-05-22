@@ -89,6 +89,10 @@ void * malloc(size_t size) {
         curr = U2R(curr->next);
     }
 
+#if SAFETY > 0
+    KERNEL_PANIC("Malloc out of memory");
+#endif
+
     return 0;
 }
 
