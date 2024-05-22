@@ -21,10 +21,21 @@ typedef enum {
     RTC_RATE_2_HZ = 15, // 500.0 ms
 } rtc_rate_t;
 
+typedef struct {
+    uint8_t second;
+    uint8_t minute;
+    uint8_t hour;
+    uint8_t day;
+    uint8_t month;
+    uint8_t year;
+} rtc_time_t;
+
 void init_rtc(rtc_rate_t rate);
 
 uint32_t time_us();
 uint32_t time_ms();
 uint32_t time_s();
+
+rtc_time_t * rtc_time();
 
 #endif // RTC_H

@@ -1,5 +1,7 @@
 #include "drivers/rtc.h"
 
+#include <stdbool.h>
+
 #include "cpu/isr.h"
 #include "cpu/ports.h"
 
@@ -13,6 +15,11 @@
 
 static uint32_t ticks = 0;
 uint32_t frequency;
+
+static rtc_time_t time;
+
+static bool read_in_progress();
+static uint8_t read_rtc(uint8_t reg);
 
 uint32_t time_us() {
     return ticks * 10e6 / frequency;
@@ -49,4 +56,29 @@ void init_rtc(rtc_rate_t rate) {
     enable_interrupts();
 
     frequency = 32768 >> (rate - 1);
+}
+
+rtc_time_t * rtc_time() {
+    while (read_in_progress());
+
+    time.second = read_rtc(0x00);
+    time.minute = read_rtc(0x02);
+    time.hour = read_rtc(0x04);
+    time.day = read_rtc(0x07);
+    time.month = read_rtc(0x08);
+    time.year = read_rtc(0x09);
+
+    // TODO there's a lot more 
+
+    return &time;
+}
+
+static bool read_in_progress() {
+    port_byte_out(RTC_REG_PORT, 0xA);
+    return port_byte_in(RTC_DATA_PORT) & 0x80;
+}
+
+static uint8_t read_rtc(uint8_t reg) {
+    port_byte_out(RTC_REG_PORT, reg);
+    return port_byte_in(RTC_DATA_PORT);
 }
