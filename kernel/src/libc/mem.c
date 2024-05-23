@@ -7,6 +7,7 @@
 #include "kernel.h"
 #include "libc/string.h"
 
+#define MAGIC 0x31247596
 #define STACK_START 0x90000
 #define PAGE_SIZE 0x1000 // 4k (>> 12)
 #define PAGE_ALIGNED_DOWN(PTR) ((PTR) & 0xfffff000)
@@ -23,6 +24,7 @@
     ((region_header_t *)((PTR) - sizeof(region_header_t)))
 
 typedef struct {
+    uint32_t magic : 32;
     uint32_t next : 32;
     uint32_t prev : 32;
     uint32_t size : 31;
@@ -35,6 +37,7 @@ static region_header_t * first_region;
 
 static region_header_t * region_split(region_header_t * region, size_t size);
 static region_header_t * region_remove(region_header_t * region);
+static void integrity_check();
 
 void init_malloc() {
     size_t largest_i = 0;
@@ -64,6 +67,7 @@ void init_malloc() {
     malloc_end = PAGE_ALIGNED_DOWN(ram_upper_end(largest_i));
 
     first_region = (region_header_t *)malloc_start;
+    first_region->magic = MAGIC;
     first_region->next = 0;
     first_region->prev = 0;
     first_region->size = (malloc_end - malloc_start) - sizeof(region_header_t);
@@ -73,6 +77,8 @@ void init_malloc() {
 void * malloc(size_t size) {
     if (size < MIN_REGION_SIZE)
         size = MIN_REGION_SIZE;
+
+    integrity_check();
 
     region_header_t * curr = first_region;
 
@@ -97,7 +103,13 @@ void * malloc(size_t size) {
 }
 
 void free(void * ptr) {
-    region_remove(PTR_TO_HEADER(ptr));
+    region_header_t * region = PTR_TO_HEADER(ptr);
+    if (!ptr || region->magic != MAGIC) {
+        KERNEL_PANIC("Free on bad pointer");
+    }
+
+    integrity_check();
+    region_remove(region);
 }
 
 static region_header_t * region_split(region_header_t * region, size_t size) {
@@ -105,6 +117,7 @@ static region_header_t * region_split(region_header_t * region, size_t size) {
     region_header_t * new_region =
         U2R(R2U(region) + size + sizeof(region_header_t));
 
+    new_region->magic = MAGIC;
     new_region->size = region->size - size - sizeof(region_header_t);
     new_region->next = R2U(next_region);
     new_region->prev = R2U(region);
@@ -123,6 +136,8 @@ static region_header_t * region_remove(region_header_t * region) {
     if (!region->prev)
         return region;
 
+    region->magic = 0;
+
     region_header_t * prev_region = U2R(region->prev);
     region_header_t * next_region = U2R(region->next);
 
@@ -133,4 +148,14 @@ static region_header_t * region_remove(region_header_t * region) {
         next_region->prev = region->prev;
 
     return prev_region;
+}
+
+static void integrity_check() {
+    region_header_t * curr = first_region;
+    while (curr) {
+        if (curr->magic != MAGIC) {
+            KERNEL_PANIC("Corrupted memory");
+        }
+        curr = U2R(curr->next);
+    }
 }
