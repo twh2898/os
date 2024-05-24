@@ -82,6 +82,18 @@ typedef struct {
 struct _filesystem {
     disk_t * disk;
     superblock_t super_block;
+    size_t size;
+    size_t free;
+};
+
+struct _fs_file {
+    const char * name;
+    size_t size;
+    inode_t _node;
+};
+
+struct _fs_dir {
+    const char * name;
 };
 
 uint8_t page_buff[PAGE_SIZE];
@@ -92,6 +104,9 @@ static void group_set_block(group_t * group, size_t block, bool free);
 static void fs_format_superblock(superblock_t * sb, uint32_t size);
 static void fs_format_block_group(group_t * group);
 static void fs_format_dnode(dnode_t * buff);
+
+// TODO implement
+// static ...
 
 bool fs_format(disk_t * disk) {
     size_t size = disk_size(disk);
@@ -143,6 +158,74 @@ bool fs_format(disk_t * disk) {
     return true;
 }
 
+filesystem_t * fs_new(disk_t * disk) {
+    filesystem_t * fs = malloc(sizeof(filesystem_t));
+    if (fs) {
+        if (disk_sect_read(disk, page_buff, 1, 0) != 1) {
+            kputs("[ERROR] failed to read first sector of disk\n");
+            free(fs);
+            return 0;
+        }
+
+        fs->super_block = *(superblock_t *)page_buff;
+        if (fs->super_block.magic != MAGIC) {
+            kputs("[ERROR] disk is not formatted\n");
+            free(fs);
+            return 0;
+        }
+
+        fs->size = fs->super_block.block_size * fs->super_block.group_block_count
+                   * fs->super_block.group_count;
+
+        // TODO read each block to get free bitmap
+
+        // TODO read fields
+
+        // TODO read root dnode
+    }
+    return fs;
+}
+
+void fs_free(filesystem_t * fs) {
+    free(fs);
+}
+
+disk_t * fs_get_disk(filesystem_t * fs) {
+    return fs->disk;
+}
+
+size_t fs_get_size(filesystem_t * fs) {
+    return fs->size;
+}
+
+size_t fs_get_used(filesystem_t * fs) {
+    return fs->size - fs->free;
+}
+
+size_t fs_get_free(filesystem_t * fs) {
+    return fs->free;
+}
+
+void fs_create(filesystem_t * fs, const char * name) {
+    // TODO implement
+}
+
+void fs_remove(filesystem_t * fs, const char * name) {
+    // TODO implement
+}
+
+void fs_exists(filesystem_t * fs, const char * path) {
+    // TODO implement
+}
+
+void fs_is_dir(filesystem_t * fs, const char * path) {
+    // TODO implement
+}
+
+void fs_is_file(filesystem_t * fs, const char * path) {
+    // TODO implement
+}
+
 static bool group_get_block(const group_t * group, size_t block) {
     size_t byte = block / 8;
     size_t bit = block % 8;
@@ -190,31 +273,4 @@ static void fs_format_dnode(dnode_t * node) {
     for (size_t i = 0; i < sizeof(node->direct); i++) {
         node->direct[i] = empty;
     }
-}
-
-filesystem_t * fs_new(disk_t * disk) {
-    filesystem_t * fs = malloc(sizeof(filesystem_t));
-    if (fs) {
-        if (disk_sect_read(disk, page_buff, 1, 0) != 1) {
-            kputs("[ERROR] failed to read first sector of disk\n");
-            free(fs);
-            return 0;
-        }
-
-        fs->super_block = *(superblock_t *)page_buff;
-        if (fs->super_block.magic != MAGIC) {
-            kputs("[ERROR] disk is not formatted\n");
-            free(fs);
-            return 0;
-        }
-
-        // TODO read fields
-
-        // TODO read root dnode
-    }
-    return fs;
-}
-
-void fs_free(filesystem_t * fs) {
-    free(fs);
 }

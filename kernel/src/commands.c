@@ -248,6 +248,17 @@ static int mem_cmd(size_t argc, char ** argv) {
     return 0;
 }
 
+static int ls_cmd(size_t argc, char ** argv) {
+    if (!fs) {
+        kputs("Filesystem not mounted\n");
+        return 1;
+    }
+
+    // TODO implement
+
+    return 0;
+}
+
 // static int status_cmd(size_t argc, char ** argv) {
 //     // disk_status();
 //     return 0;
@@ -291,6 +302,7 @@ void commands_init() {
     term_command_add("mount", mount_cmd);
     term_command_add("unmount", unmount_cmd);
     term_command_add("mem", mem_cmd);
+    term_command_add("ls", ls_cmd);
     // term_command_add("status", status_cmd);
     // term_command_add("read", read_cmd);
     // term_command_add("write", write_cmd);

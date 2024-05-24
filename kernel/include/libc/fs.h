@@ -6,8 +6,6 @@
 #include "drivers/ata.h"
 
 typedef struct _filesystem filesystem_t;
-typedef struct _file file_t;
-typedef file_t FILE;
 
 bool fs_format(disk_t * disk);
 
@@ -30,12 +28,6 @@ void fs_is_file(filesystem_t * fs, const char * path);
 // probably replace with open DIR* like open FILE* and each read is a node in that dir
 // void fs_list_dir(filesystem_t * fs, const char * path);
 
-FILE * file_open(filesystem_t * fs, const char * name);
-void file_close(FILE * file);
-
-void file_seek(file_t * file);
-size_t file_tell(file_t * file);
-size_t file_read(file_t * file, uint8_t * buff, size_t count);
-size_t file_write(file_t * file, uint8_t * buff, size_t count);
+// TODO functions to interact with fs nodes and to read / write sectors
 
 #endif // FS_H
