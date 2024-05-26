@@ -337,6 +337,6 @@ void commands_init() {
     term_command_add("mem", mem_cmd);
     term_command_add("ls", ls_cmd);
     // term_command_add("status", status_cmd);
-    term_command_add("dread", disk_read_cmd);
-    term_command_add("dwrite", disk_write_cmd);
+    term_command_add("read", disk_read_cmd);
+    term_command_add("write", disk_write_cmd);
 }
