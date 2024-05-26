@@ -7,7 +7,7 @@
 #include "cpu/ports.h"
 #include "cpu/timer.h"
 #include "debug.h"
-#include "drivers/ata.h"
+#include "disk.h"
 #include "drivers/ram.h"
 #include "drivers/rtc.h"
 #include "drivers/vga.h"
@@ -17,7 +17,7 @@
 #include "term.h"
 
 bool debug = false;
-static ata_t * disk = 0;
+static disk_t * disk = 0;
 static filesystem_t * fs = 0;
 
 static int clear_cmd(size_t argc, char ** argv) {
@@ -147,7 +147,7 @@ static int format_cmd(size_t argc, char ** argv) {
     }
 
     if (!disk) {
-        disk = ata_open(0);
+        disk = disk_open(0, DISK_DRIVER_ATA);
         if (!disk) {
             kputs("Failed to open disk\n");
             return 1;
@@ -155,7 +155,7 @@ static int format_cmd(size_t argc, char ** argv) {
     }
 
     kputs("Formatting disk, this may take some time\n");
-    fs_format(disk);
+    // fs_format(disk);
     kputs("Done!\n");
 
     return 0;
@@ -168,14 +168,14 @@ static int mount_cmd(size_t argc, char ** argv) {
     }
 
     if (!disk) {
-        disk = ata_open(0);
+        disk = disk_open(0, DISK_DRIVER_ATA);
         if (!disk) {
             kputs("Failed to open disk\n");
             return 1;
         }
     }
 
-    fs = fs_new(disk);
+    // fs = fs_new(disk);
     if (!fs) {
         kputs("Failed to mount filesystem\n");
         return 1;
@@ -190,7 +190,7 @@ static int unmount_cmd(size_t argc, char ** argv) {
         fs = 0;
     }
     if (disk) {
-        ata_close(disk);
+        disk_close(disk);
         disk = 0;
     }
     return 0;
