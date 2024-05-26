@@ -116,26 +116,26 @@ enum ATA_ADDRESS_FLAG {
 };
 
 static void print_block(uint16_t * block);
-static bool disk_identify(disk_t * disk);
-static void software_reset(disk_t * disk);
+static bool ata_identify(ata_t * disk);
+static void software_reset(ata_t * disk);
 
-struct _disk {
+struct _ata {
     uint16_t io_base;
     uint16_t ct_base;
     uint32_t sect_count;
 };
 
-static void disk_callback(registers_t regs) {
+static void ata_callback(registers_t regs) {
     if (debug)
         kputs("disk callback\n");
 }
 
-disk_t * disk_open(uint8_t id) {
-    disk_t * disk = malloc(sizeof(disk_t));
+ata_t * ata_open(uint8_t id) {
+    ata_t * disk = malloc(sizeof(ata_t));
     if (disk) {
         disk->io_base = ATA_BUS_0_IO_BASE;
         disk->ct_base = ATA_BUS_0_CTL_BASE;
-        if (!disk_identify(disk)) {
+        if (!ata_identify(disk)) {
             kputs("ERROR: failed to identify disk\n");
             free(disk);
             return 0;
@@ -144,27 +144,27 @@ disk_t * disk_open(uint8_t id) {
     return disk;
 }
 
-void disk_close(disk_t * disk) {
+void ata_close(ata_t * disk) {
     TEST_PTR(disk)
     free(disk);
 }
 
-void init_disk() {
+void init_ata() {
     /* Primary Drive */
-    register_interrupt_handler(IRQ14, disk_callback);
+    register_interrupt_handler(IRQ14, ata_callback);
 }
 
-size_t disk_size(disk_t * disk) {
+size_t ata_size(ata_t * disk) {
     TEST_PTR_RET(disk)
     return disk->sect_count * ATA_SECTOR_BYTES;
 }
 
-size_t disk_sector_count(disk_t * disk) {
+size_t ata_sector_count(ata_t * disk) {
     TEST_PTR_RET(disk)
     return disk->sect_count;
 }
 
-bool disk_status(disk_t * disk) {
+bool ata_status(ata_t * disk) {
     TEST_PTR_RET(disk)
     uint8_t status = port_byte_in(disk->ct_base + ATA_CTL_ALT_STATUS);
     if (debug) {
@@ -210,7 +210,7 @@ bool disk_status(disk_t * disk) {
     return false;
 }
 
-size_t disk_sect_read(disk_t * disk, uint8_t * buff, size_t sect_count, uint32_t lba) {
+size_t ata_sect_read(ata_t * disk, uint8_t * buff, size_t sect_count, uint32_t lba) {
     TEST_PTR_RET(disk)
     TEST_PTR_RET(buff)
     if (sect_count == 0)
@@ -234,7 +234,7 @@ size_t disk_sect_read(disk_t * disk, uint8_t * buff, size_t sect_count, uint32_t
            & (ATA_STATUS_FLAG_DRQ | ATA_STATUS_FLAG_BSY)) {
         TEST_TIMEOUT
         if (retry++ > MAX_RETRY) {
-            kputs("[ERROR] max retries for disk_sect_read wait for first status\n");
+            kputs("[ERROR] max retries for ata_sect_read wait for first status\n");
             return 0;
         }
     }
@@ -257,7 +257,7 @@ size_t disk_sect_read(disk_t * disk, uint8_t * buff, size_t sect_count, uint32_t
                      & ATA_STATUS_FLAG_DRQ)) {
                 TEST_TIMEOUT
                 if (retry++ > MAX_RETRY) {
-                    kputs("[ERROR] max retries for disk_sect_read wait to read next sect\n");
+                    kputs("[ERROR] max retries for ata_sect_read wait to read next sect\n");
                     return 0;
                 }
             }
@@ -274,7 +274,7 @@ size_t disk_sect_read(disk_t * disk, uint8_t * buff, size_t sect_count, uint32_t
     return sect_count;
 }
 
-size_t disk_sect_write(disk_t * disk, uint8_t * buff, size_t sect_count, uint32_t lba) {
+size_t ata_sect_write(ata_t * disk, uint8_t * buff, size_t sect_count, uint32_t lba) {
     TEST_PTR_RET(disk)
     TEST_PTR_RET(buff)
     if (sect_count == 0)
@@ -299,7 +299,7 @@ size_t disk_sect_write(disk_t * disk, uint8_t * buff, size_t sect_count, uint32_
            & (ATA_STATUS_FLAG_DRQ | ATA_STATUS_FLAG_BSY)) {
         TEST_TIMEOUT
         if (retry++ > MAX_RETRY) {
-            kputs("[ERROR] max retries for disk_sect_write wait for first status\n");
+            kputs("[ERROR] max retries for ata_sect_write wait for first status\n");
             return 0;
         }
     }
@@ -323,7 +323,7 @@ size_t disk_sect_write(disk_t * disk, uint8_t * buff, size_t sect_count, uint32_
                      & ATA_STATUS_FLAG_DRQ)) {
                 TEST_TIMEOUT
                 if (retry++ > MAX_RETRY) {
-                    kputs("[ERROR] max retries for disk_sect_write wait to write next sect\n");
+                    kputs("[ERROR] max retries for ata_sect_write wait to write next sect\n");
                     return 0;
                 }
             }
@@ -353,7 +353,7 @@ static void print_block(uint16_t * block) {
     }
 }
 
-static bool disk_identify(disk_t * disk) {
+static bool ata_identify(ata_t * disk) {
     TEST_PTR_RET(disk)
     START_TIMEOUT
     port_byte_out(disk->io_base + ATA_IO_DRIVE_HEAD, 0xA0);
@@ -379,7 +379,7 @@ static bool disk_identify(disk_t * disk) {
         status = port_byte_in(disk->io_base + ATA_IO_STATUS);
         TEST_TIMEOUT
         if (retry++ > MAX_RETRY) {
-            kputs("[ERROR] max retries for disk_identity wait for first status\n");
+            kputs("[ERROR] max retries for ata_identity wait for first status\n");
             return 0;
         }
     }
@@ -403,7 +403,7 @@ static bool disk_identify(disk_t * disk) {
         status = port_byte_in(disk->io_base + ATA_IO_STATUS);
         TEST_TIMEOUT
         if (retry++ > MAX_RETRY) {
-            kputs("[ERROR] max retries for disk_identity wait for second status\n");
+            kputs("[ERROR] max retries for ata_identity wait for second status\n");
             return 0;
         }
     }
@@ -462,7 +462,7 @@ static bool disk_identify(disk_t * disk) {
     return true;
 }
 
-static void software_reset(disk_t * disk) {
+static void software_reset(ata_t * disk) {
     TEST_PTR(disk)
     START_TIMEOUT
     port_byte_out(disk->ct_base + ATA_CTL_CONTROL, ATA_CONTROL_FLAG_SRST);

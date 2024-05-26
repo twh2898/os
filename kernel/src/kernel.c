@@ -93,7 +93,7 @@ void kernel_main() {
 
     init_ram();
     init_malloc();
-    init_disk();
+    init_ata();
 
     term_init();
     commands_init();

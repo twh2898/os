@@ -17,7 +17,7 @@
 #include "term.h"
 
 bool debug = false;
-static disk_t * disk = 0;
+static ata_t * disk = 0;
 static filesystem_t * fs = 0;
 
 static int clear_cmd(size_t argc, char ** argv) {
@@ -147,7 +147,7 @@ static int format_cmd(size_t argc, char ** argv) {
     }
 
     if (!disk) {
-        disk = disk_open(0);
+        disk = ata_open(0);
         if (!disk) {
             kputs("Failed to open disk\n");
             return 1;
@@ -168,7 +168,7 @@ static int mount_cmd(size_t argc, char ** argv) {
     }
 
     if (!disk) {
-        disk = disk_open(0);
+        disk = ata_open(0);
         if (!disk) {
             kputs("Failed to open disk\n");
             return 1;
@@ -190,7 +190,7 @@ static int unmount_cmd(size_t argc, char ** argv) {
         fs = 0;
     }
     if (disk) {
-        disk_close(disk);
+        ata_close(disk);
         disk = 0;
     }
     return 0;
@@ -260,13 +260,13 @@ static int ls_cmd(size_t argc, char ** argv) {
 }
 
 // static int status_cmd(size_t argc, char ** argv) {
-//     // disk_status();
+//     // ata_status();
 //     return 0;
 // }
 
 // static int read_cmd(size_t argc, char ** argv) {
 //     char data[ATA_SECTOR_BYTES];
-//     // size_t read = disk_sect_read(data, 1, 0);
+//     // size_t read = ata_sect_read(data, 1, 0);
 //     data[9] = 0;
 //     kprintf("read data %s\n", data);
 //     return 0;
@@ -285,7 +285,7 @@ static int ls_cmd(size_t argc, char ** argv) {
 //         else
 //             data[i * 2 + 1] = (i & 0xf) + 'a' - 10;
 //     }
-//     // disk_sect_write(data, 1, 0);
+//     // ata_sect_write(data, 1, 0);
 //     return 0;
 // }
 

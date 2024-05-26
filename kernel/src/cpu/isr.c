@@ -149,7 +149,7 @@ void irq_install() {
     /* IRQ1: keyboard */
     init_keyboard();
     /* IRQ14: ata disk */
-    init_disk();
+    init_ata();
     /* IRQ8: real time clock */
     init_rtc(RTC_RATE_1024_HZ);
 }
