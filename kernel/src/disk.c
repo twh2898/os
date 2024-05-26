@@ -97,11 +97,35 @@ size_t disk_size(disk_t * disk) {
 }
 
 size_t disk_read(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
-    return disk->fn_read(disk, buff, count, pos);
+    size_t steps = count / disk->buff_size;
+    if (count % disk->buff_size)
+        steps++;
+
+    size_t o_len = 0;
+    for (size_t i = 0; i < steps; i++) {
+        size_t offset = i * disk->buff_size;
+        size_t to_write = disk->buff_size;
+        if (count < to_write)
+            to_write = count;
+        o_len += disk->fn_read(disk, buff + offset, to_write, pos + offset);
+    }
+    return o_len;
 }
 
 size_t disk_write(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
-    return disk->fn_write(disk, buff, count, pos);
+    size_t steps = count / disk->buff_size;
+    if (count % disk->buff_size)
+        steps++;
+
+    size_t o_len = 0;
+    for (size_t i = 0; i < steps; i++) {
+        size_t offset = i * disk->buff_size;
+        size_t to_write = disk->buff_size;
+        if (count < to_write)
+            to_write = count;
+        o_len += disk->fn_write(disk, buff + offset, to_write, pos + offset);
+    }
+    return o_len;
 }
 
 static size_t disk_ata_read(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
