@@ -104,10 +104,7 @@ size_t disk_read(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
     size_t o_len = 0;
     for (size_t i = 0; i < steps; i++) {
         size_t offset = i * disk->buff_size;
-        size_t to_write = disk->buff_size;
-        if (count < to_write)
-            to_write = count;
-        o_len += disk->fn_read(disk, buff + offset, to_write, pos + offset);
+        o_len += disk->fn_read(disk, buff + offset, count - offset, pos + offset);
     }
     return o_len;
 }
@@ -120,18 +117,14 @@ size_t disk_write(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
     size_t o_len = 0;
     for (size_t i = 0; i < steps; i++) {
         size_t offset = i * disk->buff_size;
-        size_t to_write = disk->buff_size;
-        if (count < to_write)
-            to_write = count;
-        o_len += disk->fn_write(disk, buff + offset, to_write, pos + offset);
+        o_len += disk->fn_write(disk, buff + offset, count - offset, pos + offset);
     }
     return o_len;
 }
 
 static size_t disk_ata_read(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
-    // TODO currently assume count < buff_size, handle bigger with loop
     if (count > disk->buff_size)
-        return 0;
+        count = disk->buff_size;
 
     if (disk->size - pos < count)
         count = disk->size - pos;
@@ -153,9 +146,8 @@ static size_t disk_ata_read(disk_t * disk, uint8_t * buff, size_t count, size_t 
 }
 
 static size_t disk_ata_write(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
-    // TODO currently assume count < buff_size, handle bigger with loop
     if (count > disk->buff_size)
-        return 0;
+        count = disk->buff_size;
 
     if (disk->size - pos < count)
         count = disk->size - pos;
