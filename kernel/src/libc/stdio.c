@@ -375,6 +375,29 @@ size_t kprintf(const char * fmt, ...) {
     return o_len;
 }
 
+size_t kprint_hexblock(const uint8_t * data, size_t count, size_t addr_offset) {
+    size_t step = 16;
+    size_t o_len = 0;
+    size_t line = 0;
+    if (!addr_offset)
+        o_len += kputs("       00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f\n");
+    while (count) {
+        o_len += kprintf("0x%04X ", line * step + addr_offset);
+        size_t to_write = step;
+        if (count < to_write)
+            to_write = count;
+        for (size_t i = 0; i < to_write; i++) {
+            o_len += kprintf("%02X ", data[line * step + i]);
+        }
+        o_len += kputc('\n');
+        if (count <= step)
+            break;
+        count -= step;
+        line++;
+    }
+    return o_len;
+}
+
 static size_t int_width(int32_t n, uint8_t base) {
     if (n < 0)
         n = -n;

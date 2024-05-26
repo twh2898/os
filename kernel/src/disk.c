@@ -6,12 +6,10 @@
 
 #define DISK_BUFFER_SIZE 4096
 
-typedef size_t (*disk_io)(disk_t * disk, uint8_t * buff, size_t count);
+typedef size_t (*disk_io)(disk_t * disk, uint8_t * buff, size_t count, size_t pos);
 
 struct _disk {
     enum DISK_DRIVER driver;
-
-    size_t pos;
 
     char * buff;
     size_t buff_size;
@@ -22,20 +20,18 @@ struct _disk {
         // TODO ram
     } device;
 
-
     size_t size;
     disk_io fn_read;
     disk_io fn_write;
 };
 
-static size_t disk_ata_read(disk_t * disk, uint8_t * buff, size_t count);
-static size_t disk_ata_write(disk_t * disk, uint8_t * buff, size_t count);
+static size_t disk_ata_read(disk_t * disk, uint8_t * buff, size_t count, size_t pos);
+static size_t disk_ata_write(disk_t * disk, uint8_t * buff, size_t count, size_t pos);
 
 disk_t * disk_open(int id, enum DISK_DRIVER driver) {
     disk_t * disk = malloc(sizeof(disk_t));
     if (disk) {
         disk->driver = driver;
-        disk->pos = 0;
 
         disk->buff_size = DISK_BUFFER_SIZE;
         disk->buff = malloc(disk->buff_size);
@@ -96,33 +92,27 @@ void disk_close(disk_t * disk) {
     free(disk);
 }
 
-size_t disk_seek(disk_t * disk, size_t pos) {
-    if (pos > disk->size)
-        pos = disk->size;
-    disk->pos = pos;
-}
-
 size_t disk_size(disk_t * disk) {
     return disk->size;
 }
 
-size_t disk_read(disk_t * disk, uint8_t * buff, size_t count) {
-    return disk->fn_read(disk, buff, count);
+size_t disk_read(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
+    return disk->fn_read(disk, buff, count, pos);
 }
 
-size_t disk_write(disk_t * disk, uint8_t * buff, size_t count) {
-    return disk->fn_write(disk, buff, count);
+size_t disk_write(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
+    return disk->fn_write(disk, buff, count, pos);
 }
 
-static size_t disk_ata_read(disk_t * disk, uint8_t * buff, size_t count) {
+static size_t disk_ata_read(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
     // TODO currently assume count < buff_size, handle bigger with loop
     if (count > disk->buff_size)
         return 0;
 
-    if (disk->size - disk->pos < count)
-        count = disk->size - disk->pos;
+    if (disk->size - pos < count)
+        count = disk->size - pos;
 
-    size_t lba = disk->pos / ATA_SECTOR_BYTES;
+    size_t lba = pos / ATA_SECTOR_BYTES;
     size_t sect_to_read = count / ATA_SECTOR_BYTES;
 
     if (count % ATA_SECTOR_BYTES)
@@ -133,22 +123,20 @@ static size_t disk_ata_read(disk_t * disk, uint8_t * buff, size_t count) {
         return 0;
     }
 
-    disk->pos += count;
-
-    size_t pos_in_buff = disk->pos % ATA_SECTOR_BYTES;
+    size_t pos_in_buff = pos % ATA_SECTOR_BYTES;
     memcpy(buff, disk->buff + pos_in_buff, count);
     return count;
 }
 
-static size_t disk_ata_write(disk_t * disk, uint8_t * buff, size_t count) {
+static size_t disk_ata_write(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
     // TODO currently assume count < buff_size, handle bigger with loop
     if (count > disk->buff_size)
         return 0;
 
-    if (disk->size - disk->pos < count)
-        count = disk->size - disk->pos;
+    if (disk->size - pos < count)
+        count = disk->size - pos;
 
-    size_t lba = disk->pos / ATA_SECTOR_BYTES;
+    size_t lba = pos / ATA_SECTOR_BYTES;
     size_t sect_to_write = count / ATA_SECTOR_BYTES;
 
     if (count % ATA_SECTOR_BYTES) {
@@ -163,8 +151,6 @@ static size_t disk_ata_write(disk_t * disk, uint8_t * buff, size_t count) {
         != sect_to_write) {
         return 0;
     }
-
-    disk->pos += count;
 
     return count;
 }

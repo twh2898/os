@@ -15,11 +15,10 @@ enum DISK_DRIVER {
 disk_t * disk_open(int id, enum DISK_DRIVER driver);
 void disk_close(disk_t * disk);
 
-size_t disk_seek(disk_t * disk, size_t pos);
 size_t disk_size(disk_t * disk);
 
 // TODO handle read > buff size
-size_t disk_read(disk_t * disk, uint8_t * buff, size_t count);
-size_t disk_write(disk_t * disk, uint8_t * buff, size_t count);
+size_t disk_read(disk_t * disk, uint8_t * buff, size_t count, size_t pos);
+size_t disk_write(disk_t * disk, uint8_t * buff, size_t count, size_t pos);
 
 #endif // DISK_H

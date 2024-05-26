@@ -17,4 +17,6 @@ size_t kputlu(uint64_t num, uint8_t base, bool upper);
 
 size_t kprintf(const char * fmt, ...);
 
+size_t kprint_hexblock(const uint8_t * data, size_t count, size_t addr_offset);
+
 #endif // STDIO_H

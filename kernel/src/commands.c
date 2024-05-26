@@ -265,6 +265,14 @@ static int ls_cmd(size_t argc, char ** argv) {
 // }
 
 static int read_cmd(size_t argc, char ** argv) {
+    if (argc != 3) {
+        kprintf("Usage: %s <pos> <count>\n", argv[0]);
+        return 1;
+    }
+
+    size_t pos = atoi(argv[1]);
+    size_t count = atoi(argv[2]);
+
     if (!disk) {
         disk = disk_open(0, DISK_DRIVER_ATA);
         if (!disk) {
@@ -273,11 +281,20 @@ static int read_cmd(size_t argc, char ** argv) {
         }
     }
 
-    char data[ATA_SECTOR_BYTES];
-    disk_seek(disk, 0);
-    size_t read = disk_read(disk, data, ATA_SECTOR_BYTES);
-    data[9] = 0;
-    kprintf("read data %s\n", data);
+    char data[ATA_SECTOR_BYTES + 1];
+    size_t step = 0;
+    while (count > 0) {
+        size_t to_read = count;
+        if (to_read > ATA_SECTOR_BYTES)
+            to_read = ATA_SECTOR_BYTES;
+        size_t read = disk_read(disk, data, to_read, pos);
+        data[to_read] = 0;
+        // kprintf("%u(%u):%s\n", pos, count, data);
+        kprint_hexblock(data, to_read, ATA_SECTOR_BYTES * (step++));
+        count -= to_read;
+        pos += to_read;
+    }
+    kputc('\n');
     return 0;
 }
 
@@ -302,8 +319,7 @@ static int write_cmd(size_t argc, char ** argv) {
         else
             data[i * 2 + 1] = (i & 0xf) + 'a' - 10;
     }
-    disk_seek(disk, 0);
-    disk_write(disk, data, ATA_SECTOR_BYTES);
+    disk_write(disk, data, ATA_SECTOR_BYTES, 0);
     return 0;
 }
 
