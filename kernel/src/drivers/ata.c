@@ -115,7 +115,6 @@ enum ATA_ADDRESS_FLAG {
     ATA_ADDRESS_FLAG_WTG = 0x40, // Low when drive write is in progress
 };
 
-static void print_block(uint16_t * block);
 static bool ata_identify(ata_t * disk);
 static void software_reset(ata_t * disk);
 
@@ -337,20 +336,6 @@ size_t ata_sect_write(ata_t * disk, uint8_t * buff, size_t sect_count, uint32_t 
 
     port_byte_out(disk->io_base + ATA_IO_COMMAND, 0xE7); // cache flush
     return sect_count;
-}
-
-static void print_block(uint16_t * block) {
-    TEST_PTR(block)
-    size_t step = 16;
-    for (size_t i = 0; i < (ATA_SECTOR_WORDS / step); i++) {
-        // kprintf("%4u", i * step);
-        for (size_t s = 0; s < step; s++) {
-            if (s)
-                kputc(' ');
-            kprintf("%04X", block[(i * step) + s]);
-        }
-        kputc('\n');
-    }
 }
 
 static bool ata_identify(ata_t * disk) {
