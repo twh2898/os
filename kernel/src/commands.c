@@ -264,30 +264,48 @@ static int ls_cmd(size_t argc, char ** argv) {
 //     return 0;
 // }
 
-// static int read_cmd(size_t argc, char ** argv) {
-//     char data[ATA_SECTOR_BYTES];
-//     // size_t read = ata_sect_read(data, 1, 0);
-//     data[9] = 0;
-//     kprintf("read data %s\n", data);
-//     return 0;
-// }
+static int read_cmd(size_t argc, char ** argv) {
+    if (!disk) {
+        disk = disk_open(0, DISK_DRIVER_ATA);
+        if (!disk) {
+            kputs("Failed to open disk\n");
+            return 1;
+        }
+    }
 
-// static int write_cmd(size_t argc, char ** argv) {
-//     char data[ATA_SECTOR_BYTES] = {0};
-//     for (size_t i = 0; i < ATA_SECTOR_WORDS; i++) {
-//         if ((i >> 4) < 10)
-//             data[i * 2] = (i >> 4) + '0';
-//         else
-//             data[i * 2] = (i >> 4) + 'a' - 10;
+    char data[ATA_SECTOR_BYTES];
+    disk_seek(disk, 0);
+    size_t read = disk_read(disk, data, ATA_SECTOR_BYTES);
+    data[9] = 0;
+    kprintf("read data %s\n", data);
+    return 0;
+}
 
-//         if ((i & 0xf) < 10)
-//             data[i * 2 + 1] = (i & 0xf) + '0';
-//         else
-//             data[i * 2 + 1] = (i & 0xf) + 'a' - 10;
-//     }
-//     // ata_sect_write(data, 1, 0);
-//     return 0;
-// }
+static int write_cmd(size_t argc, char ** argv) {
+    if (!disk) {
+        disk = disk_open(0, DISK_DRIVER_ATA);
+        if (!disk) {
+            kputs("Failed to open disk\n");
+            return 1;
+        }
+    }
+
+    char data[ATA_SECTOR_BYTES] = {0};
+    for (size_t i = 0; i < ATA_SECTOR_WORDS; i++) {
+        if ((i >> 4) < 10)
+            data[i * 2] = (i >> 4) + '0';
+        else
+            data[i * 2] = (i >> 4) + 'a' - 10;
+
+        if ((i & 0xf) < 10)
+            data[i * 2 + 1] = (i & 0xf) + '0';
+        else
+            data[i * 2 + 1] = (i & 0xf) + 'a' - 10;
+    }
+    disk_seek(disk, 0);
+    disk_write(disk, data, ATA_SECTOR_BYTES);
+    return 0;
+}
 
 void commands_init() {
     term_command_add("clear", clear_cmd);
@@ -304,6 +322,6 @@ void commands_init() {
     term_command_add("mem", mem_cmd);
     term_command_add("ls", ls_cmd);
     // term_command_add("status", status_cmd);
-    // term_command_add("read", read_cmd);
-    // term_command_add("write", write_cmd);
+    term_command_add("read", read_cmd);
+    term_command_add("write", write_cmd);
 }
