@@ -391,13 +391,18 @@ size_t kprint_hexblock(const uint8_t * data, size_t count, size_t addr_offset) {
         for (size_t i = 0; i < to_write; i++) {
             o_len += kprintf("%02X ", data[line * step + i]);
         }
-        o_len += kputs(" | ");
+        size_t space = step - to_write;
+        while (space--) o_len += kputs("   ");
+
+        o_len += kputs("| ");
         for (size_t i = 0; i < to_write; i++) {
             char c = data[line * step + i];
             if (c < 32)
                 c = '.';
             o_len += kputc(c);
         }
+        space = step - to_write;
+        while (space--) o_len += kputc(' ');
         o_len += kputs(" |\n");
         if (count <= step)
             break;
