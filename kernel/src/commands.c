@@ -288,8 +288,8 @@ static int disk_read_cmd(size_t argc, char ** argv) {
         if (to_read > ATA_SECTOR_BYTES)
             to_read = ATA_SECTOR_BYTES;
         size_t read = disk_read(disk, data, to_read, pos);
-        data[to_read] = 0;
-        kprint_hexblock(data, to_read, ATA_SECTOR_BYTES * (step++));
+        data[read] = 0;
+        kprint_hexblock(data, read, ATA_SECTOR_BYTES * (step++));
         count -= to_read;
         pos += to_read;
     }
