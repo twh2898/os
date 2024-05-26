@@ -264,7 +264,7 @@ static int ls_cmd(size_t argc, char ** argv) {
 //     return 0;
 // }
 
-static int read_cmd(size_t argc, char ** argv) {
+static int disk_read_cmd(size_t argc, char ** argv) {
     if (argc != 3) {
         kprintf("Usage: %s <pos> <count>\n", argv[0]);
         return 1;
@@ -298,7 +298,7 @@ static int read_cmd(size_t argc, char ** argv) {
     return 0;
 }
 
-static int write_cmd(size_t argc, char ** argv) {
+static int disk_write_cmd(size_t argc, char ** argv) {
     if (!disk) {
         disk = disk_open(0, DISK_DRIVER_ATA);
         if (!disk) {
@@ -338,6 +338,6 @@ void commands_init() {
     term_command_add("mem", mem_cmd);
     term_command_add("ls", ls_cmd);
     // term_command_add("status", status_cmd);
-    term_command_add("read", read_cmd);
-    term_command_add("write", write_cmd);
+    term_command_add("dread", disk_read_cmd);
+    term_command_add("dwrite", disk_write_cmd);
 }
