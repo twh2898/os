@@ -322,6 +322,19 @@ static int disk_write_cmd(size_t argc, char ** argv) {
     return 0;
 }
 
+static int disk_size_cmd(size_t argc, char ** argv) {
+    if (!disk) {
+        disk = disk_open(0, DISK_DRIVER_ATA);
+        if (!disk) {
+            kputs("Failed to open disk\n");
+            return 1;
+        }
+    }
+    size_t size = disk_size(disk);
+    kprintf("Disk size %u\n", size);
+    return 0;
+}
+
 void commands_init() {
     term_command_add("clear", clear_cmd);
     term_command_add("echo", echo_cmd);
@@ -339,4 +352,5 @@ void commands_init() {
     // term_command_add("status", status_cmd);
     term_command_add("read", disk_read_cmd);
     term_command_add("write", disk_write_cmd);
+    term_command_add("size", disk_size_cmd);
 }
