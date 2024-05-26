@@ -282,14 +282,16 @@ static int disk_read_cmd(size_t argc, char ** argv) {
     }
 
     char data[ATA_SECTOR_BYTES + 1];
-    size_t step = 0;
-    while (count > 0) {
+    size_t steps = count / ATA_SECTOR_BYTES;
+    if (count % ATA_SECTOR_BYTES)
+        steps++;
+    for (size_t i = 0; i < steps; i++) {
         size_t to_read = count;
         if (to_read > ATA_SECTOR_BYTES)
             to_read = ATA_SECTOR_BYTES;
         size_t read = disk_read(disk, data, to_read, pos);
         data[read] = 0;
-        kprint_hexblock(data, read, ATA_SECTOR_BYTES * (step++));
+        kprint_hexblock(data, read, ATA_SECTOR_BYTES * i);
         count -= to_read;
         pos += to_read;
     }
