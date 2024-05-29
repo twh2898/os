@@ -32,6 +32,7 @@ do_other_thing:
 
 MSG_FAR_JUMP db "yoo hoo, over here", 0
 
-times (64*512)-($-$$) db 'a'
-times 0x509 db 'A'
 db 'bAb'
+times (64*512)-($-$$)-3 db 'a'
+db 'AbA'
+; times 0x509 db 'A'

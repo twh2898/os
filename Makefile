@@ -45,7 +45,7 @@ os-image.bin: $(PWD)$(OBJDIR)/bootsect.bin $(PWD)$(OBJDIR)/kernel.bin
 	@du -sh $@
 	@echo Remember the limit is 64K? in bootsect.asm
 
-os-image-dump.bin: $(PWD)$(OBJDIR)/bootsect.bin $(PWD)$(OBJDIR)/second.bin
+os-image-dump.bin: $(PWD)$(OBJDIR)/bootsect.bin $(PWD)$(OBJDIR)/second.bin $(PWD)$(OBJDIR)/third.bin
 	cat $^ > $@
 
 drive.img:
@@ -59,6 +59,10 @@ $(PWD)$(OBJDIR)/bootsect.bin: $(PWD)$(BOOTDIR)/bootsect.asm $(BOOT_SOURCES)
 	$(ASM) -f bin $< -o $@
 
 $(PWD)$(OBJDIR)/second.bin: $(PWD)$(BOOTDIR)/second.asm $(BOOT_SOURCES)
+	@mkdir -p $(shell dirname $@)
+	$(ASM) -f bin $< -o $@
+
+$(PWD)$(OBJDIR)/third.bin: $(PWD)$(BOOTDIR)/third.asm $(BOOT_SOURCES)
 	@mkdir -p $(shell dirname $@)
 	$(ASM) -f bin $< -o $@
 
@@ -92,9 +96,17 @@ debug: os-image.bin $(PWD)$(OBJDIR)/kernel.elf
 	$(QEMU) -s -S $(QEMUFLAGS) -drive format=raw,file=os-image.bin,index=0,if=floppy &
 	$(GDB) -ex "target remote localhost:1234" -ex "symbol-file $(PWD)$(OBJDIR)/kernel.elf" -ex "b *0x7c00" -ex "b *0x8000" -ex "b __start" -ex "b kernel_main"
 
+boot-debug: os-image-dump.bin
+	$(QEMU) -s -S $(QEMUFLAGS) -drive format=raw,file=os-image.bin,index=0,if=floppy &
+	$(GDB) -ex "target remote localhost:1234" -ex "b *0x7c00" -ex "b *0x8000"
+
 dump: os-image-dump.bin $(PWD)$(OBJDIR)/kernel.elf
 	$(QEMU) -s -S $(QEMUFLAGS) -drive format=raw,file=os-image-dump.bin,index=0,if=floppy &
-	$(GDB) -ex "target remote localhost:1234" -ex "b *0x8000" -ex "c" -ex "dump binary memory second.bin 0x8000 0x18000" -ex "kill" -ex "quit"
+	$(GDB) -ex "target remote localhost:1234" -ex "b *0x8000" -ex "c" -ex "dump binary memory dump_boot.bin 0x8000 0x19000" -ex "kill" -ex "quit"
+
+dump-kernel: os-image.bin $(PWD)$(OBJDIR)/kernel.elf
+	$(QEMU) -s -S $(QEMUFLAGS) -drive format=raw,file=os-image.bin,index=0,if=floppy &
+	$(GDB) -ex "target remote localhost:1234" -ex "b *0x8000" -ex "c" -ex "dump binary memory dump_kernel.bin 0x8000 0x19000" -ex "kill" -ex "quit"
 
 debugbuild:
 	@echo -e "CFLAGS\n$(CFLAGS)\n"
