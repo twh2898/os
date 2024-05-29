@@ -4,3 +4,4 @@
 
 build/
 drive.img
+qemu_log.txt

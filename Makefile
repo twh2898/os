@@ -11,7 +11,7 @@ QEMU:=qemu-system-i386
 CFLAGS := -g -Werror -ffreestanding
 # CXXFLAGS := -fno-exceptions -fno-rtti
 LDFLAGS := -nostdlib -L"${HOME}/.local/opt/cross/lib/gcc/i386-elf/12.2.0" -lgcc
-QEMUFLAGS := -cpu host -enable-kvm -m 4G -drive format=qcow2,file=drive.img -d int,cpu_reset -D log.txt -machine smm=off -no-reboot
+QEMUFLAGS := -cpu host -enable-kvm -m 4G -drive format=qcow2,file=drive.img -d int,cpu_reset -D qemu_log.txt -machine smm=off -no-reboot
 
 SRCDIR:=kernel/src
 INCDIR:=kernel/include
