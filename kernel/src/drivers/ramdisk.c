@@ -11,7 +11,7 @@ struct _ramdisk {
 };
 
 static ramdisk_t devices[RAMDISK_MAX];
-static uint32_t device_count;
+static uint32_t device_count = 0;
 
 uint32_t ramdisk_create(size_t size) {
     if (device_count == RAMDISK_MAX)
