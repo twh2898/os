@@ -72,8 +72,8 @@ $(PWD)$(OBJDIR)/zero:
 # ========
 #  KERNEL
 # ========
-$(PWD)$(OBJDIR)/kernel.bin: Makefile $(OBJ)
-	$(LD) -Ttext 0x8000 --oformat binary -o $@ $(OBJ) $(LDFLAGS)
+$(PWD)$(OBJDIR)/kernel.bin: Makefile link.ld $(OBJ)
+	$(LD) -Tlink.ld --oformat binary -o $@ $(OBJ) $(LDFLAGS)
 
 $(PWD)$(OBJDIR)/kernel.elf: Makefile $(OBJ)
 	$(LD) -Ttext 0x8000 -o $@ $(OBJ) $(LDFLAGS)
