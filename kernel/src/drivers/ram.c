@@ -2,9 +2,9 @@
 
 #include "libc/stdio.h"
 
-#define LOWER_RAM_ADDR 0x7E00
-#define UPPER_RAM_COUNT 0x7E02
-#define UPPER_RAM_ADDR 0x7E04
+#define LOWER_RAM_ADDR 0x0500
+#define UPPER_RAM_COUNT 0x0502
+#define UPPER_RAM_ADDR 0x0504
 
 typedef struct {
     uint64_t base_addr;
