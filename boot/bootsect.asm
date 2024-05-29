@@ -1,6 +1,5 @@
 [org 0x7c00]
 KERNEL_OFFSET equ 0x8000
-KERNEL_OFFSET2 equ 0x10000
 
 mov [BOOT_DRIVE], dl
 mov bp, 0x7bff

@@ -9,7 +9,7 @@ load_kernel:
     mov cl, 0x02
     call disk_load
 
-    mov ebx, KERNEL_OFFSET2 >> 4
+    mov ebx, (KERNEL_OFFSET + 0x8000) >> 4
     mov es, ebx
     mov bx, 0
     mov al, 64  ; sector is 512 bytes, so 64 = 32K
