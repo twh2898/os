@@ -57,9 +57,9 @@ int demo(size_t argc, char ** argv) {
     len += kprintf(
         "Now for non decimal 0x%04x and 0x%04X or octal %o\n", 1234, 1234, 1234);
     len += kprintf("There's booleans to %b and chars like %c and strings like %s\n",
-                  true,
-                  'c',
-                  "this");
+                   true,
+                   'c',
+                   "this");
     int store = 0;
     len += kprintf("The last part is pointers %8p\n", &store);
 
@@ -67,10 +67,10 @@ int demo(size_t argc, char ** argv) {
 
     kprintf("\nMalloc memory got pointer %p\n", data);
     kprintf("Float number %f or shorter %3f or digits %.4f or lead %.04f\n",
-           3.14,
-           31.45,
-           3.14,
-           3.14);
+            3.14,
+            31.45,
+            3.14,
+            3.14);
     kprintf("%f\n", 12345678.0);
 }
 
