@@ -7,6 +7,7 @@
 #include "drivers/ata.h"
 #include "drivers/keyboard.h"
 #include "drivers/ram.h"
+#include "drivers/ramdisk.h"
 #include "drivers/vga.h"
 #include "libc/mem.h"
 #include "libc/stdio.h"
@@ -100,6 +101,8 @@ void kernel_main() {
 
     term_command_add("demo", demo);
     term_command_add("test", test_cmd);
+
+    ramdisk_create(4096);
 
     term_run();
 }
