@@ -115,6 +115,6 @@ debugbuild:
 	@echo -e "OBJ\n$(OBJ)\n"
 
 clean:
-	rm -rf os-image.bin os-image-dump.bin $(PWD)$(OBJDIR)
+	rm -rf *.bin qemu_log.txt drive.img $(PWD)$(OBJDIR)
 
 .PHONY: all run debug debugbuild clean
