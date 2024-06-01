@@ -43,7 +43,7 @@ os-image.bin: $(PWD)$(OBJDIR)/bootsect.bin $(PWD)$(OBJDIR)/kernel.bin
 	cat $^ > $@
 	@echo "Final image size"
 	@du -sh $@
-	@echo Remember the limit is 64K? in bootsect.asm
+	@echo Remember the limit is 96K in bootsect.asm
 
 os-image-dump.bin: $(PWD)$(OBJDIR)/bootsect.bin $(PWD)$(OBJDIR)/second.bin $(PWD)$(OBJDIR)/third.bin
 	cat $^ $(PWD)$(OBJDIR)/second.bin $(PWD)$(OBJDIR)/third.bin > $@
