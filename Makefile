@@ -76,7 +76,7 @@ $(PWD)$(OBJDIR)/kernel.bin: Makefile link.ld $(OBJ)
 	$(LD) -Tlink.ld --oformat binary -o $@ $(OBJ) $(LDFLAGS)
 
 $(PWD)$(OBJDIR)/kernel.elf: Makefile $(OBJ)
-	$(LD) -Ttext 0x8000 -o $@ $(OBJ) $(LDFLAGS)
+	$(LD) -Tlink.ld -o $@ $(OBJ) $(LDFLAGS)
 
 $(PWD)$(OBJDIR)/%.o: %.c $(HEADERS) Makefile
 	@mkdir -p $(shell dirname $@)

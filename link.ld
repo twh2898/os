@@ -1,10 +1,9 @@
 ENTRY(__start)
-OUTPUT_FORMAT(binary)
 
 SECTIONS {
-    . = 0x7e000;
+    . = 0x7e00;
 
-	.text BLOCK(4K) : ALIGN(4K)
+	.text :
 	{
 		*(.text)
 	}
