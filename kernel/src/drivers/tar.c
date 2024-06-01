@@ -15,8 +15,8 @@ typedef struct {
     // NOTE all field are ascii numbers, size is base 8
     char size[12];
     char mtime[12];
-    char chksum[8];
-    char typeflag[1];
+    char checksum[8];
+    char type[1];
     // There are 355 empty bytes to make header 512 long
     // uint8_t reserved[355];
 } __attribute__((packed)) raw_header_t;
@@ -36,7 +36,7 @@ struct tar_fs {
     tar_file_t * files;
 } __attribute__((packed));
 
-static size_t parse_size(raw_header_t * header);
+static size_t parse_octal(const char * str);
 static size_t count_files(tar_fs_t * tar);
 static void load_headers(tar_fs_t * tar);
 
@@ -73,25 +73,28 @@ size_t tar_file_size(tar_fs_t * tar, size_t i) {
     return tar->files[i].size;
 }
 
-void tar_stat_file(tar_fs_t * tar, size_t i) {
-    if (i > tar->file_count)
-        return;
+tar_stat_t * tar_stat_file(tar_fs_t * tar, size_t i, tar_stat_t * stat) {
+    if (i > tar->file_count || !stat)
+        return 0;
 
     tar_file_t * file = &tar->files[i];
-    kprintf("File %s\n", file->filename);
-    kprintf("Size %u\n", file->size);
-    kprintf("%s (%s : %s)\n", file->header.mode, file->header.uid, file->header.gid);
-    kprintf("mtime %s\n", file->header.mtime);
-    kprintf("Checksum %s\n", file->header.chksum);
-    kprintf("Type %s\n", file->header.typeflag);
+    memcpy(stat->filename, file->filename, 101);
+    stat->size = file->size;
+    stat->mode = parse_octal(file->header.mode);
+    stat->uid = parse_octal(file->header.uid);
+    stat->gid = parse_octal(file->header.gid);
+    stat->mtime = parse_octal(file->header.mtime);
+    stat->type = parse_octal(file->header.type);
+
+    return stat;
 }
 
-static size_t parse_size(raw_header_t * header) {
+static size_t parse_octal(const char * str) {
     size_t size = 0;
     size_t count = 1;
 
-    for (size_t j = 11; j > 0; j--, count *= 8) {
-        size += ((header->size[j - 1] - '0') * count);
+    for (size_t j = strlen(str); j > 0; j--, count *= 8) {
+        size += ((str[j - 1] - '0') * count);
     }
 
     return size;
@@ -118,7 +121,7 @@ static size_t count_files(tar_fs_t * tar) {
         if (header.filename[0] == 0)
             break;
 
-        size_t file_size = parse_size(&header);
+        size_t file_size = parse_octal(header.size);
         count++;
 
         // add 512 for header size
@@ -148,7 +151,7 @@ static void load_headers(tar_fs_t * tar) {
             KERNEL_PANIC("Failed to read full tar header from disk");
         }
 
-        size_t file_size = file->size = parse_size(&file->header);
+        size_t file_size = file->size = parse_octal(file->header.size);
 
         size_t name_len = nstrlen(file->header.filename, 100);
         memcpy(file->filename, file->header.filename, name_len);

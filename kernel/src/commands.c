@@ -10,12 +10,12 @@
 #include "disk.h"
 #include "drivers/ram.h"
 #include "drivers/rtc.h"
+#include "drivers/tar.h"
 #include "drivers/vga.h"
 #include "libc/fs.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
 #include "term.h"
-#include "drivers/tar.h"
 
 bool debug = false;
 static disk_t * disk = 0;
@@ -249,6 +249,52 @@ static int mem_cmd(size_t argc, char ** argv) {
     return 0;
 }
 
+static void ls_print_file_size(size_t size) {
+    size_t order = 0;
+    while (size > 1024) {
+        size /= 1024;
+        order++;
+    }
+    char order_c = ' ';
+    switch (order) {
+        case 1:
+            order_c = 'K';
+            break;
+        case 2:
+            order_c = 'M';
+            break;
+        case 3:
+            order_c = 'G';
+            break;
+        default:
+            break;
+    }
+    kprintf("%4u%c", size, order_c);
+}
+
+static void ls_print_file(tar_stat_t * stat) {
+    kputc(stat->type == TAR_TYPE_DIR ? 'd' : '-');
+
+    kputc(stat->mode & TAR_PEM_USER_READ ? 'r' : '-');
+    kputc(stat->mode & TAR_PEM_USER_WRITE ? 'w' : '-');
+    kputc(stat->mode & TAR_PEM_USER_EXECUTE ? 'x' : '-');
+
+    kputc(stat->mode & TAR_PEM_GROUP_READ ? 'r' : '-');
+    kputc(stat->mode & TAR_PEM_GROUP_WRITE ? 'w' : '-');
+    kputc(stat->mode & TAR_PEM_GROUP_EXECUTE ? 'x' : '-');
+
+    kputc(stat->mode & TAR_PEM_OTHER_READ ? 'r' : '-');
+    kputc(stat->mode & TAR_PEM_OTHER_WRITE ? 'w' : '-');
+    kputc(stat->mode & TAR_PEM_OTHER_EXECUTE ? 'x' : '-');
+
+    kprintf(" %4u %4u ", stat->uid, stat->gid);
+    ls_print_file_size(stat->size);
+
+    kprintf(" %4u ", stat->mtime);
+    kputs(stat->filename);
+    kputc('\n');
+}
+
 static int ls_cmd(size_t argc, char ** argv) {
     if (!tar) {
         kputs("Filesystem not mounted\n");
@@ -259,16 +305,34 @@ static int ls_cmd(size_t argc, char ** argv) {
     size_t file_count = tar_file_count(tar);
     kprintf("Found %u files\n", file_count);
 
+    tar_stat_t stat;
     for (size_t i = 0; i < file_count; i++) {
-        kprintf("%s\n", tar_file_name(tar, i));
+        if (!tar_stat_file(tar, i, &stat))
+            break;
+        ls_print_file(&stat);
     }
 
     kputc('\n');
+    return 0;
+}
 
-    for (size_t i = 0; i < file_count; i++) {
-        tar_stat_file(tar, i);
-        kputc('\n');
+static int stat_cmd(size_t argc, char ** argv) {
+    if (!tar) {
+        kputs("Filesystem not mounted\n");
+        return 1;
     }
+
+    tar_stat_t stat;
+    if (!tar_stat_file(tar, 0, &stat)) {
+        kputs("Failed to stat file\n");
+        return 1;
+    }
+
+    kprintf("File %s\n", stat.filename);
+    kprintf("Size %u\n", stat.size);
+    kprintf("%04x (%u : %u)\n", stat.mode, stat.uid, stat.gid);
+    kprintf("mtime %04x\n", stat.mtime);
+    kprintf("Type %02x\n", stat.type);
 
     return 0;
 }
@@ -365,6 +429,7 @@ void commands_init() {
     term_command_add("unmount", unmount_cmd);
     term_command_add("mem", mem_cmd);
     term_command_add("ls", ls_cmd);
+    term_command_add("stat", stat_cmd);
     // term_command_add("status", status_cmd);
     term_command_add("read", disk_read_cmd);
     term_command_add("write", disk_write_cmd);
