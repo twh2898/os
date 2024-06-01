@@ -23,8 +23,12 @@ The OS will be finished when all of the following are implemented.
   - [ ] Need to find end of kernel to not overflow at runtime (for malloc start)
   - [x] Detect max memory for malloc
   - [x] Do that fancy memory map
+- [ ] Paging
+  - [ ] Load user space application
+- [ ] Ring 3
+  - [ ] Kernel Service Calls
 - [ ] Date and Time
-- [ ] Optional don't disable interrupts during interrupt
+- [ ] Optional don't disable interrupts during interrupt (nested interrupts)
 - [ ] Better key event buffer (with mods) (maybe in addition to char buffer)
 - [x] Change stdlib names with k prefix for namespace during testing
 
@@ -56,3 +60,49 @@ The OS will be finished when all of the following are implemented.
 - ata driver
 - terminal with command parsing
 - circular buffer + tests (builtin, needs separating)
+
+## Boot Stages
+
+### BIOS
+
+1. Load boot sector into memory at 0x7c00
+
+### Stage 1
+
+1. Store boot drive id
+2. Setup stage 1 stack at 0x7bff
+3. Read memory map to 0x500
+4. Read stage 2 from boot drive
+5. Setup GDT
+6. Switch to protected mode
+
+### Stage 2
+
+1. Load VGA driver
+   1. Clear screen
+   2. Print hello
+2. Setup ISR
+3. Setup IRQ
+4. Load RAM driver
+   1. Init malloc
+   2. Setup Paging
+5. ??? - Does anything need to move after paging starts?
+6. Load ATA driver
+   1. Mount fs
+   2. Read kernel into page directory
+7. Jump to kernel
+
+### Stage 3 - OS
+
+1. Load drivers
+   1. VGA / 2d graphics
+   2. Keyboard
+   3. Disk
+   4. Filesystem
+   5. etc.
+2. Mount os drive / partition? (does this happen in stage 2?)
+3. Setup kernel service calls
+4. Begin user space applications loop
+   1. Create page directory
+   2. Load elf binary
+   3. Switch to Ring 3
