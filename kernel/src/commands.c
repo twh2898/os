@@ -15,10 +15,11 @@
 #include "libc/stdio.h"
 #include "libc/string.h"
 #include "term.h"
+#include "drivers/tar.h"
 
 bool debug = false;
 static disk_t * disk = 0;
-static filesystem_t * fs = 0;
+static tar_fs_t * tar = 0;
 
 static int clear_cmd(size_t argc, char ** argv) {
     vga_clear();
@@ -140,29 +141,29 @@ static int ret_cmd(size_t argc, char ** argv) {
     return 0;
 }
 
-static int format_cmd(size_t argc, char ** argv) {
-    if (fs) {
-        kputs("Unmount disk before format\n");
-        return 1;
-    }
+// static int format_cmd(size_t argc, char ** argv) {
+//     if (fs) {
+//         kputs("Unmount disk before format\n");
+//         return 1;
+//     }
 
-    if (!disk) {
-        disk = disk_open(0, DISK_DRIVER_ATA);
-        if (!disk) {
-            kputs("Failed to open disk\n");
-            return 1;
-        }
-    }
+//     if (!disk) {
+//         disk = disk_open(0, DISK_DRIVER_ATA);
+//         if (!disk) {
+//             kputs("Failed to open disk\n");
+//             return 1;
+//         }
+//     }
 
-    kputs("Formatting disk, this may take some time\n");
-    // fs_format(disk);
-    kputs("Done!\n");
+//     kputs("Formatting disk, this may take some time\n");
+//     // fs_format(disk);
+//     kputs("Done!\n");
 
-    return 0;
-}
+//     return 0;
+// }
 
 static int mount_cmd(size_t argc, char ** argv) {
-    if (fs) {
+    if (tar) {
         kputs("Filesystem already mounted\n");
         return 0;
     }
@@ -175,8 +176,8 @@ static int mount_cmd(size_t argc, char ** argv) {
         }
     }
 
-    // fs = fs_new(disk);
-    if (!fs) {
+    tar = tar_open(disk);
+    if (!tar) {
         kputs("Failed to mount filesystem\n");
         return 1;
     }
@@ -185,9 +186,9 @@ static int mount_cmd(size_t argc, char ** argv) {
 }
 
 static int unmount_cmd(size_t argc, char ** argv) {
-    if (fs) {
-        fs_free(fs);
-        fs = 0;
+    if (tar) {
+        tar_close(tar);
+        tar = 0;
     }
     if (disk) {
         disk_close(disk);
@@ -249,12 +250,18 @@ static int mem_cmd(size_t argc, char ** argv) {
 }
 
 static int ls_cmd(size_t argc, char ** argv) {
-    if (!fs) {
+    if (!tar) {
         kputs("Filesystem not mounted\n");
         return 1;
     }
 
     // TODO implement
+    size_t file_count = tar_file_count(tar);
+    kprintf("Found %u files\n", file_count);
+
+    for (size_t i = 0; i < file_count; i++) {
+        kprintf("%s\n", tar_file_name(tar, i));
+    }
 
     return 0;
 }
@@ -346,7 +353,7 @@ void commands_init() {
     term_command_add("inb", port_in_cmd);
     term_command_add("time", time_cmd);
     term_command_add("ret", ret_cmd);
-    term_command_add("format", format_cmd);
+    // term_command_add("format", format_cmd);
     term_command_add("mount", mount_cmd);
     term_command_add("unmount", unmount_cmd);
     term_command_add("mem", mem_cmd);

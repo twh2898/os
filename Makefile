@@ -12,7 +12,8 @@ QEMU = qemu-system-i386 -boot order=a
 CFLAGS = -g -Werror -ffreestanding -I$(INCDIR)
 CXXFLAGS = -fno-exceptions -fno-rtti
 LDFLAGS = -nostdlib -L"$(CROSS_PREFIX)/lib/gcc/i386-elf/12.2.0" -lgcc
-QEMUFLAGS = -m 4G -drive format=qcow2,file=drive.img -d int,cpu_reset -D qemu_log.txt -no-reboot
+# QEMUFLAGS = -m 4G -drive format=qcow2,file=drive.img -d int,cpu_reset -D qemu_log.txt -no-reboot
+QEMUFLAGS = -m 4G -drive format=raw,file=drive.tar -d int,cpu_reset -D qemu_log.txt -no-reboot
 
 SRCDIR = kernel/src
 INCDIR = kernel/include
