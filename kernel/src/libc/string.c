@@ -59,6 +59,12 @@ size_t strlen(const char * str) {
     return count;
 }
 
+size_t nstrlen(const char * str, size_t max) {
+    size_t count = 0;
+    while (*str++ && count < max) count++;
+    return count;
+}
+
 int strfind(const char * str, size_t start, char c) {
     size_t len = strlen(str);
     for (size_t i = start; i < len; i++) {
