@@ -2,7 +2,7 @@ ENTRY(__start)
 OUTPUT_FORMAT(binary)
 
 SECTIONS {
-    . = 0x08000;
+    . = 0x7e000;
 
 	.text BLOCK(4K) : ALIGN(4K)
 	{

@@ -11,7 +11,7 @@ QEMU:=qemu-system-i386
 CFLAGS := -g -Werror -ffreestanding
 # CXXFLAGS := -fno-exceptions -fno-rtti
 LDFLAGS := -nostdlib -L"${HOME}/.local/opt/cross/lib/gcc/i386-elf/12.2.0" -lgcc
-QEMUFLAGS := -cpu host -enable-kvm -m 4G -drive format=qcow2,file=drive.img -d int,cpu_reset -D qemu_log.txt -machine smm=off -no-reboot
+QEMUFLAGS := -m 4G -drive format=qcow2,file=drive.img -d int,cpu_reset -D qemu_log.txt -no-reboot
 
 SRCDIR:=kernel/src
 INCDIR:=kernel/include
@@ -46,7 +46,7 @@ os-image.bin: $(PWD)$(OBJDIR)/bootsect.bin $(PWD)$(OBJDIR)/kernel.bin
 	@echo Remember the limit is 64K? in bootsect.asm
 
 os-image-dump.bin: $(PWD)$(OBJDIR)/bootsect.bin $(PWD)$(OBJDIR)/second.bin $(PWD)$(OBJDIR)/third.bin
-	cat $^ > $@
+	cat $^ $(PWD)$(OBJDIR)/second.bin $(PWD)$(OBJDIR)/third.bin > $@
 
 drive.img:
 	qemu-img create -f qcow2 drive.img 100M
@@ -94,19 +94,19 @@ run: os-image.bin drive.img
 
 debug: os-image.bin $(PWD)$(OBJDIR)/kernel.elf
 	$(QEMU) -s -S $(QEMUFLAGS) -drive format=raw,file=os-image.bin,index=0,if=floppy &
-	$(GDB) -ex "target remote localhost:1234" -ex "symbol-file $(PWD)$(OBJDIR)/kernel.elf" -ex "b *0x7c00" -ex "b *0x8000" -ex "b __start" -ex "b kernel_main"
+	$(GDB) -ex "target remote localhost:1234" -ex "symbol-file $(PWD)$(OBJDIR)/kernel.elf" -ex "b *0x7c00" -ex "b *0x7e00" -ex "b __start" -ex "b kernel_main"
 
 boot-debug: os-image-dump.bin
 	$(QEMU) -s -S $(QEMUFLAGS) -drive format=raw,file=os-image.bin,index=0,if=floppy &
-	$(GDB) -ex "target remote localhost:1234" -ex "b *0x7c00" -ex "b *0x8000"
+	$(GDB) -ex "target remote localhost:1234" -ex "b *0x7c00" -ex "b *0x7e00" -ex "b *0x8000"
 
 dump: os-image-dump.bin $(PWD)$(OBJDIR)/kernel.elf
 	$(QEMU) -s -S $(QEMUFLAGS) -drive format=raw,file=os-image-dump.bin,index=0,if=floppy &
-	$(GDB) -ex "target remote localhost:1234" -ex "b *0x8000" -ex "c" -ex "dump binary memory dump_boot.bin 0x8000 0x19000" -ex "kill" -ex "quit"
+	$(GDB) -ex "target remote localhost:1234" -ex "b *0x7e00" -ex "c" -ex "dump binary memory dump_boot.bin 0x0 0x21000" -ex "kill" -ex "quit"
 
 dump-kernel: os-image.bin $(PWD)$(OBJDIR)/kernel.elf
 	$(QEMU) -s -S $(QEMUFLAGS) -drive format=raw,file=os-image.bin,index=0,if=floppy &
-	$(GDB) -ex "target remote localhost:1234" -ex "b *0x8000" -ex "c" -ex "dump binary memory dump_kernel.bin 0x8000 0x19000" -ex "kill" -ex "quit"
+	$(GDB) -ex "target remote localhost:1234" -ex "b *0x7e00" -ex "c" -ex "dump binary memory dump_kernel.bin 0x0 0x19000" -ex "kill" -ex "quit"
 
 debugbuild:
 	@echo -e "CFLAGS\n$(CFLAGS)\n"
