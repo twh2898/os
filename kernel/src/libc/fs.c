@@ -30,13 +30,6 @@ typedef struct {
     uint8_t type : 2;
 } __attribute__((packed)) block_addr_t;
 
-enum NODE_TYPE {
-    NODE_TYPE_INVALID = 0,
-    NODE_TYPE_DNODE = 1,
-    NODE_TYPE_INODE = 2,
-    NODE_TYPE_DATA = 3,
-};
-
 typedef struct {
     uint32_t magic;
     uint32_t block_size;
@@ -80,20 +73,10 @@ typedef struct {
 } __attribute__((packed)) group_t;
 
 struct _filesystem {
-    disk_t * disk;
+    ata_t * disk;
     superblock_t super_block;
     size_t size;
     size_t free;
-};
-
-struct _fs_file {
-    const char * name;
-    size_t size;
-    inode_t _node;
-};
-
-struct _fs_dir {
-    const char * name;
 };
 
 uint8_t page_buff[PAGE_SIZE];
@@ -108,8 +91,8 @@ static void fs_format_dnode(dnode_t * buff);
 // TODO implement
 // static ...
 
-bool fs_format(disk_t * disk) {
-    size_t size = disk_size(disk);
+bool fs_format(ata_t * disk) {
+    size_t size = ata_size(disk);
 
     fs_format_superblock((superblock_t *)page_buff, size);
 
@@ -130,7 +113,7 @@ bool fs_format(disk_t * disk) {
     fs_format_dnode(((dnode_t *)(root_dnode + sizeof(dnode_t))));
 
     // TODO handle error
-    if (disk_sect_write(disk, page_buff, 1, 0) != 1) {
+    if (ata_sect_write(disk, page_buff, 1, 0) != 1) {
         kputs("[ERROR] failed to write superblock\n");
         return false;
     }
@@ -144,12 +127,12 @@ bool fs_format(disk_t * disk) {
     size_t _block_count = BLOCKS_PER_GROUP;
     size_t _sect_size = ATA_SECTOR_BYTES;
     size_t sects_step = (_block_size * _block_count) / _sect_size;
-    size_t n_sects = disk_sector_count(disk) / sects_step;
+    size_t n_sects = ata_sector_count(disk) / sects_step;
     // // TODO generate remaining groups bitmask
     for (size_t i = 1; i < n_sects; i++) {
         if (i % 1000 == 0 && debug)
             kprintf("Write block group %u/%u\n", i, n_sects);
-        if (disk_sect_write(disk, page_buff, 1, sects_step * i) != 1) {
+        if (ata_sect_write(disk, page_buff, 1, sects_step * i) != 1) {
             kprintf("[ERROR] failed to write block group %u\n", i);
             return false;
         }
@@ -158,10 +141,10 @@ bool fs_format(disk_t * disk) {
     return true;
 }
 
-filesystem_t * fs_new(disk_t * disk) {
+filesystem_t * fs_new(ata_t * disk) {
     filesystem_t * fs = malloc(sizeof(filesystem_t));
     if (fs) {
-        if (disk_sect_read(disk, page_buff, 1, 0) != 1) {
+        if (ata_sect_read(disk, page_buff, 1, 0) != 1) {
             kputs("[ERROR] failed to read first sector of disk\n");
             free(fs);
             return 0;
@@ -190,7 +173,7 @@ void fs_free(filesystem_t * fs) {
     free(fs);
 }
 
-disk_t * fs_get_disk(filesystem_t * fs) {
+ata_t * fs_get_ata(filesystem_t * fs) {
     return fs->disk;
 }
 
@@ -251,7 +234,7 @@ static void fs_format_superblock(superblock_t * sb, uint32_t size) {
         (size - BLOCK_SIZE_BYTES) / (BLOCK_SIZE_BYTES * BLOCKS_PER_GROUP);
     sb->root_dnode.block = 1;
     sb->root_dnode.group = 0;
-    sb->root_dnode.type = NODE_TYPE_DNODE;
+    sb->root_dnode.type = FS_NODE_TYPE_DNODE;
 }
 
 static void fs_format_block_group(group_t * group) {
@@ -263,7 +246,7 @@ static void fs_format_dnode(dnode_t * node) {
     block_addr_t empty = {
         .block = 0,
         .group = 0,
-        .type = NODE_TYPE_INVALID,
+        .type = FS_NODE_TYPE_INVALID,
     };
 
     node->id = 1;
