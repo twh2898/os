@@ -106,3 +106,40 @@ The OS will be finished when all of the following are implemented.
    1. Create page directory
    2. Load elf binary
    3. Switch to Ring 3
+
+## Setup
+
+### Format drive.img
+
+After creating the drive image with `make drive.img` you can format and mount it
+using the following.
+
+Setup file as drive
+
+```sh
+modprobe nbd max_part=63
+qemu-nbd -c /dev/nbd0 drive.img
+```
+
+Format drive
+
+```sh
+fdisk /dev/nbd0
+mkfs.fat -F32 /dev/nbd0p1
+```
+
+Fdisk commands should be `onp1  w`
+
+Mount the drive
+
+```sh
+mount /dev/nbd0p1 drive
+```
+
+Unmount the drive
+
+```sh
+umount drive
+qemu-nbd -d /dev/nbd0
+rmmod nbd
+```
