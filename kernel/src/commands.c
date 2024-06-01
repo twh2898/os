@@ -263,6 +263,13 @@ static int ls_cmd(size_t argc, char ** argv) {
         kprintf("%s\n", tar_file_name(tar, i));
     }
 
+    kputc('\n');
+
+    for (size_t i = 0; i < file_count; i++) {
+        tar_stat_file(tar, i);
+        kputc('\n');
+    }
+
     return 0;
 }
 

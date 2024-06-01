@@ -15,4 +15,6 @@ size_t tar_file_count(tar_fs_t * tar);
 const char * tar_file_name(tar_fs_t * tar, size_t i);
 size_t tar_file_size(tar_fs_t * tar, size_t i);
 
+void tar_stat_file(tar_fs_t * tar, size_t i);
+
 #endif // TAR_H

@@ -73,6 +73,19 @@ size_t tar_file_size(tar_fs_t * tar, size_t i) {
     return tar->files[i].size;
 }
 
+void tar_stat_file(tar_fs_t * tar, size_t i) {
+    if (i > tar->file_count)
+        return;
+
+    tar_file_t * file = &tar->files[i];
+    kprintf("File %s\n", file->filename);
+    kprintf("Size %u\n", file->size);
+    kprintf("%s (%s : %s)\n", file->header.mode, file->header.uid, file->header.gid);
+    kprintf("mtime %s\n", file->header.mtime);
+    kprintf("Checksum %s\n", file->header.chksum);
+    kprintf("Type %s\n", file->header.typeflag);
+}
+
 static size_t parse_size(raw_header_t * header) {
     size_t size = 0;
     size_t count = 1;
