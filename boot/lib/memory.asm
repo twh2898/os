@@ -1,15 +1,14 @@
-DATA_AREA equ 0x0500
-DATA_AREA_LOW equ DATA_AREA
-DATA_AREA_COUNT equ DATA_AREA+2
-DATA_AREA_HIGH equ DATA_AREA+4
+DATA_AREA_LOW equ DATA
+DATA_AREA_COUNT equ DATA + 2
+DATA_AREA_HIGH equ DATA + 4
 
 detect_mem:
     pusha
 
-.mem_lower:
+.lower:
     clc
     int 0x12
-    jc .mem_error
+    jc .error
 
     mov [DATA_AREA_LOW], ax
 
@@ -18,17 +17,17 @@ detect_mem:
     mov es, ebx
     mov di, DATA_AREA_HIGH
 
-.mem_upper:
+.upper:
     mov edx, 0x534D4150
     mov ecx, 24
     xor eax, eax
     mov eax, 0xe820
     int 0x15
 
-    jc .mem_error
+    jc .error
 
     cmp eax, 0x534D4150
-    jne .mem_error
+    jne .error
 
     push ebx
 
@@ -38,21 +37,21 @@ detect_mem:
     
     pop ebx
     cmp ebx, 0
-    je .mem_done
+    je .done
 
     add di, 24
-    jmp .mem_upper
+    jmp .upper
 
-.mem_done:
+.done:
 
     popa
     ret
 
-.mem_error:
-    mov bx, MSG_MEM_ERROR
+.error:
+    mov bx, .MSG_MEM_ERROR
     call print
     call print_nl
     jmp halt
 
-MSG_MEM_ERROR:
+.MSG_MEM_ERROR:
     db "Failed to detect memory", 0

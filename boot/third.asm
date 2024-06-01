@@ -4,8 +4,7 @@ jmp do_thing
 
 db "nEAR", 0
 
-%include "boot/print.asm"
-%include "boot/print_hex.asm"
+%include "boot/lib/print.asm"
 
 do_thing:
     mov bx, MSG_LOAD_KERNEL
@@ -33,6 +32,6 @@ do_other_thing:
 MSG_FAR_JUMP db "hoo yoo, here over", 0
 
 db 'LmL'
-times (64*512)-($-$$)-3 db 'L'
-db 'MlM'
-times 0x509 db 'm'
+times (64*512)-($-$$)-5 db 'L'
+db 0, 0, 'MlM'
+; times 0x509 db 'm'

@@ -1,26 +1,52 @@
 load_kernel:
-    mov ebx, KERNEL_OFFSET >> 4
-    mov es, ebx
-    mov bx, 0
-    mov al, 64  ; sector is 512 bytes, so 64 = 32K
+    pusha
+
+    ; Use ebx to push es
+    mov ebx, es
+    push ebx
+
     mov dl, [BOOT_DRIVE]
+
+    mov ebx, SECOND_STAGE >> 4
+    mov es, ebx
+
+    ; 0
+    xor bx, bx
+    mov al, 1  ; sector is 512 bytes, so 1 = 512
     mov ch, 0x00
     mov dh, 0x00
     mov cl, 0x02
     call disk_load
 
-    mov ebx, (KERNEL_OFFSET + 0x8000) >> 4
-    mov es, ebx
-    mov bx, 0
+    ; 512
+    mov bx, 0x200
     mov al, 64  ; sector is 512 bytes, so 64 = 32K
-    mov dl, [BOOT_DRIVE]
-    mov ch, 0x00
-    mov dh, 0x01
-    mov cl, 0x1e
+    mov cl, 0x03
     call disk_load
 
-    mov ebx, 0
+    ; 512 + 32K
+    mov bx, 0x8200
+    mov dh, 0x01
+    mov cl, 0x1f
+    call disk_load
+
+    mov ebx, (SECOND_STAGE + 0x8200 + 0x8000) >> 4
     mov es, ebx
+    xor ebx, ebx
+
+    ; 512 + 64K
+    dec al
+    mov ch, 0x01
+    mov cl, 0x17
+    call disk_load
+
+    ; 96K
+
+    ; Use ebx to pop es
+    pop ebx
+    mov es, ebx
+
+    popa
     ret
 
 disk_load:
