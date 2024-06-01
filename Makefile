@@ -7,7 +7,7 @@ ASM = nasm
 CC = $(CROSS_PREFIX)/bin/i386-elf-gcc
 LD = $(CROSS_PREFIX)/bin/i386-elf-ld
 GDB = $(CROSS_PREFIX)/bin/i386-elf-gdb
-QEMU = qemu-system-i386
+QEMU = qemu-system-i386 -boot order=a
 
 CFLAGS = -g -Werror -ffreestanding -I$(INCDIR)
 CXXFLAGS = -fno-exceptions -fno-rtti
