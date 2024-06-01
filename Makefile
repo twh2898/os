@@ -33,22 +33,22 @@ OBJ = $(BUILD_DIR)/kernel/kernel_entry.o ${C_SOURCES:%.c=$(BUILD_DIR)/%.o} ${ASM
 # ==========
 #  OS IMAGE
 # ==========
-os-image.bin: $(BUILD_DIR)/bootsect.bin $(BUILD_DIR)/kernel.bin
+os-image.bin: $(BUILD_DIR)/boot.bin $(BUILD_DIR)/kernel.bin
 	cat $^ > $@
 	@echo "Final image size"
 	@du -sh $@
-	@echo Remember the limit is 96K in bootsect.asm
+	@echo Remember the limit is 96K in boot.asm
 
-os-image-dump.bin: $(BUILD_DIR)/bootsect.bin $(BUILD_DIR)/second.bin $(BUILD_DIR)/third.bin
+os-image-dump.bin: $(BUILD_DIR)/boot.bin $(BUILD_DIR)/second.bin $(BUILD_DIR)/third.bin
 	cat $^ $(BUILD_DIR)/second.bin $(BUILD_DIR)/third.bin > $@
 
 drive.img:
 	qemu-img create -f qcow2 drive.img 100M
 
-# ==========
-#  BOOTSECT
-# ==========
-$(BUILD_DIR)/bootsect.bin: $(BOOTDIR)/bootsect.asm $(BOOT_SOURCES)
+# ======
+#  BOOT
+# ======
+$(BUILD_DIR)/boot.bin: $(BOOTDIR)/boot.asm $(BOOT_SOURCES)
 	@mkdir -p $(shell dirname $@)
 	$(ASM) -f bin $< -o $@
 
