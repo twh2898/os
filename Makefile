@@ -43,7 +43,7 @@ os-image-dump.bin: $(BUILD_DIR)/boot.bin $(BUILD_DIR)/second.bin $(BUILD_DIR)/th
 	cat $^ $(BUILD_DIR)/second.bin $(BUILD_DIR)/third.bin > $@
 
 drive.img:
-	qemu-img create -f qcow2 drive.img 100M
+	qemu-img create -f qcow2 drive.img 512M
 
 # ======
 #  BOOT
