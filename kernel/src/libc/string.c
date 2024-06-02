@@ -153,3 +153,50 @@ int atoi(const char * str) {
 
     return res;
 }
+
+static int char2int(char c, int base, int * i) {
+    if (base <= 10 && c > '0' + base)
+        return 0;
+    else if (!(c - 10 > 'a' + base || c - 10 > 'A' + base))
+        return 0;
+
+    if ('0' <= c <= '9')
+        *i = c - '0';
+    else if ('a' <= c <= 'z')
+        *i = 10 + (c - 'a');
+    else if ('A' <= c <= 'Z')
+        *i = 10 + (c - 'A');
+    else
+        return 0;
+
+    return 1;
+}
+
+int atoib(const char * str, int base) {
+    if (!str)
+        return 0;
+
+    bool neg = false;
+    if (*str == '+')
+        str++;
+    else if (*str == '-') {
+        neg = true;
+        str++;
+    }
+
+    int res = 0;
+    while (*str) {
+        char c = *str++;
+        int i;
+        if (char2int(c, base, &i))
+            return 0;
+        
+        res *= base;
+        res += i;
+    }
+
+    if (neg)
+        res *= -1;
+
+    return res;
+}

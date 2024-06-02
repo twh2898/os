@@ -15,5 +15,6 @@ int strfind(const char * str, size_t start, char c);
 char * strtok(char * str, char * delim);
 
 int atoi(const char * str);
+int atoib(const char * str, int base);
 
 #endif // STRING_H
