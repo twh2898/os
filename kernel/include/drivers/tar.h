@@ -4,8 +4,10 @@
 #include <stddef.h>
 
 #include "disk.h"
+#include "libc/file.h"
 
 typedef struct tar_fs tar_fs_t;
+typedef struct tar_fs_file tar_fs_file_t;
 
 enum TAR_MODE {
     TAR_MODE_EXECUTE = 1,
@@ -17,7 +19,7 @@ enum TAR_PEM {
     TAR_PEM_OTHER_EXECUTE = TAR_MODE_EXECUTE,
     TAR_PEM_OTHER_WRITE = TAR_MODE_WRITE,
     TAR_PEM_OTHER_READ = TAR_MODE_READ,
-    
+
     TAR_PEM_GROUP_EXECUTE = TAR_MODE_EXECUTE << 3,
     TAR_PEM_GROUP_WRITE = TAR_MODE_WRITE << 3,
     TAR_PEM_GROUP_READ = TAR_MODE_READ << 3,
@@ -63,6 +65,12 @@ tar_stat_t * tar_stat_file(tar_fs_t * tar, const char * filename, tar_stat_t * s
 
 // TODO list directories
 
-size_t tar_read(tar_fs_t * tar, const char * filename, uint8_t * buff, size_t pos, size_t count);
+tar_fs_file_t * tar_file_open(tar_fs_t * tar, const char * filename);
+void tar_file_close(tar_fs_file_t * file);
+
+size_t tar_file_seek(tar_fs_file_t * file, int offset, enum FILE_SEEK_ORIGIN origin);
+size_t tar_file_tell(tar_fs_file_t * file);
+
+size_t tar_file_read(tar_fs_file_t * file, const char * buff, size_t count);
 
 #endif // TAR_H
