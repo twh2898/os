@@ -12,7 +12,6 @@
 #include "drivers/rtc.h"
 #include "drivers/tar.h"
 #include "drivers/vga.h"
-#include "libc/fs.h"
 #include "libc/mem.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
@@ -388,17 +387,17 @@ static int disk_read_cmd(size_t argc, char ** argv) {
         }
     }
 
-    char data[ATA_SECTOR_BYTES + 1];
-    size_t steps = count / ATA_SECTOR_BYTES;
-    if (count % ATA_SECTOR_BYTES)
+    char data[513];
+    size_t steps = count / 512;
+    if (count % 512)
         steps++;
     for (size_t i = 0; i < steps; i++) {
         size_t to_read = count;
-        if (to_read > ATA_SECTOR_BYTES)
-            to_read = ATA_SECTOR_BYTES;
+        if (to_read > 512)
+            to_read = 512;
         size_t read = disk_read(disk, data, to_read, pos);
         data[read] = 0;
-        kprint_hexblock(data, read, ATA_SECTOR_BYTES * i);
+        kprint_hexblock(data, read, 512 * i);
         count -= to_read;
         pos += to_read;
     }
@@ -415,8 +414,8 @@ static int disk_write_cmd(size_t argc, char ** argv) {
         }
     }
 
-    char data[ATA_SECTOR_BYTES] = {0};
-    for (size_t i = 0; i < ATA_SECTOR_WORDS; i++) {
+    char data[512] = {0};
+    for (size_t i = 0; i < 512; i++) {
         if ((i >> 4) < 10)
             data[i * 2] = (i >> 4) + '0';
         else
@@ -427,7 +426,7 @@ static int disk_write_cmd(size_t argc, char ** argv) {
         else
             data[i * 2 + 1] = (i & 0xf) + 'a' - 10;
     }
-    disk_write(disk, data, ATA_SECTOR_BYTES, 0);
+    disk_write(disk, data, 512, 0);
     return 0;
 }
 
