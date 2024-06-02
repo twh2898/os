@@ -103,8 +103,11 @@ void * malloc(size_t size) {
 }
 
 void free(void * ptr) {
+    if (!ptr)
+        return;
+
     region_header_t * region = PTR_TO_HEADER(ptr);
-    if (!ptr || region->magic != MAGIC) {
+    if (region->magic != MAGIC) {
         KERNEL_PANIC("Free on bad pointer");
     }
 
