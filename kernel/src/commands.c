@@ -13,6 +13,7 @@
 #include "drivers/tar.h"
 #include "drivers/vga.h"
 #include "libc/fs.h"
+#include "libc/mem.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
 #include "term.h"
@@ -307,7 +308,7 @@ static int ls_cmd(size_t argc, char ** argv) {
 
     tar_stat_t stat;
     for (size_t i = 0; i < file_count; i++) {
-        if (!tar_stat_file(tar, i, &stat))
+        if (!tar_stat_file_i(tar, i, &stat))
             break;
         ls_print_file(&stat);
     }
@@ -323,7 +324,7 @@ static int stat_cmd(size_t argc, char ** argv) {
     }
 
     tar_stat_t stat;
-    if (!tar_stat_file(tar, 0, &stat)) {
+    if (!tar_stat_file_i(tar, 0, &stat)) {
         kputs("Failed to stat file\n");
         return 1;
     }
@@ -333,6 +334,34 @@ static int stat_cmd(size_t argc, char ** argv) {
     kprintf("%04x (%u : %u)\n", stat.mode, stat.uid, stat.gid);
     kprintf("mtime %04x\n", stat.mtime);
     kprintf("Type %02x\n", stat.type);
+
+    return 0;
+}
+
+static int fs_read_cmd(size_t argc, char ** argv) {
+    if (argc != 2) {
+        kprintf("Usage: %s <filename>\n", argv[0]);
+        return 1;
+    }
+
+    char * filename = argv[1];
+
+    if (!tar) {
+        kputs("Filesystem not mounted\n");
+        return 1;
+    }
+
+    tar_stat_t stat;
+    if (!tar_stat_file(tar, filename, &stat)) {
+        kputs("Failed to find file\n");
+        return 1;
+    }
+
+    ls_print_file(&stat);
+    uint8_t * buff = malloc(stat.size);
+    tar_read(tar, filename, buff, 0, stat.size);
+    kprint_hexblock(buff, stat.size, 0);
+    free(buff);
 
     return 0;
 }
@@ -431,7 +460,8 @@ void commands_init() {
     term_command_add("ls", ls_cmd);
     term_command_add("stat", stat_cmd);
     // term_command_add("status", status_cmd);
-    term_command_add("read", disk_read_cmd);
+    term_command_add("read", fs_read_cmd);
+    // term_command_add("read", disk_read_cmd);
     term_command_add("write", disk_write_cmd);
     term_command_add("size", disk_size_cmd);
 }

@@ -39,6 +39,7 @@ struct tar_fs {
 static size_t parse_octal(const char * str);
 static size_t count_files(tar_fs_t * tar);
 static void load_headers(tar_fs_t * tar);
+static tar_file_t * find_filename(tar_fs_t * tar, const char * path);
 
 tar_fs_t * tar_open(disk_t * disk) {
     tar_fs_t * tar = malloc(sizeof(tar_fs_t));
@@ -73,7 +74,7 @@ size_t tar_file_size(tar_fs_t * tar, size_t i) {
     return tar->files[i].size;
 }
 
-tar_stat_t * tar_stat_file(tar_fs_t * tar, size_t i, tar_stat_t * stat) {
+tar_stat_t * tar_stat_file_i(tar_fs_t * tar, size_t i, tar_stat_t * stat) {
     if (i > tar->file_count || !stat)
         return 0;
 
@@ -87,6 +88,37 @@ tar_stat_t * tar_stat_file(tar_fs_t * tar, size_t i, tar_stat_t * stat) {
     stat->type = parse_octal(file->header.type);
 
     return stat;
+}
+
+tar_stat_t * tar_stat_file(tar_fs_t * tar, const char * filename, tar_stat_t * stat) {
+    tar_file_t * file = find_filename(tar, filename);
+    if (!file)
+        return 0;
+
+    memcpy(stat->filename, file->filename, 101);
+    stat->size = file->size;
+    stat->mode = parse_octal(file->header.mode);
+    stat->uid = parse_octal(file->header.uid);
+    stat->gid = parse_octal(file->header.gid);
+    stat->mtime = parse_octal(file->header.mtime);
+    stat->type = parse_octal(file->header.type);
+
+    return stat;
+}
+
+size_t tar_read(tar_fs_t * tar,
+                const char * filename,
+                uint8_t * buff,
+                size_t pos,
+                size_t count) {
+    tar_file_t * file = find_filename(tar, filename);
+    if (!file || pos >= file->size)
+        return 0;
+
+    if (pos + count > file->size)
+        count = file->size - pos;
+
+    return disk_read(tar->disk, buff, count, file->disk_pos + pos);
 }
 
 static size_t parse_octal(const char * str) {
@@ -165,4 +197,17 @@ static void load_headers(tar_fs_t * tar) {
         if (disk_pos % 512)
             disk_pos += (512 - (disk_pos % 512));
     }
+}
+
+static tar_file_t * find_filename(tar_fs_t * tar, const char * path) {
+    for (size_t i = 0; i < tar->file_count; i++) {
+        size_t size = nstrlen(path, 100);
+        size_t filename_size = nstrlen(tar->files[i].filename, 100);
+        if (filename_size != size)
+            continue;
+        if (memcmp(path, tar->files[i].filename, size) == 0) {
+            return &tar->files[i];
+        }
+    }
+    return 0;
 }
