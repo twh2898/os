@@ -1,16 +1,23 @@
 #ifndef FILE_H
 #define FILE_H
 
-#include "libc/fs.h"
+#include <stddef.h>
 
-typedef struct _fs_file fs_file_t;
+typedef struct _file file_t;
 
-fs_file_t * file_open(filesystem_t * fs, const char * name);
-void file_close(fs_file_t * file);
+enum FILE_SEEK_ORIGIN {
+    FILE_SEEK_ORIGIN_START,
+    FILE_SEEK_ORIGIN_CURRENT,
+    FILE_SEEK_ORIGIN_END,
+};
 
-void file_seek(fs_file_t * file);
-size_t file_tell(fs_file_t * file);
-size_t file_read(fs_file_t * file, uint8_t * buff, size_t count);
-size_t file_write(fs_file_t * file, uint8_t * buff, size_t count);
+file_t * file_open(const char * filename, const char * mode);
+void file_close(file_t * file);
+
+size_t file_seek(file_t * file, int offset, enum FILE_SEEK_ORIGIN origin);
+size_t file_tell(file_t * file);
+
+size_t file_read(file_t * file, const char * buff, size_t count);
+size_t file_write(file_t * file, const char * buff, size_t count);
 
 #endif // FILE_H
