@@ -31,6 +31,7 @@ The OS will be finished when all of the following are implemented.
 - [ ] Optional don't disable interrupts during interrupt (nested interrupts)
 - [ ] Better key event buffer (with mods) (maybe in addition to char buffer)
 - [x] Change stdlib names with k prefix for namespace during testing
+- [ ] Optimize disk read to check if area already in buffer
 
 ### Long Term
 
