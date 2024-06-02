@@ -1,6 +1,8 @@
 # os
 
-Following the tutorials under https://github.com/cfenollosa/os-tutorial
+~~Following the tutorials under https://github.com/cfenollosa/os-tutorial~~
+
+For current specs see [memory.md](memory.md) and ~~[filesystem.md](filesystem.md)~~
 
 ## Goals
 
