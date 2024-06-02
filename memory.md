@@ -55,9 +55,10 @@ Region Type can be one of the following
 
 | start  | end     | size      | description           |
 | ------ | ------- | --------- | --------------------- |
+| 0x0000 | 0x004ff | 1.25 KiB  | Unused                |
 | 0x0500 | 0x00fff | 1.25 KiB  | Boot Parameters       |
 | 0x1000 | 0x01fff | 4 KiB     | Page Directory        |
 | 0x2000 | 0x02fff | 4 KiB     | Page Table            |
 | 0x3000 | 0x07bff | 18.99 KiB | Stack                 |
-| 0x7c00 | 0x07dff | 512 bytes | Unused                |
+| 0x7c00 | 0x07dff | 512 bytes | Unused *GDT here      |
 | 0x7e00 | 0x9fbff | 607.5 KiB | Kernel (second stage) |
