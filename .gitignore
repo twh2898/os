@@ -3,5 +3,7 @@
 *.elf
 
 build/
+drive/
 drive.img
+drive.tar
 qemu_log.txt
