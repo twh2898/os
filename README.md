@@ -106,6 +106,7 @@ The OS will be finished when all of the following are implemented.
    1. Create page directory
    2. Load elf binary
    3. Switch to Ring 3
+5. Shell
 
 ## Setup
 
