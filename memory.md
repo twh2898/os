@@ -9,7 +9,7 @@ See https://wiki.osdev.org/Memory_Map_(x86) for reserved BIOS memory.
 | 0x0500 | 0x00fff | 1.25 KiB  | Boot Parameters             |
 | 0x1000 | 0x01fff | 4 KiB     | Page Directory              |
 | 0x2000 | 0x02fff | 4 KiB     | Page Table                  |
-| 0x3000 | 0x07bff | 4 KiB     | Stack (real mode), top down |
+| 0x3000 | 0x07bff | 18.99 KiB | Stack (real mode), top down |
 | 0x7c00 | 0x07dff | 512 bytes | Boot Sector                 |
 | 0x7e00 | 0x9fbff | 607.5 KiB | Kernel (second stage)       |
 
