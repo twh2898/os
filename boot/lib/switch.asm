@@ -16,7 +16,8 @@ init_pm: ; we are now using 32-bit instructions
     mov fs, ax
     mov gs, ax
 
-    mov ebp, 0x8ffff ; 6. update the stack right at the top of the free space
+    mov ebp, STACK ; 6. update the stack to override the real mode stack can
+                   ;    override boot parameters region, so use them fast.
     mov esp, ebp
 
     call BEGIN_PM ; 7. Call a well-known label with useful code
