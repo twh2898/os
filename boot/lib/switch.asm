@@ -16,8 +16,9 @@ init_pm: ; we are now using 32-bit instructions
     mov fs, ax
     mov gs, ax
 
-    mov ebp, STACK ; 6. update the stack to override the real mode stack can
-                   ;    override boot parameters region, so use them fast.
+    mov ebp, STACK ; 6. update the stack to override the bottom of memory to to
+                   ;    use 0 as a stack overflow check? Does this actually
+                   ;    work?
     mov esp, ebp
 
     call BEGIN_PM ; 7. Call a well-known label with useful code
