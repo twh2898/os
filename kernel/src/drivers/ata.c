@@ -130,6 +130,9 @@ static void ata_callback(registers_t regs) {
 }
 
 ata_t * ata_open(uint8_t id) {
+    if (id > 0)
+        return 0;
+
     ata_t * disk = malloc(sizeof(ata_t));
     if (disk) {
         disk->io_base = ATA_BUS_0_IO_BASE;
@@ -144,7 +147,6 @@ ata_t * ata_open(uint8_t id) {
 }
 
 void ata_close(ata_t * disk) {
-    TEST_PTR(disk)
     free(disk);
 }
 
@@ -154,17 +156,21 @@ void init_ata() {
 }
 
 size_t ata_size(ata_t * disk) {
-    TEST_PTR_RET(disk)
+    if (!disk)
+        return 0;
     return disk->sect_count * ATA_SECTOR_BYTES;
 }
 
 size_t ata_sector_count(ata_t * disk) {
-    TEST_PTR_RET(disk)
+    if (!disk)
+        return 0;
     return disk->sect_count;
 }
 
 bool ata_status(ata_t * disk) {
-    TEST_PTR_RET(disk)
+    if (!disk)
+        return false;
+
     uint8_t status = port_byte_in(disk->ct_base + ATA_CTL_ALT_STATUS);
     if (debug) {
         kprintf("Status is %02X\n", status);
@@ -210,9 +216,7 @@ bool ata_status(ata_t * disk) {
 }
 
 size_t ata_sect_read(ata_t * disk, uint8_t * buff, size_t sect_count, uint32_t lba) {
-    TEST_PTR_RET(disk)
-    TEST_PTR_RET(buff)
-    if (sect_count == 0)
+    if (!disk || !buff || !sect_count)
         return 0;
 
     // read max 256 sectors at a time
@@ -274,9 +278,7 @@ size_t ata_sect_read(ata_t * disk, uint8_t * buff, size_t sect_count, uint32_t l
 }
 
 size_t ata_sect_write(ata_t * disk, uint8_t * buff, size_t sect_count, uint32_t lba) {
-    TEST_PTR_RET(disk)
-    TEST_PTR_RET(buff)
-    if (sect_count == 0)
+    if (!disk || !buff || !sect_count)
         return 0;
 
     // write max 256 sectors at a time
@@ -339,7 +341,9 @@ size_t ata_sect_write(ata_t * disk, uint8_t * buff, size_t sect_count, uint32_t 
 }
 
 static bool ata_identify(ata_t * disk) {
-    TEST_PTR_RET(disk)
+    if (!disk)
+        return false;
+
     START_TIMEOUT
     port_byte_out(disk->io_base + ATA_IO_DRIVE_HEAD, 0xA0);
 
@@ -448,7 +452,9 @@ static bool ata_identify(ata_t * disk) {
 }
 
 static void software_reset(ata_t * disk) {
-    TEST_PTR(disk)
+    if (!disk)
+        return;
+
     START_TIMEOUT
     port_byte_out(disk->ct_base + ATA_CTL_CONTROL, ATA_CONTROL_FLAG_SRST);
     port_byte_out(disk->ct_base + ATA_CTL_CONTROL, 0);

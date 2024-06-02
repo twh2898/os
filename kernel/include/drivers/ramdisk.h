@@ -8,9 +8,9 @@
 
 typedef struct _ramdisk ramdisk_t;
 
-uint32_t ramdisk_create(size_t size);
+int ramdisk_create(size_t size);
 
-ramdisk_t * ramdisk_open(uint32_t id);
+ramdisk_t * ramdisk_open(int id);
 void ramdisk_close(ramdisk_t * rdisk);
 
 size_t ramdisk_size(ramdisk_t * rdisk);

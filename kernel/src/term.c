@@ -145,14 +145,18 @@ void term_run() {
     }
 }
 
-void term_command_add(const char * command, command_cb_t cb) {
+bool term_command_add(const char * command, command_cb_t cb) {
+    if (!command || !cb)
+        return false;
+
     if (n_commands > MAX_COMMANDS) {
         ERROR("TERMINAL COMMAND REGISTER OVERFLOW!\n");
-        return;
+        return false;
     }
 
     commands[n_commands].command = command;
     commands[n_commands++].cb = cb;
+    return true;
 }
 
 static void exec_buff() {
@@ -241,7 +245,7 @@ static bool is_ws(char c) {
 }
 
 static int take_quote(const char * str) {
-    if (*str != '"')
+    if (!str || *str != '"')
         return -1;
 
     size_t len = strlen(str);
@@ -254,6 +258,9 @@ static int take_quote(const char * str) {
 }
 
 static int count_args(const char * line) {
+    if (!line)
+        return -1;
+
     int n = 0;
     while (*line) {
         // Skip whitespace
@@ -281,6 +288,9 @@ static int count_args(const char * line) {
 }
 
 static char ** parse_args(const char * line, size_t * out_len) {
+    if (!line || !out_len)
+        return 0;
+
     int len = count_args(line);
     if (len < 1) {
         return 0;

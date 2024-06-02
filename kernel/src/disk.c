@@ -74,29 +74,36 @@ disk_t * disk_open(int id, enum DISK_DRIVER driver) {
 }
 
 void disk_close(disk_t * disk) {
-    switch (disk->driver) {
-        case DISK_DRIVER_ATA: {
-            ata_close(disk->device.ata);
-        } break;
-        case DISK_DRIVER_FLOPPY: {
+    if (disk) {
+        switch (disk->driver) {
+            case DISK_DRIVER_ATA: {
+                ata_close(disk->device.ata);
+            } break;
+            case DISK_DRIVER_FLOPPY: {
 
-        } break;
-        case DISK_DRIVER_RAM_DISK: {
+            } break;
+            case DISK_DRIVER_RAM_DISK: {
 
-        } break;
-        default: {
+            } break;
+            default: {
 
-        } break;
+            } break;
+        }
+        free(disk->buff);
+        free(disk);
     }
-    free(disk->buff);
-    free(disk);
 }
 
 size_t disk_size(disk_t * disk) {
+    if (!disk)
+        return 0;
     return disk->size;
 }
 
 size_t disk_read(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
+    if (!disk || !buff)
+        return 0;
+
     size_t steps = count / disk->buff_size;
     if (count % disk->buff_size)
         steps++;
@@ -110,6 +117,9 @@ size_t disk_read(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
 }
 
 size_t disk_write(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
+    if (!disk || !buff)
+        return 0;
+
     size_t steps = count / disk->buff_size;
     if (count % disk->buff_size)
         steps++;
@@ -123,6 +133,9 @@ size_t disk_write(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
 }
 
 static size_t disk_ata_read(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
+    if (!disk || !buff)
+        return 0;
+
     if (count > disk->buff_size)
         count = disk->buff_size;
 
@@ -146,6 +159,9 @@ static size_t disk_ata_read(disk_t * disk, uint8_t * buff, size_t count, size_t 
 }
 
 static size_t disk_ata_write(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
+    if (!disk || !buff)
+        return 0;
+
     if (count > disk->buff_size)
         count = disk->buff_size;
 

@@ -18,7 +18,8 @@
 _Noreturn void kernel_panic(const char * msg, const char * file, unsigned int line) {
     vga_color(VGA_FG_WHITE | VGA_BG_RED);
     vga_print("[KERNEL PANIC]");
-    kprintf("[%s]:%u", file, line);
+    if (file)
+        kprintf("[%s]:%u", file, line);
     if (msg) {
         vga_putc(' ');
         vga_print(msg);

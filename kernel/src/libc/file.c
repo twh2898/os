@@ -23,16 +23,16 @@ void file_close(file_t * file) {
     free(file);
 }
 
-size_t file_tell(file_t * file) {
+bool file_seek(file_t * file, int offset, enum FILE_SEEK_ORIGIN origin) {
     if (!file)
-        return 0;
+        return false;
 
-    return 0;
+    return false;
 }
 
-size_t file_seek(file_t * file, int offset, enum FILE_SEEK_ORIGIN origin) {
+int file_tell(file_t * file) {
     if (!file)
-        return 0;
+        return -1;
 
     return 0;
 }

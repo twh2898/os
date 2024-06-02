@@ -6,7 +6,7 @@
 #include "libc/stdio.h"
 #define TEST_PTR(REF)                     \
     if (!(REF)) {                         \
-        kprintf(                           \
+        kprintf(                          \
             "[ERROR] "__FILE__            \
             ":%u Null circular buffer\n", \
             __LINE__);                    \
@@ -14,7 +14,7 @@
     }
 #define TEST_EMPTY(REF)                       \
     if ((REF)->len == 0) {                    \
-        kprintf(                               \
+        kprintf(                              \
             "[ERROR] "__FILE__                \
             ":%u Circular buffer is empty\n", \
             __LINE__);                        \
@@ -22,7 +22,7 @@
     }
 #define TEST_FULL(REF)                       \
     if ((REF)->len >= (REF)->buff_size) {    \
-        kprintf(                              \
+        kprintf(                             \
             "[ERROR] "__FILE__               \
             ":%u Circular buffer is full\n", \
             __LINE__);                       \
@@ -73,25 +73,25 @@ void circbuff_free(circbuff_t * cbuff) {
 }
 
 size_t circbuff_buff_size(const circbuff_t * cbuff) {
-    TEST_PTR(cbuff)
+    if (!cbuff)
+        return 0;
     return cbuff->buff_size;
 }
 
 size_t circbuff_len(const circbuff_t * cbuff) {
-    TEST_PTR(cbuff)
+    if (!cbuff)
+        return 0;
     return cbuff->len;
 }
 
 uint8_t circbuff_at(const circbuff_t * cbuff, size_t index) {
-    TEST_PTR(cbuff)
-    if (cbuff->len == 0)
+    if (!cbuff || cbuff->len == 0)
         return 0;
     return cbuff->buff[_wrap_index(cbuff, cbuff->start + index)];
 }
 
 size_t circbuff_push(circbuff_t * cbuff, uint8_t data) {
-    TEST_PTR(cbuff)
-    if (cbuff->len >= cbuff->buff_size)
+    if (!cbuff || cbuff->len >= cbuff->buff_size)
         return 0;
     size_t next = _wrap_index(cbuff, cbuff->start + cbuff->len++);
     cbuff->buff[next] = data;
@@ -99,8 +99,7 @@ size_t circbuff_push(circbuff_t * cbuff, uint8_t data) {
 }
 
 uint8_t circbuff_pop(circbuff_t * cbuff) {
-    TEST_PTR(cbuff)
-    if (cbuff->len == 0)
+    if (!cbuff || cbuff->len == 0)
         return 0;
     uint8_t val = circbuff_at(cbuff, 0);
     cbuff->start = _wrap_index(cbuff, cbuff->start + 1);
@@ -109,8 +108,7 @@ uint8_t circbuff_pop(circbuff_t * cbuff) {
 }
 
 uint8_t circbuff_rpop(circbuff_t * cbuff) {
-    TEST_PTR(cbuff)
-    if (cbuff->len == 0)
+    if (!cbuff || cbuff->len == 0)
         return 0;
     cbuff->len--;
     uint8_t val = circbuff_at(cbuff, cbuff->len);
@@ -118,7 +116,9 @@ uint8_t circbuff_rpop(circbuff_t * cbuff) {
 }
 
 size_t circbuff_insert(circbuff_t * cbuff, uint8_t * data, size_t count) {
-    TEST_PTR(cbuff)
+    if (!cbuff || !data)
+        return 0;
+
     size_t remainder = cbuff->buff_size - cbuff->len;
     if (count > remainder)
         count = remainder;
@@ -129,7 +129,9 @@ size_t circbuff_insert(circbuff_t * cbuff, uint8_t * data, size_t count) {
 }
 
 size_t circbuff_read(const circbuff_t * cbuff, uint8_t * data, size_t count) {
-    TEST_PTR(cbuff)
+    if (!cbuff || !data)
+        return 0;
+
     if (count > cbuff->len)
         count = cbuff->len;
     for (size_t i = 0; i < count; i++) {
@@ -139,10 +141,11 @@ size_t circbuff_read(const circbuff_t * cbuff, uint8_t * data, size_t count) {
 }
 
 size_t circbuff_remove(circbuff_t * cbuff, size_t count) {
-    TEST_PTR(cbuff)
+    if (!cbuff)
+        return 0;
     if (count > cbuff->len)
         count = cbuff->len;
-    
+
     cbuff->start = _wrap_index(cbuff, cbuff->start + count);
     cbuff->len -= count;
 
@@ -150,7 +153,8 @@ size_t circbuff_remove(circbuff_t * cbuff, size_t count) {
 }
 
 size_t circbuff_clear(circbuff_t * cbuff) {
-    TEST_PTR(cbuff)
+    if (!cbuff)
+        return 0;
     size_t o_len = cbuff->len;
     cbuff->start = 0;
     cbuff->len = 0;

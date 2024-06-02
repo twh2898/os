@@ -5,15 +5,17 @@
 #include "libc/string.h"
 
 struct _ramdisk {
-    uint32_t id;
+    int id;
     size_t size;
     void * data;
 };
 
 static ramdisk_t devices[RAMDISK_MAX];
-static uint32_t device_count = 0;
+static int device_count = 0;
 
-uint32_t ramdisk_create(size_t size) {
+int ramdisk_create(size_t size) {
+    if (device_count < 0)
+        KERNEL_PANIC("NEGATIVE DEVICE COUNT");
     if (device_count == RAMDISK_MAX)
         KERNEL_PANIC("TOO MANY RAM DISK DEVICES");
 
@@ -28,8 +30,8 @@ uint32_t ramdisk_create(size_t size) {
     return device_count++;
 }
 
-ramdisk_t * ramdisk_open(uint32_t id) {
-    if (id >= device_count)
+ramdisk_t * ramdisk_open(int id) {
+    if (id < 0 || id >= device_count)
         return 0;
     return &devices[id];
 }

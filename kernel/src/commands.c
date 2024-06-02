@@ -80,7 +80,7 @@ static uint8_t hex_digit(char c) {
 static uint16_t parse_byte(const char * str) {
     size_t len = strlen(str);
     if (len < 1 || len > 4)
-        return -1;
+        return 1;
 
     uint16_t res = 0;
     while (*str) {
@@ -308,7 +308,7 @@ static int ls_cmd(size_t argc, char ** argv) {
     tar_stat_t stat;
     for (size_t i = 0; i < file_count; i++) {
         if (!tar_stat_file_i(tar, i, &stat))
-            break;
+            return 1;
         ls_print_file(&stat);
     }
 
@@ -358,8 +358,26 @@ static int fs_read_cmd(size_t argc, char ** argv) {
 
     ls_print_file(&stat);
     uint8_t * buff = malloc(stat.size);
-    tar_read(tar, filename, buff, 0, stat.size);
+    if (!buff)
+        return 1;
+
+    tar_fs_file_t * file = tar_file_open(tar, filename);
+    if (!file) {
+        free(buff);
+        return 1;
+    }
+
+    if (!tar_file_read(file, buff, stat.size)) {
+        tar_file_close(file);
+        free(buff);
+        return 1;
+    }
     kprint_hexblock(buff, stat.size, 0);
+
+    if (!disk || !buff)
+        return 0;
+
+    tar_file_close(file);
     free(buff);
 
     return 0;

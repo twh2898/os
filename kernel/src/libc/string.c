@@ -9,6 +9,9 @@
 static char * strtok_curr = 0;
 
 int memcmp(const void * lhs, const void * rhs, size_t n) {
+    if (!lhs || !rhs)
+        return 0;
+
     const uint8_t * a = (uint8_t *)lhs;
     const uint8_t * b = (uint8_t *)rhs;
     for (size_t i = 0; i < n; i++) {
@@ -19,6 +22,9 @@ int memcmp(const void * lhs, const void * rhs, size_t n) {
 }
 
 void * memcpy(void * dest, const void * src, size_t n) {
+    if (!dest || !src)
+        return 0;
+
     uint8_t * dest_buff = (uint8_t *)dest;
     const uint8_t * src_buff = (const uint8_t *)src;
     for (size_t i = 0; i < n; i++) {
@@ -28,6 +34,9 @@ void * memcpy(void * dest, const void * src, size_t n) {
 }
 
 void * memmove(void * dest, const void * src, size_t n) {
+    if (!dest || !src)
+        return 0;
+
     uint8_t * dest_buff = (uint8_t *)dest;
     const uint8_t * src_buff = (const uint8_t *)src;
     if (dest_buff < src_buff) {
@@ -46,6 +55,8 @@ void * memmove(void * dest, const void * src, size_t n) {
 }
 
 void * memset(void * ptr, uint8_t value, size_t n) {
+    if (!ptr)
+        return 0;
     uint8_t * buf = (uint8_t *)ptr;
     for (size_t i = 0; i < n; i++) {
         *buf++ = value;
@@ -53,19 +64,25 @@ void * memset(void * ptr, uint8_t value, size_t n) {
     return ptr;
 }
 
-size_t strlen(const char * str) {
+int strlen(const char * str) {
+    if (!str)
+        return -1;
     size_t count = 0;
     while (*str++) count++;
     return count;
 }
 
-size_t nstrlen(const char * str, size_t max) {
+int nstrlen(const char * str, int max) {
+    if (!str || max < 0)
+        return -1;
     size_t count = 0;
     while (*str++ && count < max) count++;
     return count;
 }
 
 int strfind(const char * str, size_t start, char c) {
+    if (!str)
+        return -1;
     size_t len = strlen(str);
     for (size_t i = start; i < len; i++) {
         if (str[i] == c)
@@ -75,6 +92,9 @@ int strfind(const char * str, size_t start, char c) {
 }
 
 static char * find_one(char * str, char * delim) {
+    if (!str || !delim)
+        return 0;
+
     size_t len = strlen(str);
     size_t d_len = strlen(delim);
 
@@ -89,6 +109,9 @@ static char * find_one(char * str, char * delim) {
 }
 
 static char * find_not_one(char * str, char * delim) {
+    if (!str || !delim)
+        return 0;
+
     size_t len = strlen(str);
     size_t d_len = strlen(delim);
 
@@ -104,6 +127,9 @@ static char * find_not_one(char * str, char * delim) {
 
 // FIXME: Untested, idk if this actually works
 char * strtok(char * str, char * delim) {
+    if (!str || !delim)
+        return 0;
+
     if (str)
         strtok_curr = str;
 
@@ -154,11 +180,14 @@ int atoi(const char * str) {
     return res;
 }
 
-static int char2int(char c, int base, int * i) {
+static bool char2int(char c, int base, int * i) {
+    if (!i)
+        return false;
+
     if (base <= 10 && c > '0' + base)
-        return 0;
+        return false;
     else if (!(c - 10 > 'a' + base || c - 10 > 'A' + base))
-        return 0;
+        return false;
 
     if ('0' <= c <= '9')
         *i = c - '0';
@@ -167,9 +196,9 @@ static int char2int(char c, int base, int * i) {
     else if ('A' <= c <= 'Z')
         *i = 10 + (c - 'A');
     else
-        return 0;
+        return false;
 
-    return 1;
+    return true;
 }
 
 int atoib(const char * str, int base) {
@@ -188,9 +217,9 @@ int atoib(const char * str, int base) {
     while (*str) {
         char c = *str++;
         int i;
-        if (char2int(c, base, &i))
+        if (!char2int(c, base, &i))
             return 0;
-        
+
         res *= base;
         res += i;
     }

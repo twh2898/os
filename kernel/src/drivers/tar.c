@@ -39,16 +39,19 @@ struct tar_fs {
 struct tar_fs_file {
     tar_fs_t * tar;
     tar_file_t * file;
-    size_t pos;
+    int pos;
     size_t size;
 };
 
 static size_t parse_octal(const char * str);
 static size_t count_files(tar_fs_t * tar);
-static void load_headers(tar_fs_t * tar);
+static bool load_headers(tar_fs_t * tar);
 static tar_file_t * find_filename(tar_fs_t * tar, const char * filename);
 
 tar_fs_t * tar_open(disk_t * disk) {
+    if (!disk)
+        return 0;
+
     tar_fs_t * tar = malloc(sizeof(tar_fs_t));
     if (tar) {
         tar->disk = disk;
@@ -64,25 +67,28 @@ void tar_close(tar_fs_t * tar) {
 }
 
 size_t tar_file_count(tar_fs_t * tar) {
+    if (!tar)
+        return 0;
+
     return tar->file_count;
 }
 
 const char * tar_file_name(tar_fs_t * tar, size_t i) {
-    if (i > tar->file_count)
+    if (!tar || i > tar->file_count)
         return 0;
 
     return tar->files[i].filename;
 }
 
 size_t tar_file_size(tar_fs_t * tar, size_t i) {
-    if (i > tar->file_count)
+    if (!tar || i > tar->file_count)
         return 0;
 
     return tar->files[i].size;
 }
 
 tar_stat_t * tar_stat_file_i(tar_fs_t * tar, size_t i, tar_stat_t * stat) {
-    if (i > tar->file_count || !stat)
+    if (!tar || !stat || i > tar->file_count)
         return 0;
 
     tar_file_t * file = &tar->files[i];
@@ -98,6 +104,9 @@ tar_stat_t * tar_stat_file_i(tar_fs_t * tar, size_t i, tar_stat_t * stat) {
 }
 
 tar_stat_t * tar_stat_file(tar_fs_t * tar, const char * filename, tar_stat_t * stat) {
+    if (!tar || !filename || !stat)
+        return 0;
+
     tar_file_t * file = find_filename(tar, filename);
     if (!file)
         return 0;
@@ -114,6 +123,9 @@ tar_stat_t * tar_stat_file(tar_fs_t * tar, const char * filename, tar_stat_t * s
 }
 
 tar_fs_file_t * tar_file_open(tar_fs_t * tar, const char * filename) {
+    if (!tar || !filename)
+        return 0;
+
     tar_fs_file_t * file = malloc(sizeof(tar_fs_file_t));
     if (file) {
         file->tar = tar;
@@ -133,7 +145,10 @@ void tar_file_close(tar_fs_file_t * file) {
     free(file);
 }
 
-size_t tar_file_seek(tar_fs_file_t * file, int offset, enum FILE_SEEK_ORIGIN origin) {
+bool tar_file_seek(tar_fs_file_t * file, int offset, enum FILE_SEEK_ORIGIN origin) {
+    if (!file)
+        return false;
+
     switch (origin) {
         default:
         case FILE_SEEK_ORIGIN_START: {
@@ -155,30 +170,36 @@ size_t tar_file_seek(tar_fs_file_t * file, int offset, enum FILE_SEEK_ORIGIN ori
         case FILE_SEEK_ORIGIN_CURRENT: {
             if (offset > file->size - file->pos)
                 file->pos = file->size;
-            else if(offset < -(int)file->pos)
+            else if (offset < -file->pos)
                 file->pos = 0;
             else
                 file->pos = file->pos + offset;
         } break;
     }
+    return true;
+}
+
+int tar_file_tell(tar_fs_file_t * file) {
+    if (!file)
+        return -1;
     return file->pos;
 }
 
-size_t tar_file_tell(tar_fs_file_t * file) {
-    return file->pos;
-}
-
-size_t tar_file_read(tar_fs_file_t * file, const char * buff, size_t count) {
+size_t tar_file_read(tar_fs_file_t * file, char * buff, size_t count) {
     if (!file || !buff)
         return 0;
 
     if (file->pos + count > file->size)
         count = file->size - file->pos;
 
-    return disk_read(file->tar->disk, buff, count, file->file->disk_pos + file->pos);
+    return disk_read(
+        file->tar->disk, buff, count, file->file->disk_pos + file->pos);
 }
 
 static size_t parse_octal(const char * str) {
+    if (!str)
+        return 0;
+
     size_t size = 0;
     size_t count = 1;
 
@@ -190,6 +211,9 @@ static size_t parse_octal(const char * str) {
 }
 
 static size_t count_files(tar_fs_t * tar) {
+    if (!tar)
+        return 0;
+
     raw_header_t header;
 
     size_t disk_pos = 0;
@@ -222,7 +246,10 @@ static size_t count_files(tar_fs_t * tar) {
     return count;
 }
 
-static void load_headers(tar_fs_t * tar) {
+static bool load_headers(tar_fs_t * tar) {
+    if (!tar)
+        return false;
+
     size_t disk_pos = 0;
 
     for (size_t i = 0; i < tar->file_count; i++) {
@@ -254,6 +281,8 @@ static void load_headers(tar_fs_t * tar) {
         if (disk_pos % 512)
             disk_pos += (512 - (disk_pos % 512));
     }
+
+    return true;
 }
 
 static tar_file_t * find_filename(tar_fs_t * tar, const char * filename) {

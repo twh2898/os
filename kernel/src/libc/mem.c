@@ -116,6 +116,9 @@ void free(void * ptr) {
 }
 
 static region_header_t * region_split(region_header_t * region, size_t size) {
+    if (!region)
+        return 0;
+
     region_header_t * next_region = U2R(region->next);
     region_header_t * new_region =
         U2R(R2U(region) + size + sizeof(region_header_t));
@@ -136,6 +139,9 @@ static region_header_t * region_split(region_header_t * region, size_t size) {
 }
 
 static region_header_t * region_remove(region_header_t * region) {
+    if (!region)
+        return 0;
+
     if (!region->prev)
         return region;
 
