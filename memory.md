@@ -56,7 +56,7 @@ Region Type can be one of the following
 | start  | end     | size      | description           |
 | ------ | ------- | --------- | --------------------- |
 | 0x0000 | 0x004ff | 1.25 KiB  | Unused                |
-| 0x0500 | 0x00fff | 1.25 KiB  | Boot Parameters       |
+| 0x0500 | 0x00fff | 2.75 KiB  | Boot Parameters       |
 | 0x1000 | 0x01fff | 4 KiB     | Page Directory        |
 | 0x2000 | 0x02fff | 4 KiB     | Page Table            |
 | 0x3000 | 0x07bff | 18.99 KiB | Stack                 |
