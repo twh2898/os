@@ -63,12 +63,7 @@ Region Type can be one of the following
 | 0x7c00 | 0x07dff | 512 bytes | Unused *GDT here      |
 | 0x7e00 | 0x9fbff | 607.5 KiB | Kernel (second stage) |
 
-### Pages
-
 ## Memory Allocation
-
-Create copy of memory map with region start and size in pages of only free
-regions. There are two page allocators.
 
 Physical Allocator
 
@@ -77,19 +72,58 @@ Physical Allocator
 
 Paging Allocator
 
-- Requests pages form the physical allocator to append as needed
+- Requests pages form the physical allocator to append to page tables as needed
 - Keeps track of free pages in the middle and can re-use them
 
-Probably keep a bitmask of all free pages and iter them to find a region that
-is big enough.
+## Physical Allocator
 
-### Maf
+Physical pages are tracked by a region table. The region table has on entry
+for each region of free pages where the first page is a bitmask with one bit
+per following page.
 
-Page = 4 KiB
+### Region Table
 
-Biggest region 0x4000_0000 = 1 GB = 262144 (0x40000) pages
-= 8192 (0x2000) x 32 bit int = 2 pages
+Regions are used to track all pages. Each region has up to 32768 continuous
+pages (128 MiB) where the first page is a bitmask of all free pages in that
+region. All regions are tracked by a Region Table which holds up to 512 region
+pointers. Each entry in the region table also includes a flag if the region
+is present and counts of the total number of pages in the region and number of
+free pages in the region.
 
-- Physical allocator keeps table to each region up to 512 MiB, splitting regions
-as needed, and the number of pages for said region, up to 131072 (0x20000)
-- Physical allocator keeps number for next known free page
+| start | size | description     |
+| ----- | ---- | --------------- |
+| 0     | 4    | address + flags |
+| 4     | 2    | page count      |
+| 8     | 2    | free count      |
+
+>[!IMPORTANT] Remember to mask the address
+> The low 12 bits of each address are flags because the address is always page
+> aligned. Remember to mask these bits when using the address.
+
+> [!NOTE] Region size
+> Each region can be up to 128 MiB (32768 pages)
+>- Page size = 4096 (0x1000)
+>- Bits per page = Page Size * 8 = 4096 * 8 = 32768 (0x8000)
+>- Max pages per region = Bits per page = 32768 (0x8000) (includes bitmask page)
+>- Max region size = Max pages per region * Page size = 32768 * 4096 = 134217728
+>  (0x8000000) = 128 MiB
+
+#### Flags
+
+| flag | description                                                |
+| ---- | ---------------------------------------------------------- |
+| 0x1  | Present - this region table entry points to a valid region |
+
+### Region Bitmask
+
+The first page of each region (pointed to by the region table entry) is a
+bitmask for the region showing which pages are free. Any bits outside of the
+region should be set to 0 (ie. if the region is smaller than 128 MiB, bits for
+any pages after the region end should be 0).
+
+> [!IMPORTANT] Bitmask bit 1
+> The first bit of the bitmask will always be 0 for the bitmask page itself.
+
+## Paging Allocator
+
+TODO - everything here

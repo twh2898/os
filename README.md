@@ -77,23 +77,24 @@ The OS will be finished when all of the following are implemented.
 3. Read memory map to 0x500
 4. Read stage 2 from boot drive
 5. Setup GDT
-6. Switch to protected mode
+7. Switch to protected mode
 
 ### Stage 2
 
-1. Load VGA driver
+1. ~~Move boot parameters out of first page~~
+   1. ~~Set first page to throw error on access to 0~~
+2. Setup ISR and IDT
+4. Setup Memory Allocator
+   1. Physical Memory
+   2. Virtual Memory (paging)
+5. Enable Paging
+6. Load VGA driver
    1. Clear screen
    2. Print hello
-2. Setup ISR
-3. Setup IRQ
-4. Load RAM driver
-   1. Init malloc
-   2. Setup Paging
-5. ??? - Does anything need to move after paging starts?
-6. Load ATA driver
+8.  Load ATA driver
    1. Mount fs
    2. Read kernel into page directory
-7. Jump to kernel
+9.  Start kernel
 
 ### Stage 3 - OS
 

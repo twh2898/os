@@ -6,6 +6,7 @@
 #include "cpu/timer.h"
 #include "drivers/ata.h"
 #include "drivers/keyboard.h"
+#include "drivers/page.h"
 #include "drivers/ram.h"
 #include "drivers/ramdisk.h"
 #include "drivers/vga.h"
@@ -88,13 +89,16 @@ static int test_cmd(size_t argc, char ** argv) {
 
 void kernel_main() {
     vga_clear();
-    vga_print("Welcome to kernel v..\n");
 
     isr_install();
     irq_install();
 
+    vga_print("Welcome to kernel v..\n");
+
     init_ram();
+    init_pages();
     init_malloc();
+
     init_ata();
 
     term_init();
