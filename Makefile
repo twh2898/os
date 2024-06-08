@@ -89,7 +89,7 @@ run: os-image.bin drive.img
 
 debug: os-image.bin $(BUILD_DIR)/kernel.elf
 	$(QEMU) -s -S $(QEMUFLAGS) -drive format=raw,file=os-image.bin,index=0,if=floppy &
-	$(GDB) -ex "target remote localhost:1234" -ex "symbol-file $(BUILD_DIR)/kernel.elf" -ex "b *0x7c00" -ex "b *0x7e00" -ex "b __start" -ex "b kernel_main"
+	$(GDB) -ex "target remote localhost:1234" -ex "symbol-file $(BUILD_DIR)/kernel.elf" -ex "b *0x7c00" -ex "b *0x7e00" -ex "b __start" -ex "b kernel_main" -ex "b kernel/src/cpu/isr.c:124"
 
 boot-debug: os-image-dump.bin
 	$(QEMU) -s -S $(QEMUFLAGS) -drive format=raw,file=os-image.bin,index=0,if=floppy &
