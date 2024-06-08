@@ -14,8 +14,6 @@ __start:
     or eax, 0x13  ; 4 kb
     mov [PAGE_DIR], eax
 
-    call __enable_paging
-
     call kernel_main ; Calls the C function. The linker will know where it is placed in memory
 
 halt:
@@ -29,18 +27,56 @@ PAGE_DIR equ 0x1000
 PAGE_TABLE equ 0x2000
 
 ; eax = page dir 4 kb aligned
-global __enable_paging
-__enable_paging:
+global mmu_enable_paging
+mmu_enable_paging:
     pusha
 
     mov eax, PAGE_DIR
-    mov cr3, eax
+    call mmu_change_dir
 
     mov eax, cr0
     or eax, 0x80000000
     mov cr0, eax
 
     popa
+    ret
+
+global mmu_disable_paging
+mmu_disable_paging:
+    pusha
+
+    mov eax, cr0
+    and eax, 0x7fffffff
+    mov cr0, eax
+
+    popa
+    ret
+
+global mmu_paging_enabled
+mmu_paging_enabled:
+    pusha
+
+    mov eax, cr0
+    shr eax, 31
+    and eax, 1
+
+    popa
+    ret
+
+; void mmu_change_dir(mmu_page_dir_t * dir)
+global mmu_change_dir
+mmu_change_dir:
+    shr eax, 12
+    shl eax, 12
+    mov cr3, eax
+    ret
+
+; mmu_page_dir_t * mmu_get_curr_dir()
+global mmu_get_curr_dir
+mmu_get_curr_dir:
+    mov eax, cr3
+    shr eax, 12
+    shl eax, 12
     ret
 
 ; eax = page dir 4 kb aligned
