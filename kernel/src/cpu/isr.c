@@ -6,7 +6,10 @@
 #include "drivers/ata.h"
 #include "drivers/keyboard.h"
 #include "drivers/rtc.h"
+#include "kernel.h"
 #include "libc/stdio.h"
+
+static void print_trace(registers_t *);
 
 isr_t interrupt_handlers[256];
 
@@ -120,8 +123,58 @@ char * exception_messages[] = {
 };
 
 void isr_handler(registers_t r) {
-    kprintf("received interrupt: %u\n%s\n", r.int_no, exception_messages[r.int_no]);
+    kprintf("%s\n", exception_messages[r.int_no]);
+    kprintf("ISR %u (err 0x%X)\n", r.int_no, r.err_code);
+    print_trace(&r);
+    switch (r.int_no) {
+        case 14: {
+            switch (r.err_code) {
+                case 0:
+                    kputs("Supervisory process tried to read a non-present page entry\n");
+                    break;
+                case 1:
+                    kputs("Supervisory process tried to read a page and caused a protection fault\n");
+                    break;
+                case 2:
+                    kputs("Supervisory process tried to write to a non-present page entry\n");
+                    break;
+                case 3:
+                    kputs("Supervisory process tried to write a page and caused a protection fault\n");
+                    break;
+                case 4:
+                    kputs("User process tried to read a non-present page entry\n");
+                    break;
+                case 5:
+                    kputs("User process tried to read a page and caused a protection fault\n");
+                    break;
+                case 6:
+                    kputs("User process tried to write to a non-present page entry\n");
+                    break;
+                case 7:
+                    kputs("User process tried to write a page and caused a protection fault\n");
+                    break;
+                default:
+                    break;
+            }
+        } break;
+        default:
+            break;
+    }
+    KERNEL_PANIC("STOP HERE");
+    return;
 }
+
+/*
+US RW  P - Description
+0  0  0 - Supervisory process tried to read a non-present page entry
+0  0  1 - Supervisory process tried to read a page and caused a protection fault
+0  1  0 - Supervisory process tried to write to a non-present page entry
+0  1  1 - Supervisory process tried to write a page and caused a protection fault
+1  0  0 - User process tried to read a non-present page entry
+1  0  1 - User process tried to read a page and caused a protection fault
+1  1  0 - User process tried to write to a non-present page entry
+1  1  1 - User process tried to write a page and caused a protection fault
+*/
 
 void register_interrupt_handler(uint8_t n, isr_t handler) {
     interrupt_handlers[n] = handler;
@@ -161,3 +214,60 @@ void disable_interrupts() {
 void enable_interrupts() {
     asm("sti");
 }
+
+static void print_cr0(uint32_t cr0) {
+    kputc('[');
+    kputs(cr0 & (1 << 0) ? "PE " : "-- ");
+    kputs(cr0 & (1 << 1) ? "MP " : "-- ");
+    kputs(cr0 & (1 << 2) ? "EM " : "-- ");
+    kputs(cr0 & (1 << 3) ? "TS " : "-- ");
+    kputs(cr0 & (1 << 4) ? "ET " : "-- ");
+    kputs(cr0 & (1 << 5) ? "NE " : "-- ");
+    kputs(cr0 & (1 << 16) ? "WP " : "-- ");
+    kputs(cr0 & (1 << 18) ? "AM " : "-- ");
+    kputs(cr0 & (1 << 29) ? "NW " : "-- ");
+    kputs(cr0 & (1 << 30) ? "CD " : "-- ");
+    kputs(cr0 & (1 << 31) ? "PG" : "--");
+    kputc(']');
+}
+
+static void print_trace(registers_t * r) {
+    kprintf("EAX: 0x%08X EBX: 0x%08X ECX: 0x%08X EDX: 0x%08X\n",
+            r->eax,
+            r->ebx,
+            r->ecx,
+            r->edx);
+    kprintf("ESI: 0x%08X EDI: 0x%08X EBP: 0x%08X ESP: 0x%08X\n",
+            r->esi,
+            r->edi,
+            r->ebp,
+            r->esp);
+    kprintf("CR0: 0x%08X CR2: 0x%08X CR3: 0x%08X CR4: 0x%08X\n",
+            r->cr0,
+            r->cr2,
+            r->cr3,
+            r->cr4);
+    // kprintf("CS: 0x%04X DS: 0x%04X ES: 0x%04X FS: 0x%04X GS: 0x%04X SS:
+    // 0x%04X", r->cs, r->ds, r->es)
+    kprintf("DS: %04X ES: %04X FS: %04X GS: %04X\n", r->ds, r->es, r->gs, r->fs);
+    print_cr0(r->cr0);
+    kputc('\n');
+}
+/*
+Bit	Label	Description
+0	PE	Protected Mode Enable
+1	MP	Monitor co-processor
+2	EM	x87 FPU Emulation
+3	TS	Task switched
+4	ET	Extension type
+5	NE	Numeric error
+16	WP	Write protect
+18	AM	Alignment mask
+29	NW	Not-write through
+30	CD	Cache disable
+31	PG	Paging
+
+  EAX: 0x00000000  EBX: 0x00000000  ECX: 0x00000000  EDX: 0x00000663  o d i t s
+z a p c ESI: 0x00000000  EDI: 0x00000000  EBP: 0x00000000  ESP: 0x00000000  EIP:
+0x0000FFF0 CS: F000  DS: 0000  ES: 0000  FS: 0000  GS: 0000  SS: 0000
+*/

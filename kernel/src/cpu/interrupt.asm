@@ -2,12 +2,28 @@
 [extern isr_handler]
 [extern irq_handler]
 
+%macro push_spec 2
+mov %1, %2
+push %1
+%endmacro
+
+%macro pop_spec 2
+pop %1
+mov %2, %1
+%endmacro
+
 ; Common ISR code
 isr_common_stub:
     ; 1. Save CPU state
 	pusha ; Pushes edi,esi,ebp,esp,ebx,edx,ecx,eax
-	mov ax, ds ; Lower 16-bits of eax = ds.
-	push eax ; save the data segment descriptor
+    push_spec eax, gs
+    push_spec eax, fs
+    push_spec eax, es
+    push_spec eax, ds
+    push_spec eax, cr4
+    push_spec eax, cr3
+    push_spec eax, cr2
+    push_spec eax, cr0
 	mov ax, 0x10  ; kernel data segment descriptor
 	mov ds, ax
 	mov es, ax
@@ -17,12 +33,17 @@ isr_common_stub:
     ; 2. Call C handler
 	call isr_handler
 
+    pop eax
+    pop eax
+    pop eax
+    pop eax
+
     ; 3. Restore state
 	pop eax
-	mov ds, ax
-	mov es, ax
-	mov fs, ax
-	mov gs, ax
+    pop_spec eax, ds
+    pop_spec eax, es
+    pop_spec eax, fs
+    pop_spec eax, gs
 	popa
 	add esp, 8 ; Cleans up the pushed error code and pushed ISR number
 	sti
