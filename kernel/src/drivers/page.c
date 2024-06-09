@@ -2,6 +2,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
 #include "drivers/ram.h"
 #include "kernel.h"
@@ -66,7 +67,7 @@ void init_pages() {
     }
 }
 
-uint32_t page_alloc() {
+void * page_alloc() {
     for (size_t i = 0; i < REGION_TABLE_SIZE; i++) {
         uint8_t flag = region_table[i].addr_flags & 0xfff;
         if (flag & REGION_TABLE_FLAG_PRESENT && region_table[i].free_count) {
@@ -76,19 +77,21 @@ uint32_t page_alloc() {
 
             set_bitmask(&region_table[i], bit, false);
             region_table[i].free_count--;
-            return region_table[i].addr_flags & 0xfffff000 + bit * PAGE_SIZE;
+            uint32_t page_addr =
+                region_table[i].addr_flags & 0xfffff000 + bit * PAGE_SIZE;
+            return (void *)page_addr;
         }
     }
 
     return 0;
 }
 
-void page_free(uint32_t addr) {
-    region_table_entry_t * region = find_addr_entry(addr);
+void page_free(void * addr) {
+    region_table_entry_t * region = find_addr_entry((uint32_t)addr);
     if (!region)
         return;
 
-    uint16_t bit = find_addr_bit(region, addr);
+    uint16_t bit = find_addr_bit(region, (uint32_t)addr);
     if (!bit)
         return;
 
