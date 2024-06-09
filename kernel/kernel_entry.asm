@@ -37,13 +37,10 @@ mmu_disable_paging:
 
 global mmu_paging_enabled
 mmu_paging_enabled:
-    pusha
-
     mov eax, cr0
     shr eax, 31
     and eax, 1
 
-    popa
     ret
 
 ; void mmu_change_dir(mmu_page_dir_t * dir)
