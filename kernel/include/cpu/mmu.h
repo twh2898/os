@@ -2,6 +2,7 @@
 #define MMU_H
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 #define PAGE_DIR_SIZE 1024
@@ -43,6 +44,14 @@ void mmu_dir_free(mmu_page_dir_t * dir);
 mmu_page_table_t * mmu_table_create();
 void mmu_table_free(mmu_page_table_t * table);
 
+void mmu_dir_set_table(mmu_page_dir_t * dir, size_t i, mmu_page_table_t * table);
+void mmu_dir_set_flags(mmu_page_dir_t * dir, size_t i, enum MMU_PAGE_DIR_FLAGS flags);
+
+void mmu_table_set_addr(mmu_page_table_t * table, size_t i, uint32_t page_addr);
+void mmu_table_set_flags(mmu_page_table_t * table,
+                         size_t i,
+                         enum MMU_PAGE_TABLE_FLAGS flags);
+
 extern void mmu_enable_paging(mmu_page_dir_t * dir);
 extern void mmu_disable_paging();
 extern bool mmu_paging_enabled();
@@ -52,7 +61,8 @@ extern mmu_page_dir_t * mmu_get_curr_dir();
 // TODO re-enable when you actually have page dir mapped
 // void * mmu_phys_addr(void * virt_addr);
 // TODO re-enable when you actually have paging working
-// void mmu_map_page(mmu_page_dir_t * dir, void *phys_addr, void *virtual_addr, unsigned int flags);
+// void mmu_map_page(mmu_page_dir_t * dir, void *phys_addr, void *virtual_addr,
+// unsigned int flags);
 
 // TODO request page increase
 // TODO request page decrease

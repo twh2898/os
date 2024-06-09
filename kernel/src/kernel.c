@@ -2,6 +2,7 @@
 
 #include "commands.h"
 #include "cpu/isr.h"
+#include "cpu/mmu.h"
 #include "cpu/ports.h"
 #include "cpu/timer.h"
 #include "drivers/ata.h"
@@ -87,6 +88,26 @@ static int test_cmd(size_t argc, char ** argv) {
     return run_tests();
 }
 
+static mmu_page_dir_t * pdir;
+static mmu_page_table_t * ptable;
+
+static void enter_paging() {
+    pdir = mmu_dir_create();
+    ptable = mmu_table_create();
+
+    mmu_dir_set_table(pdir, 0, ptable);
+    mmu_dir_set_flags(
+        pdir, 0, MMU_PAGE_DIR_FLAGS_PRESENT | MMU_PAGE_DIR_FLAGS_READ_WRITE);
+
+    for (size_t i = 0; i < PAGE_TABLE_SIZE; i++) {
+        mmu_table_set_addr(ptable, i, i << 12);
+        mmu_table_set_flags(
+            ptable, i, MMU_PAGE_TABLE_FLAGS_PRESENT | MMU_PAGE_TABLE_FLAGS_READ_WRITE);
+    }
+
+    mmu_enable_paging(pdir);
+}
+
 void kernel_main() {
     vga_clear();
 
@@ -97,6 +118,7 @@ void kernel_main() {
 
     init_ram();
     init_pages();
+    enter_paging();
     init_malloc();
 
     init_ata();
