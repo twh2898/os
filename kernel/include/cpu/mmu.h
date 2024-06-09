@@ -29,16 +29,19 @@ enum MMU_PAGE_TABLE_FLAGS {
     MMU_PAGE_TABLE_FLAGS_GLOBAL = 0x100,
 };
 
-typedef struct {
-    uint16_t flags;
-    uint16_t addr;
-} __attribute__((packed)) mmu_page_entry_t;
+typedef uint32_t mmu_page_entry_t;
 
 typedef struct {
     mmu_page_entry_t entries[PAGE_DIR_SIZE];
 } __attribute__((packed)) mmu_page_dir_t;
 
 typedef mmu_page_dir_t mmu_page_table_t;
+
+mmu_page_dir_t * mmu_dir_create();
+void mmu_dir_free(mmu_page_dir_t * dir);
+
+mmu_page_table_t * mmu_table_create();
+void mmu_table_free(mmu_page_table_t * table);
 
 extern void mmu_enable_paging(mmu_page_dir_t * dir);
 extern void mmu_disable_paging();
