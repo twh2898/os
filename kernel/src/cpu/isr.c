@@ -216,18 +216,29 @@ void enable_interrupts() {
 }
 
 static void print_cr0(uint32_t cr0) {
-    kputc('[');
-    kputs(cr0 & (1 << 0) ? "PE " : "-- ");
-    kputs(cr0 & (1 << 1) ? "MP " : "-- ");
-    kputs(cr0 & (1 << 2) ? "EM " : "-- ");
-    kputs(cr0 & (1 << 3) ? "TS " : "-- ");
-    kputs(cr0 & (1 << 4) ? "ET " : "-- ");
-    kputs(cr0 & (1 << 5) ? "NE " : "-- ");
-    kputs(cr0 & (1 << 16) ? "WP " : "-- ");
-    kputs(cr0 & (1 << 18) ? "AM " : "-- ");
-    kputs(cr0 & (1 << 29) ? "NW " : "-- ");
-    kputs(cr0 & (1 << 30) ? "CD " : "-- ");
-    kputs(cr0 & (1 << 31) ? "PG" : "--");
+    kputs("[ ");
+    if (cr0 & (1 << 0))
+        kputs("PE ");
+    if (cr0 & (1 << 1))
+        kputs("MP ");
+    if (cr0 & (1 << 2))
+        kputs("EM ");
+    if (cr0 & (1 << 3))
+        kputs("TS ");
+    if (cr0 & (1 << 4))
+        kputs("ET ");
+    if (cr0 & (1 << 5))
+        kputs("NE ");
+    if (cr0 & (1 << 16))
+        kputs("WP ");
+    if (cr0 & (1 << 18))
+        kputs("AM ");
+    if (cr0 & (1 << 29))
+        kputs("NW ");
+    if (cr0 & (1 << 30))
+        kputs("CD ");
+    if (cr0 & (1 << 31))
+        kputs("PG ");
     kputc(']');
 }
 
