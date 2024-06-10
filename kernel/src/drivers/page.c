@@ -6,14 +6,19 @@
 
 #include "drivers/ram.h"
 #include "kernel.h"
+#include "libc/stdio.h"
 #include "libc/string.h"
 
 #define PAGE_SIZE 4096
 #define REGION_TABLE_SIZE (PAGE_SIZE / sizeof(region_table_entry_t)) // 512
-#define REGION_MAX_PAGE 0xffff
+#define REGION_MAX_PAGE_COUNT 0x8000
+#define REGION_MAX_SIZE (REGION_MAX_PAGE_COUNT * PAGE_SIZE)
 
 #define REGION_TABLE_FLAG_PRESENT 0x1
 #define BITMASK_PAGE_FREE 0x1
+
+#define MASK_ADDR 0xfffff000
+#define MASK_FLAGS 0xfff
 
 typedef struct {
     uint32_t addr_flags;
@@ -23,7 +28,7 @@ typedef struct {
 
 region_table_entry_t * region_table;
 
-static size_t create_bitmask(uint32_t start, uint32_t end, size_t i);
+static void create_bitmask(region_table_entry_t * region);
 static void set_bitmask(region_table_entry_t * region, uint16_t bit, bool free);
 static bool get_bitmask(region_table_entry_t * region, uint16_t bit);
 // Returns 0 for error, 0 is always invalid
@@ -38,9 +43,9 @@ void init_pages() {
     for (size_t i = 0; i < ram_upper_count(); i++) {
         uint32_t addr = (uint32_t)ram_upper_start(i);
         if (ram_upper_usable(i) && addr > 0x9fbff) {
-            if (addr & 0xfff)
+            if (addr & MASK_FLAGS)
                 addr += PAGE_SIZE;
-            region_table = (region_table_entry_t *)(addr & 0xfffff000);
+            region_table = (region_table_entry_t *)(addr & MASK_ADDR);
             first_area = i;
             break;
         }
@@ -50,26 +55,59 @@ void init_pages() {
         KERNEL_PANIC("FAILED TO FIND FREE RAM");
     }
 
-    for (size_t i = 0; i < 512; i++) {
-        region_table[i].addr_flags = 0;
-        region_table[i].page_count = 0;
-        region_table[i].free_count = 0;
-    }
+    kprintf("Found available at index %u of %u\n", first_area, ram_upper_count());
+    kprintf("Region table at %p\n", region_table);
 
-    size_t entry_index = 0;
-    for (int i = first_area; i < ram_upper_count(); i++) {
+    memset(region_table, 0, sizeof(region_table_entry_t) * 512);
+
+    size_t table_index = 0;
+    for (size_t i = first_area; i < ram_upper_count(); i++) {
         if (!ram_upper_usable(i))
             continue;
-        uint32_t start = (uint32_t)ram_upper_start(i);
-        uint32_t end = (uint32_t)ram_upper_end(i) & 0xfffff000;
 
-        entry_index = create_bitmask(start, end, entry_index);
+        uint32_t start = (uint32_t)ram_upper_start(i);
+        uint32_t end = (uint32_t)ram_upper_end(i) & MASK_ADDR;
+        uint32_t len = end - start;
+
+        if (!table_index)
+            start += PAGE_SIZE;
+        start &= MASK_ADDR;
+
+        kprintf("Ram region %u is usable %p - %p\n", i, start, end);
+
+        size_t region_count = len / REGION_MAX_SIZE;
+        if (len % REGION_MAX_SIZE)
+            region_count++;
+
+        for (size_t r = 0; r < region_count; r++) {
+            if (table_index >= REGION_TABLE_SIZE)
+                KERNEL_PANIC("Region table overflow");
+
+            size_t region_len = len;
+            if (region_len > REGION_MAX_SIZE)
+                region_len = REGION_MAX_SIZE;
+            start &= MASK_ADDR;
+            size_t region_end = (start + region_len);
+
+            region_table_entry_t * region = &region_table[table_index++];
+            region->addr_flags = start | REGION_TABLE_FLAG_PRESENT;
+            region->page_count = region_len / PAGE_SIZE;
+            // -1 for bitmask page
+            region->free_count = region->page_count - 1;
+
+            create_bitmask(region);
+
+            len -= region_len;
+            start += region_len;
+            if (start & MASK_FLAGS)
+                start += PAGE_SIZE;
+        }
     }
 }
 
 void * page_alloc() {
     for (size_t i = 0; i < REGION_TABLE_SIZE; i++) {
-        uint8_t flag = region_table[i].addr_flags & 0xfff;
+        uint8_t flag = region_table[i].addr_flags & MASK_FLAGS;
         if (flag & REGION_TABLE_FLAG_PRESENT && region_table[i].free_count) {
             uint16_t bit = find_free_bit(&region_table[i]);
             if (!bit)
@@ -78,7 +116,7 @@ void * page_alloc() {
             set_bitmask(&region_table[i], bit, false);
             region_table[i].free_count--;
             uint32_t page_addr =
-                region_table[i].addr_flags & 0xfffff000 + bit * PAGE_SIZE;
+                region_table[i].addr_flags & MASK_ADDR + bit * PAGE_SIZE;
             return (void *)page_addr;
         }
     }
@@ -99,54 +137,32 @@ void page_free(void * addr) {
     region->free_count++;
 }
 
-static size_t create_bitmask(uint32_t start_addr, uint32_t end_addr, size_t i) {
-    if (start_addr % PAGE_SIZE)
-        start_addr += PAGE_SIZE;
-    start_addr &= 0xfffff000;
-    end_addr &= 0xfffff000;
+static void create_bitmask(region_table_entry_t * region) {
+    uint8_t * bitmask = (uint8_t *)(region->addr_flags & MASK_ADDR);
 
-    while (start_addr < end_addr) {
-        if (i >= REGION_TABLE_SIZE)
-            KERNEL_PANIC("Region table overflow");
+    size_t pages = region->page_count;
+    size_t bytes = pages / 8;
+    size_t bits = pages % 8;
 
-        uint8_t * bitmask = (uint8_t *)start_addr;
+    kprintf("Bitmask at %p for region of %u pages %u bytes and %u bites\n",
+            bitmask,
+            pages,
+            bytes,
+            bits);
 
-        size_t len = end_addr - start_addr;
-        if (len > REGION_MAX_PAGE * PAGE_SIZE)
-            len = REGION_MAX_PAGE * PAGE_SIZE;
+    memset(bitmask, 0, PAGE_SIZE);
+    memset(bitmask, 0xff, bytes);
 
-        size_t pages = len / PAGE_SIZE;
-        size_t bytes = pages / 8;
-        size_t bits = pages % 8;
-
-        region_table_entry_t * region = &region_table[i];
-        region->addr_flags = start_addr | REGION_TABLE_FLAG_PRESENT;
-        region->page_count = pages;
-        // -1 to exclude the bitmask page
-        region->free_count = pages - 1;
-
-        memset(bitmask, 0, PAGE_SIZE);
-        memset(bitmask, 0xff, bytes);
-
-        uint8_t end_mask = 0;
-        for (size_t i = 0; i < bits; i++) {
-            bits |= 1 << i;
-        }
-
-        bitmask[bytes] = end_mask;
-
-        // Set bitmask page as used
-        set_bitmask(region, 0, false);
-
-        start_addr += len;
-        i++;
+    for (size_t i = 0; i < bits; i++) {
+        bitmask[bytes] |= 1 << i;
     }
 
-    return i;
+    // Set bitmask page as used
+    set_bitmask(region, 0, false);
 }
 
 static void set_bitmask(region_table_entry_t * region, uint16_t bit, bool free) {
-    uint8_t * bitmask = (uint8_t *)(region->addr_flags & 0xfffff000);
+    uint8_t * bitmask = (uint8_t *)(region->addr_flags & MASK_ADDR);
     size_t byte = bit / 8;
     bit = bit % 8;
 
@@ -159,7 +175,7 @@ static void set_bitmask(region_table_entry_t * region, uint16_t bit, bool free) 
 }
 
 static bool get_bitmask(region_table_entry_t * region, uint16_t bit) {
-    uint8_t * bitmask = (uint8_t *)(region->addr_flags & 0xfffff000);
+    uint8_t * bitmask = (uint8_t *)(region->addr_flags & MASK_ADDR);
     size_t byte = bit / 8;
     bit = bit % 8;
 
@@ -181,12 +197,12 @@ static uint16_t find_free_bit(region_table_entry_t * region) {
 }
 
 static region_table_entry_t * find_addr_entry(uint32_t addr) {
-    if (addr & 0xfff)
+    if (addr & MASK_FLAGS)
         return 0;
 
     for (size_t i = 0; i < REGION_TABLE_SIZE; i++) {
         if (region_table[i].addr_flags & REGION_TABLE_FLAG_PRESENT) {
-            uint32_t region_start = region_table[i].addr_flags & 0xfffff000;
+            uint32_t region_start = region_table[i].addr_flags & MASK_ADDR;
             uint32_t region_end =
                 region_start + region_table[i].page_count * PAGE_SIZE;
 
@@ -200,10 +216,10 @@ static region_table_entry_t * find_addr_entry(uint32_t addr) {
 
 // Returns 0 for error, 0 is always invalid
 static size_t find_addr_bit(region_table_entry_t * region, uint32_t addr) {
-    if (addr & 0xfff || !(region->addr_flags & REGION_TABLE_FLAG_PRESENT))
+    if (addr & MASK_FLAGS || !(region->addr_flags & REGION_TABLE_FLAG_PRESENT))
         return 0;
 
-    uint32_t region_start = region->addr_flags & 0xfffff000;
+    uint32_t region_start = region->addr_flags & MASK_ADDR;
     uint32_t region_end = region_start + region->page_count * PAGE_SIZE;
 
     if (addr <= region_start || addr >= region_end)
