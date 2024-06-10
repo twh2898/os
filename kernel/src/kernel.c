@@ -88,6 +88,11 @@ static int test_cmd(size_t argc, char ** argv) {
     return run_tests();
 }
 
+static void trigger_page_fault() {
+    uint8_t * v = (uint8_t *)0;
+    *v = 0;
+}
+
 static mmu_page_dir_t * pdir;
 static mmu_page_table_t * ptable;
 
@@ -101,6 +106,10 @@ static void enter_paging() {
 
     for (size_t i = 0; i < PAGE_TABLE_SIZE; i++) {
         mmu_table_set_addr(ptable, i, i << 12);
+        if (i == 0)
+        mmu_table_set_flags(
+            ptable, i, 0);
+        else
         mmu_table_set_flags(
             ptable, i, MMU_PAGE_TABLE_FLAGS_PRESENT | MMU_PAGE_TABLE_FLAGS_READ_WRITE);
     }
@@ -117,19 +126,22 @@ void kernel_main() {
     vga_print("Welcome to kernel v..\n");
 
     init_ram();
+    kprintf("Paging enabled: %b\n", mmu_paging_enabled());
     init_pages();
     enter_paging();
-    init_malloc();
+    // trigger_page_fault();
+    // init_malloc();
+    kprintf("Paging enabled: %b\n", mmu_paging_enabled());
 
-    init_ata();
+    // init_ata();
 
-    term_init();
-    commands_init();
+    // term_init();
+    // commands_init();
 
-    term_command_add("demo", demo);
-    term_command_add("test", test_cmd);
+    // term_command_add("demo", demo);
+    // term_command_add("test", test_cmd);
 
-    ramdisk_create(4096);
+    // ramdisk_create(4096);
 
-    term_run();
+    // term_run();
 }

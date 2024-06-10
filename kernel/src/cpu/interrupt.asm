@@ -16,19 +16,18 @@ mov %2, %1
 isr_common_stub:
     ; 1. Save CPU state
 	pusha ; Pushes edi,esi,ebp,esp,ebx,edx,ecx,eax
-    push_spec eax, gs
-    push_spec eax, fs
-    push_spec eax, es
-    push_spec eax, ds
-    push_spec eax, cr4
-    push_spec eax, cr3
-    push_spec eax, cr2
-    push_spec eax, cr0
+	mov ax, ds ; Lower 16-bits of eax = ds.
+	push eax ; save the data segment descriptor
 	mov ax, 0x10  ; kernel data segment descriptor
 	mov ds, ax
 	mov es, ax
 	mov fs, ax
 	mov gs, ax
+
+    push_spec eax, cr4
+    push_spec eax, cr3
+    push_spec eax, cr2
+    push_spec eax, cr0
 
     ; 2. Call C handler
 	call isr_handler
@@ -40,10 +39,10 @@ isr_common_stub:
 
     ; 3. Restore state
 	pop eax
-    pop_spec eax, ds
-    pop_spec eax, es
-    pop_spec eax, fs
-    pop_spec eax, gs
+	mov ds, ax
+	mov es, ax
+	mov fs, ax
+	mov gs, ax
 	popa
 	add esp, 8 ; Cleans up the pushed error code and pushed ISR number
 	sti

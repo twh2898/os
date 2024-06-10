@@ -258,9 +258,6 @@ static void print_trace(registers_t * r) {
             r->cr2,
             r->cr3,
             r->cr4);
-    // kprintf("CS: 0x%04X DS: 0x%04X ES: 0x%04X FS: 0x%04X GS: 0x%04X SS:
-    // 0x%04X", r->cs, r->ds, r->es)
-    kprintf("DS: %04X ES: %04X FS: %04X GS: %04X\n", r->ds, r->es, r->gs, r->fs);
     print_cr0(r->cr0);
     kputc('\n');
 }
