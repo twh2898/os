@@ -55,8 +55,8 @@ void init_pages() {
         KERNEL_PANIC("FAILED TO FIND FREE RAM");
     }
 
-    kprintf("Found available at index %u of %u\n", first_area, ram_upper_count());
-    kprintf("Region table at %p\n", region_table);
+    // kprintf("Found available at index %u of %u\n", first_area, ram_upper_count());
+    // kprintf("Region table at %p\n", region_table);
 
     memset(region_table, 0, sizeof(region_table_entry_t) * 512);
 
@@ -73,7 +73,7 @@ void init_pages() {
             start += PAGE_SIZE;
         start &= MASK_ADDR;
 
-        kprintf("Ram region %u is usable %p - %p\n", i, start, end);
+        // kprintf("Ram region %u is usable %p - %p\n", i, start, end);
 
         size_t region_count = len / REGION_MAX_SIZE;
         if (len % REGION_MAX_SIZE)
@@ -144,11 +144,11 @@ static void create_bitmask(region_table_entry_t * region) {
     size_t bytes = pages / 8;
     size_t bits = pages % 8;
 
-    kprintf("Bitmask at %p for region of %u pages %u bytes and %u bites\n",
-            bitmask,
-            pages,
-            bytes,
-            bits);
+    // kprintf("Bitmask at %p for region of %u pages %u bytes and %u bites\n",
+    //         bitmask,
+    //         pages,
+    //         bytes,
+    //         bits);
 
     memset(bitmask, 0, PAGE_SIZE);
     memset(bitmask, 0xff, bytes);
