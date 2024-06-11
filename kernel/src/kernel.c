@@ -96,6 +96,25 @@ static void trigger_page_fault() {
 static mmu_page_dir_t * pdir;
 static mmu_page_table_t * ptable;
 
+static void identity_map(mmu_page_table_t * table, size_t n_pages) {
+    if (n_pages > 1024)
+        n_pages = 1024;
+
+    for (size_t i = 0; i < PAGE_TABLE_SIZE; i++) {
+        if (i > 10) {
+            mmu_table_set_addr(table, i, 0);
+            mmu_table_set_flags(table, i, 0);
+            continue;
+        }
+
+        mmu_table_set_addr(table, i, i << 12);
+        enum MMU_PAGE_TABLE_FLAGS flags = 0;
+        if (i)
+            flags = MMU_PAGE_TABLE_FLAGS_PRESENT | MMU_PAGE_TABLE_FLAGS_READ_WRITE;
+        mmu_table_set_flags(table, i, flags);
+    }
+}
+
 static void enter_paging() {
     pdir = mmu_dir_create();
     ptable = mmu_table_create();
@@ -104,15 +123,7 @@ static void enter_paging() {
     mmu_dir_set_flags(
         pdir, 0, MMU_PAGE_DIR_FLAGS_PRESENT | MMU_PAGE_DIR_FLAGS_READ_WRITE);
 
-    for (size_t i = 0; i < PAGE_TABLE_SIZE; i++) {
-        mmu_table_set_addr(ptable, i, i << 12);
-        if (i == 0)
-        mmu_table_set_flags(
-            ptable, i, 0);
-        else
-        mmu_table_set_flags(
-            ptable, i, MMU_PAGE_TABLE_FLAGS_PRESENT | MMU_PAGE_TABLE_FLAGS_READ_WRITE);
-    }
+    identity_map(ptable, 10);
 
     mmu_enable_paging(pdir);
 }
@@ -126,12 +137,12 @@ void kernel_main() {
     vga_print("Welcome to kernel v..\n");
 
     init_ram();
-    kprintf("Paging enabled: %b\n", mmu_paging_enabled());
+    // kprintf("Paging enabled: %b\n", mmu_paging_enabled());
     init_pages();
     enter_paging();
     // trigger_page_fault();
     // init_malloc();
-    kprintf("Paging enabled: %b\n", mmu_paging_enabled());
+    // kprintf("Paging enabled: %b\n", mmu_paging_enabled());
 
     // init_ata();
 
