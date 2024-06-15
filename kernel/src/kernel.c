@@ -94,7 +94,6 @@ static void trigger_page_fault() {
 }
 
 static mmu_page_dir_t * pdir;
-static mmu_page_table_t * ptable;
 
 static void identity_map(mmu_page_table_t * table, size_t n_pages) {
     if (n_pages > 1024)
@@ -116,27 +115,39 @@ static void identity_map(mmu_page_table_t * table, size_t n_pages) {
 }
 
 static void map_virt_page_dir(mmu_page_dir_t * dir) {
+    mmu_page_table_t * firstTable = ram_page_alloc();
+    mmu_table_create(firstTable);
+    mmu_dir_set(dir, 0, firstTable, MMU_DIR_RW);
+
+    // null page 0
+    mmu_table_set(firstTable, 0, 0, 0);
+
+    // Page Directory
+    mmu_table_set(firstTable, 1, 0x1000, MMU_TABLE_RW);
+
+    // unused
+    mmu_table_set(firstTable, 0, 0x2000, 0);
+
+    // stack (4) + kernel (0x98)
+    for (size_t i = 0; i < 0x9c; i++) {
+        mmu_table_set(firstTable, 0, 0x3000 + (i << 12), MMU_TABLE_RW);
+    }
+
+    // unused
+    mmu_table_set(firstTable, 0, 0x9f000, 0);
+
     mmu_page_table_t * lastTable = ram_page_alloc();
     mmu_table_create(lastTable);
-    dir->entries[PAGE_DIR_SIZE - 1] =
-        (PTR2UINT(lastTable) * MASK_ADDR) | MMU_TABLE_RW;
+    mmu_dir_set(dir, PAGE_DIR_SIZE - 1, lastTable, MMU_DIR_RW);
 
-    lastTable->entries[0] = (PTR2UINT(dir) & MASK_ADDR) | MMU_TABLE_RW;
-
-    // TODO: create more entries for each page table as they are requested from
-    // malloc
+    mmu_table_set(lastTable, 0, PTR2UINT(firstTable), MMU_TABLE_RW);
+    mmu_table_set(
+        lastTable, PAGE_TABLE_SIZE - 1, PTR2UINT(lastTable), MMU_TABLE_RW);
 }
 
 static void enter_paging() {
     pdir = mmu_dir_create((void *)0x1000);
-    ptable = mmu_table_create((void *)0x2000);
-
-    mmu_dir_set_table(pdir, 0, ptable);
-    mmu_dir_set_flags(pdir, 0, MMU_DIR_RW);
-
-    identity_map(ptable, 10);
     map_virt_page_dir(pdir);
-
     mmu_enable_paging(pdir);
 }
 
