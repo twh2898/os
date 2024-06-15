@@ -5,6 +5,7 @@
 #include "libc/stdio.h"
 #include "libc/string.h"
 
+#define REGION_TABLE_ADDR 0x2000
 #define REGION_TABLE_SIZE (PAGE_SIZE / sizeof(region_table_entry_t)) // 512
 #define REGION_MAX_PAGE_COUNT 0x8000
 #define REGION_MAX_SIZE (REGION_MAX_PAGE_COUNT * PAGE_SIZE)
@@ -57,25 +58,27 @@ void init_ram() {
     sort_ram();
 
     size_t first_area = 0;
+    bool found_free = false;
 
     for (size_t i = 0; i < ram_upper_count(); i++) {
         uint32_t addr = (uint32_t)ram_upper_start(i);
         if (ram_upper_usable(i) && addr > 0x9fbff) {
             if (addr & MASK_FLAGS)
                 addr += PAGE_SIZE;
-            region_table = (region_table_t *)(addr & MASK_ADDR);
+            found_free = true;
             first_area = i;
             break;
         }
     }
 
-    if (!region_table) {
+    if (!found_free) {
         KERNEL_PANIC("FAILED TO FIND FREE RAM");
     }
 
     // kprintf("Found available at index %u of %u\n", first_area,
     // ram_upper_count()); kprintf("Region table at %p\n", region_table);
 
+    region_table = (region_table_t *)REGION_TABLE_ADDR;
     memset(region_table, 0, sizeof(region_table_entry_t) * 512);
 
     size_t table_index = 0;
@@ -156,15 +159,16 @@ enum RAM_TYPE ram_upper_type(uint16_t i) {
 void * ram_page_alloc() {
     for (size_t i = 0; i < REGION_TABLE_SIZE; i++) {
         uint8_t flag = region_table->entries[i].addr_flags & MASK_FLAGS;
-        if (flag & REGION_TABLE_FLAG_PRESENT && region_table->entries[i].free_count) {
+        if (flag & REGION_TABLE_FLAG_PRESENT
+            && region_table->entries[i].free_count) {
             uint16_t bit = find_free_bit(&region_table->entries[i]);
             if (!bit)
                 KERNEL_PANIC("Could not find free bit in page with free count");
 
             set_bitmask(&region_table->entries[i], bit, false);
             region_table->entries[i].free_count--;
-            uint32_t page_addr =
-                region_table->entries[i].addr_flags & MASK_ADDR + bit * PAGE_SIZE;
+            uint32_t page_addr = region_table->entries[i].addr_flags
+                                 & MASK_ADDR + bit * PAGE_SIZE;
             return (void *)page_addr;
         }
     }

@@ -125,8 +125,8 @@ static void map_virt_page_dir(mmu_page_dir_t * dir) {
     // Page Directory
     mmu_table_set(firstTable, 1, 0x1000, MMU_TABLE_RW);
 
-    // unused
-    mmu_table_set(firstTable, 0, 0x2000, 0);
+    // Ram region table
+    mmu_table_set(firstTable, 0, 0x2000, MMU_TABLE_RW);
 
     // stack (4) + kernel (0x98)
     for (size_t i = 0; i < 0x9c; i++) {

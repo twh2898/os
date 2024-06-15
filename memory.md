@@ -82,7 +82,7 @@ Region Type can be one of the following
 | ---------- | ---------- | ------- | ----------------------------------------- |
 | 0x00000000 | 0x00000fff | 0x00001 | null page (not present)                   |
 | 0x00001000 | 0x00001fff | 0x00001 | Page Directory                            |
-| 0x00002000 | 0x00002fff | 0x00001 | unused (not present)                      |
+| 0x00002000 | 0x00002fff | 0x00001 | ram region table                          |
 | 0x00003000 | 0x00006fff | 0x00004 | Stack                                     |
 | 0x00007000 | 0x0009efff | 0x00098 | Kernel (0x0009fbff end of kernel)         |
 | 0x0009f000 | 0x0009ffff | 0x00001 | unused (not present)                      |
