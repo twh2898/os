@@ -8,7 +8,6 @@
 #include "defs.h"
 #include "drivers/ata.h"
 #include "drivers/keyboard.h"
-#include "drivers/page.h"
 #include "drivers/ram.h"
 #include "drivers/ramdisk.h"
 #include "drivers/vga.h"
@@ -117,14 +116,15 @@ static void identity_map(mmu_page_table_t * table, size_t n_pages) {
 }
 
 static void map_virt_page_dir(mmu_page_dir_t * dir) {
-    mmu_page_table_t * lastTable = page_alloc();
+    mmu_page_table_t * lastTable = ram_page_alloc();
     mmu_table_create(lastTable);
     dir->entries[PAGE_DIR_SIZE - 1] =
-        (PTR2UINT(lastTable) * MASK_ADDR) |   MMU_TABLE_RW;
+        (PTR2UINT(lastTable) * MASK_ADDR) | MMU_TABLE_RW;
 
     lastTable->entries[0] = (PTR2UINT(dir) & MASK_ADDR) | MMU_TABLE_RW;
 
-    // TODO: create more entries for each page table as they are requested from malloc
+    // TODO: create more entries for each page table as they are requested from
+    // malloc
 }
 
 static void enter_paging() {
@@ -150,7 +150,6 @@ void kernel_main() {
 
     init_ram();
     // kprintf("Paging enabled: %b\n", mmu_paging_enabled());
-    init_pages();
     enter_paging();
     // trigger_page_fault();
     // kprintf("Paging enabled: %b\n", mmu_paging_enabled());

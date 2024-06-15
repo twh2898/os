@@ -1,6 +1,6 @@
 #include "libc/memory.h"
 
-#include "drivers/page.h"
+#include "drivers/ram.h"
 #include "kernel.h"
 
 #define MEMORY_TABLE_ENTRY_COUNT 1022
@@ -35,7 +35,7 @@ void * kmalloc(size_t size) {
 void kfree(void * ptr) {}
 
 static void * add_page() {
-    void * page = page_alloc();
+    void * page = ram_page_alloc();
     size_t table = next_page / 1024;
     size_t cell = next_page % 1024;
 

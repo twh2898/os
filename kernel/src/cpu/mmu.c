@@ -1,6 +1,6 @@
 #include "cpu/mmu.h"
 
-#include "drivers/page.h"
+#include "drivers/ram.h"
 #include "kernel.h"
 #include "libc/string.h"
 
@@ -24,7 +24,7 @@ void mmu_dir_free(mmu_page_dir_t * dir) {
             }
         }
     }
-    page_free(dir);
+    ram_page_free(dir);
 }
 
 mmu_page_table_t * mmu_table_create(void * addr) {
@@ -43,11 +43,11 @@ void mmu_table_free(mmu_page_table_t * table) {
         for (size_t i = 0; i < PAGE_TABLE_SIZE; i++) {
             if (table->entries[i] & MMU_PAGE_TABLE_FLAG_PRESENT) {
                 uint32_t page_addr = table->entries[i] & MASK_ADDR;
-                page_free((void *)page_addr);
+                ram_page_free((void *)page_addr);
             }
         }
     }
-    page_free(table);
+    ram_page_free(table);
 }
 
 void mmu_dir_set_table(mmu_page_dir_t * dir, size_t i, mmu_page_table_t * table) {
