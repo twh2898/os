@@ -52,8 +52,8 @@ void init_pages() {
         KERNEL_PANIC("FAILED TO FIND FREE RAM");
     }
 
-    // kprintf("Found available at index %u of %u\n", first_area, ram_upper_count());
-    // kprintf("Region table at %p\n", region_table);
+    // kprintf("Found available at index %u of %u\n", first_area,
+    // ram_upper_count()); kprintf("Region table at %p\n", region_table);
 
     memset(region_table, 0, sizeof(region_table_entry_t) * 512);
 

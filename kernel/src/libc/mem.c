@@ -33,7 +33,7 @@ static region_header_t * region_split(region_header_t * region, size_t size);
 static region_header_t * region_remove(region_header_t * region);
 static void integrity_check();
 
-void init_malloc() {
+void old_init_malloc() {
     size_t largest_i = 0;
     uint64_t largest_size = 0;
     bool found = false;

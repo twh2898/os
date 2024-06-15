@@ -63,6 +63,24 @@ Region Type can be one of the following
 | 0x7c00 | 0x07dff | 512 bytes | Unused *GDT here      |
 | 0x7e00 | 0x9fbff | 607.5 KiB | Kernel (second stage) |
 
+### Virtual Address Space
+
+The first 10 pages are identity mapped. The heap starts with virtual page 11.
+
+The address 0x1000 will always point to the active page directory.
+
+The address 0x2000 will always point to the active page table
+
+0x400000 is the first virtual address of the second page table
+
+0xffc00000 is the first virtual address of the last page table. This goes up
+to 0xffffffff as the last address in all of virtual space.
+
+| start      | end        | size     | description              |
+| ---------- | ---------- | -------- | ------------------------ |
+| 0xffc00000 | 0xffc00fff | 0x1000   | page directory           |
+| 0xffc01000 | 0xffffffff | 0x3ff000 | all but last page tables |
+
 ## Memory Allocation
 
 Physical Allocator

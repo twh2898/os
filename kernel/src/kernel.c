@@ -12,7 +12,7 @@
 #include "drivers/ram.h"
 #include "drivers/ramdisk.h"
 #include "drivers/vga.h"
-#include "libc/mem.h"
+#include "libc/memory.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
 #include "term.h"
@@ -68,7 +68,7 @@ int demo(size_t argc, char ** argv) {
     int store = 0;
     len += kprintf("The last part is pointers %8p\n", &store);
 
-    void * data = malloc(10);
+    void * data = kmalloc(10);
 
     kprintf("\nMalloc memory got pointer %p\n", data);
     kprintf("Float number %f or shorter %3f or digits %.4f or lead %.04f\n",
@@ -109,22 +109,33 @@ static void identity_map(mmu_page_table_t * table, size_t n_pages) {
         }
 
         mmu_table_set_addr(table, i, i << 12);
-        enum MMU_PAGE_TABLE_FLAGS flags = 0;
+        enum MMU_PAGE_TABLE_FLAG flags = 0;
         if (i)
-            flags = MMU_PAGE_TABLE_FLAGS_PRESENT | MMU_PAGE_TABLE_FLAGS_READ_WRITE;
+            flags = MMU_TABLE_RW;
         mmu_table_set_flags(table, i, flags);
     }
 }
 
+static void map_virt_page_dir(mmu_page_dir_t * dir) {
+    mmu_page_table_t * lastTable = page_alloc();
+    mmu_table_create(lastTable);
+    dir->entries[PAGE_DIR_SIZE - 1] =
+        (PTR2UINT(lastTable) * MASK_ADDR) |   MMU_TABLE_RW;
+
+    lastTable->entries[0] = (PTR2UINT(dir) & MASK_ADDR) | MMU_TABLE_RW;
+
+    // TODO: create more entries for each page table as they are requested from malloc
+}
+
 static void enter_paging() {
-    pdir = mmu_dir_create();
-    ptable = mmu_table_create();
+    pdir = mmu_dir_create((void *)0x1000);
+    ptable = mmu_table_create((void *)0x2000);
 
     mmu_dir_set_table(pdir, 0, ptable);
-    mmu_dir_set_flags(
-        pdir, 0, MMU_PAGE_DIR_FLAGS_PRESENT | MMU_PAGE_DIR_FLAGS_READ_WRITE);
+    mmu_dir_set_flags(pdir, 0, MMU_DIR_RW);
 
     identity_map(ptable, 10);
+    map_virt_page_dir(pdir);
 
     mmu_enable_paging(pdir);
 }
@@ -142,8 +153,8 @@ void kernel_main() {
     init_pages();
     enter_paging();
     // trigger_page_fault();
-    // init_malloc();
     // kprintf("Paging enabled: %b\n", mmu_paging_enabled());
+    init_malloc(pdir, 10);
 
     // init_ata();
 
