@@ -78,6 +78,8 @@ Region Type can be one of the following
 - 0xffc00000 is the first virtual address of the last page table
   - This goes up to 0xffffffff as the last address in all of virtual space
 
+TODO map area for ram region bitmask entries
+
 | start      | end        | pages   | description                               |
 | ---------- | ---------- | ------- | ----------------------------------------- |
 | 0x00000000 | 0x00000fff | 0x00001 | null page (not present)                   |
