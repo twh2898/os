@@ -62,7 +62,7 @@ Region Type can be one of the following
 | 0x03000 | 0x06fff | 16 KiB    | Stack                                         |
 | 0x07000 | 0x07bff | 3 KiB     | Unused                                        |
 | 0x07c00 | 0x07dff | 512 bytes | Unused *GDT here                              |
-| 0x07e00 | 0x9fbff | 607.5 KiB | Kernel (second stage)                         |
+| 0x07e00 | 0x9efff | 604.5 KiB | Kernel (second stage)                         |
 
 > [!IMPORTANT] Kernel Size in Protected Mode
 > Reserved memory in protected mode starts at 0x9fc00 while real mode free area
@@ -78,18 +78,18 @@ Region Type can be one of the following
 - 0xffc00000 is the first virtual address of the last page table
   - This goes up to 0xffffffff as the last address in all of virtual space
 
-| start      | end        | size       | description                               |
-| ---------- | ---------- | ---------- | ----------------------------------------- |
-| 0x00000000 | 0x00000fff | 0x00001000 | null page (not present)                   |
-| 0x00001000 | 0x00001fff | 0x00001000 | Page Directory                            |
-| 0x00002000 | 0x00002fff | 0x00001000 | unused (not present)                      |
-| 0x00003000 | 0x00006fff | 0x00004000 | Stack                                     |
-| 0x00007000 | 0x0009fbff | 0x00098c00 | Kernel                                    |
-| 0x0009fc00 | 0x0009ffff | 0x00000400 | unusable (end of kernel page)             |
-| 0x000a0000 | 0xffbfffff | 0xffb60000 | free memory                               |
-| 0xffc00000 | 0xffc00fff | 0x00001000 | first page table (includes identity map)  |
-| 0xffc01000 | 0xffffefff | 0x003fe000 | all page tables from the active directory |
-| 0xfffff000 | 0xffffffff | 0x00001000 | last table (last entry is this table)     |
+| start      | end        | pages   | description                               |
+| ---------- | ---------- | ------- | ----------------------------------------- |
+| 0x00000000 | 0x00000fff | 0x00001 | null page (not present)                   |
+| 0x00001000 | 0x00001fff | 0x00001 | Page Directory                            |
+| 0x00002000 | 0x00002fff | 0x00001 | unused (not present)                      |
+| 0x00003000 | 0x00006fff | 0x00004 | Stack                                     |
+| 0x00007000 | 0x0009efff | 0x00098 | Kernel (0x0009fbff end of kernel)         |
+| 0x0009f000 | 0x0009ffff | 0x00001 | unused (not present)                      |
+| 0x000a0000 | 0xffbfffff | 0xffb60 | free memory                               |
+| 0xffc00000 | 0xffc00fff | 0x00001 | first page table (includes identity map)  |
+| 0xffc01000 | 0xffffefff | 0x003fe | all page tables from the active directory |
+| 0xfffff000 | 0xffffffff | 0x00001 | last table (last entry is this table)     |
 
 ## Memory Allocation
 
