@@ -1,6 +1,6 @@
 [org 0x7c00]
 DATA equ 0x500
-STACK equ 0x7bff
+STACK equ 0x6fff
 SECOND_STAGE equ 0x7e00
 KERNEL_OFFSET equ 0x8000
 

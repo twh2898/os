@@ -73,7 +73,7 @@ The OS will be finished when all of the following are implemented.
 ### Stage 1
 
 1. Store boot drive id
-2. Setup stage 1 stack at 0x7bff
+2. Setup stage 1 stack at 0x06fff
 3. Read memory map to 0x500
 4. Read stage 2 from boot drive
 5. Setup GDT
