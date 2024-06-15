@@ -81,6 +81,31 @@ mmu_page_table_t * mmu_dir_get_table(mmu_page_dir_t * dir, size_t i) {
     return (mmu_page_table_t *)table_addr;
 }
 
+void mmu_dir_set(mmu_page_dir_t * dir,
+                 size_t i,
+                 mmu_page_table_t * table,
+                 enum MMU_PAGE_DIR_FLAG flags) {
+    if (!dir || !table || i >= PAGE_DIR_SIZE)
+        return;
+
+    mmu_page_entry_t entry = (PTR2UINT(table) & MASK_ADDR) | (flags & MASK_FLAGS);
+    dir->entries[i] = entry;
+}
+
+uint32_t mmu_dir_get_addr(mmu_page_dir_t * dir, size_t i) {
+    if (!dir || i >= PAGE_DIR_SIZE)
+        return 0;
+
+    return dir->entries[i] & MASK_ADDR;
+}
+
+enum MMU_PAGE_DIR_FLAG mmu_dir_get_flags(mmu_page_dir_t * dir, size_t i) {
+    if (!dir || i >= PAGE_DIR_SIZE)
+        return 0;
+
+    return dir->entries[i] & MASK_FLAGS;
+}
+
 void mmu_table_set_addr(mmu_page_table_t * table, size_t i, uint32_t page_addr) {
     if (!table || i >= PAGE_TABLE_SIZE)
         return;
@@ -102,6 +127,17 @@ void mmu_table_set_flags(mmu_page_table_t * table,
     entry &= MASK_ADDR;
     entry |= flags & MASK_FLAGS;
 
+    table->entries[i] = entry;
+}
+
+void mmu_table_set(mmu_page_table_t * table,
+                   size_t i,
+                   uint32_t page_addr,
+                   enum MMU_PAGE_TABLE_FLAG flags) {
+    if (!table || i >= PAGE_TABLE_SIZE)
+        return;
+
+    mmu_page_entry_t entry = (page_addr & MASK_ADDR) | (flags & MASK_FLAGS);
     table->entries[i] = entry;
 }
 
