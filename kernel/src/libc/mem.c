@@ -1,18 +1,12 @@
 #include "libc/mem.h"
 
-#include <stdbool.h>
-#include <stdint.h>
-
+#include "defs.h"
 #include "drivers/ram.h"
 #include "kernel.h"
 #include "libc/string.h"
 
 #define MAGIC 0x31247596
 #define STACK_START 0x90000
-#define PAGE_SIZE 0x1000 // 4k (>> 12)
-#define PAGE_ALIGNED_DOWN(PTR) ((PTR) & 0xfffff000)
-#define PAGE_ALIGNED_UP(PTR) ((PAGE_ALIGNED_DOWN(PTR)) + PAGE_SIZE)
-#define PAGE_ALIGNED(PTR) (((PTR) & 0xfff) ? PAGE_ALIGNED_UP(PTR) : (PTR))
 
 #define R2U(REGION) ((uint32_t)(REGION))
 #define U2R(PTR) ((region_header_t *)(PTR))

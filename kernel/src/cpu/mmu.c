@@ -1,20 +1,8 @@
 #include "cpu/mmu.h"
 
-#include <stddef.h>
-
 #include "drivers/page.h"
 #include "kernel.h"
 #include "libc/string.h"
-
-#define PAGE_SIZE 0x1000 // 4k (>> 12)
-#define PAGE_ALIGNED_DOWN(PTR) ((PTR) & MASK_ADDR)
-#define PAGE_ALIGNED_UP(PTR) ((PAGE_ALIGNED_DOWN(PTR)) + PAGE_SIZE)
-#define PAGE_ALIGNED(PTR) (((PTR) & MASK_FLAGS) ? PAGE_ALIGNED_UP(PTR) : (PTR))
-
-#define MASK_ADDR 0xfffff000
-#define MASK_FLAGS 0xfff
-
-// mmu_page_dir_t * identity_dir = 0x1000;
 
 mmu_page_dir_t * mmu_dir_create(void * addr) {
     mmu_page_dir_t * dir = addr;

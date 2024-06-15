@@ -1,9 +1,7 @@
 #ifndef MMU_H
 #define MMU_H
 
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
+#include "defs.h"
 
 #define PAGE_DIR_SIZE 1024
 #define PAGE_TABLE_SIZE 1024

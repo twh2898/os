@@ -4,21 +4,18 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "defs.h"
 #include "drivers/ram.h"
 #include "kernel.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
 
-#define PAGE_SIZE 4096
 #define REGION_TABLE_SIZE (PAGE_SIZE / sizeof(region_table_entry_t)) // 512
 #define REGION_MAX_PAGE_COUNT 0x8000
 #define REGION_MAX_SIZE (REGION_MAX_PAGE_COUNT * PAGE_SIZE)
 
 #define REGION_TABLE_FLAG_PRESENT 0x1
 #define BITMASK_PAGE_FREE 0x1
-
-#define MASK_ADDR 0xfffff000
-#define MASK_FLAGS 0xfff
 
 typedef struct {
     uint32_t addr_flags;

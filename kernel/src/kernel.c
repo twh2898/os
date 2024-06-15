@@ -5,6 +5,7 @@
 #include "cpu/mmu.h"
 #include "cpu/ports.h"
 #include "cpu/timer.h"
+#include "defs.h"
 #include "drivers/ata.h"
 #include "drivers/keyboard.h"
 #include "drivers/page.h"
