@@ -126,15 +126,21 @@ static void map_virt_page_dir(mmu_page_dir_t * dir) {
     mmu_table_set(firstTable, 1, 0x1000, MMU_TABLE_RW);
 
     // Ram region table
-    mmu_table_set(firstTable, 0, 0x2000, MMU_TABLE_RW);
+    mmu_table_set(firstTable, 2, 0x2000, MMU_TABLE_RW);
 
     // stack (4) + kernel (0x98)
     for (size_t i = 0; i < 0x9c; i++) {
-        mmu_table_set(firstTable, 0, 0x3000 + (i << 12), MMU_TABLE_RW);
+        mmu_table_set(firstTable, 3 + i, 0x3000 + (i << 12), MMU_TABLE_RW);
     }
 
-    // unused
-    mmu_table_set(firstTable, 0, 0x9f000, 0);
+    // ram region bitmasks
+    for (size_t i = 0; i < 512; i++) {
+        uint32_t addr = get_bitmask_addr(i);
+        if (addr)
+            mmu_table_set(firstTable, 0x9f + i, 0x9f000 + (i << 12), MMU_TABLE_RW);
+        else
+            mmu_table_set(firstTable, 0x9f + i, 0, 0);
+    }
 
     mmu_page_table_t * lastTable = ram_page_alloc();
     mmu_table_create(lastTable);

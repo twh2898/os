@@ -1,6 +1,5 @@
 #include "drivers/ram.h"
 
-#include "defs.h"
 #include "kernel.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
@@ -20,7 +19,7 @@ typedef struct {
 } __attribute__((packed)) region_table_entry_t;
 
 typedef struct {
-    region_table_entry_t entries[1024];
+    region_table_entry_t entries[REGION_TABLE_SIZE];
 } __attribute__((packed)) region_table_t;
 
 region_table_t * region_table;
@@ -79,7 +78,7 @@ void init_ram() {
     // ram_upper_count()); kprintf("Region table at %p\n", region_table);
 
     region_table = (region_table_t *)REGION_TABLE_ADDR;
-    memset(region_table, 0, sizeof(region_table_entry_t) * 512);
+    memset(region_table, 0, sizeof(region_table_t));
 
     size_t table_index = 0;
     for (size_t i = first_area; i < ram_upper_count(); i++) {
@@ -154,6 +153,11 @@ bool ram_upper_usable(uint16_t i) {
 enum RAM_TYPE ram_upper_type(uint16_t i) {
     upper_ram_t * upper_ram = (upper_ram_t *)UPPER_RAM_ADDR;
     return upper_ram[i].type;
+}
+
+uint32_t get_bitmask_addr(size_t i) {
+    if (i > REGION_TABLE_SIZE)
+        return region_table->entries[i].addr_flags & MASK_ADDR;
 }
 
 void * ram_page_alloc() {

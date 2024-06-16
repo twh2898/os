@@ -87,8 +87,8 @@ TODO map area for ram region bitmask entries
 | 0x00002000 | 0x00002fff | 0x00001 | ram region table                          |
 | 0x00003000 | 0x00006fff | 0x00004 | Stack                                     |
 | 0x00007000 | 0x0009efff | 0x00098 | Kernel (0x0009fbff end of kernel)         |
-| 0x0009f000 | 0x0009ffff | 0x00001 | unused (not present)                      |
-| 0x000a0000 | 0xffbfffff | 0xffb60 | free memory                               |
+| 0x0009f000 | 0x0029efff | 0x00200 | ram region bitmasks                       |
+| 0x0029f000 | 0xffbfffff | 0xff961 | free memory                               |
 | 0xffc00000 | 0xffc00fff | 0x00001 | first page table (includes identity map)  |
 | 0xffc01000 | 0xffffefff | 0x003fe | all page tables from the active directory |
 | 0xfffff000 | 0xffffffff | 0x00001 | last table (last entry is this table)     |

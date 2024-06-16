@@ -1,8 +1,7 @@
 #ifndef RAM_H
 #define RAM_H
 
-#include <stdbool.h>
-#include <stdint.h>
+#include "defs.h"
 
 enum RAM_TYPE {
     RAM_TYPE_USABLE = 1,
@@ -24,6 +23,8 @@ uint64_t ram_upper_size(uint16_t i);
 
 bool ram_upper_usable(uint16_t i);
 enum RAM_TYPE ram_upper_type(uint16_t i);
+
+uint32_t get_bitmask_addr(size_t i);
 
 /*
  Bits 12 - 31 of memory address (ie. page aligned pointer)
