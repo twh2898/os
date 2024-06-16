@@ -8,6 +8,7 @@
 #define REGION_TABLE_SIZE (PAGE_SIZE / sizeof(region_table_entry_t)) // 512
 #define REGION_MAX_PAGE_COUNT 0x8000
 #define REGION_MAX_SIZE (REGION_MAX_PAGE_COUNT * PAGE_SIZE)
+#define REGION_VIRT_BITMASK_ADDR 0x9f000
 
 #define REGION_TABLE_FLAG_PRESENT 0x1
 #define BITMASK_PAGE_FREE 0x1
@@ -24,14 +25,15 @@ typedef struct {
 
 region_table_t * region_table;
 
-static void create_bitmask(region_table_entry_t * region);
-static void set_bitmask(region_table_entry_t * region, uint16_t bit, bool free);
-static bool get_bitmask(region_table_entry_t * region, uint16_t bit);
+static void create_bitmask(size_t region_index);
+static void set_physical_bitmask(size_t region_index, uint16_t bit, bool free);
+static void set_bitmask(size_t region_index, uint16_t bit, bool free);
+static bool get_bitmask(size_t region_index, uint16_t bit);
 // Returns 0 for error, 0 is always invalid
-static uint16_t find_free_bit(region_table_entry_t * region);
-static region_table_entry_t * find_addr_entry(uint32_t addr);
+static uint16_t find_free_bit(size_t region_index);
+static size_t find_addr_entry(uint32_t addr);
 // Returns 0 for error, 0 is always invalid
-static size_t find_addr_bit(region_table_entry_t * region, uint32_t addr);
+static size_t find_addr_bit(size_t region_index, uint32_t addr);
 
 #define LOWER_RAM_ADDR 0x0500
 #define UPPER_RAM_COUNT 0x0502
@@ -115,7 +117,7 @@ void init_ram() {
             // -1 for bitmask page
             region->free_count = region->page_count - 1;
 
-            create_bitmask(region);
+            create_bitmask(r);
 
             len -= region_len;
             start += region_len;
@@ -165,11 +167,11 @@ void * ram_page_alloc() {
         uint8_t flag = region_table->entries[i].addr_flags & MASK_FLAGS;
         if (flag & REGION_TABLE_FLAG_PRESENT
             && region_table->entries[i].free_count) {
-            uint16_t bit = find_free_bit(&region_table->entries[i]);
+            uint16_t bit = find_free_bit(i);
             if (!bit)
                 KERNEL_PANIC("Could not find free bit in page with free count");
 
-            set_bitmask(&region_table->entries[i], bit, false);
+            set_bitmask(i, bit, false);
             region_table->entries[i].free_count--;
             uint32_t page_addr = region_table->entries[i].addr_flags
                                  & MASK_ADDR + bit * PAGE_SIZE;
@@ -181,15 +183,16 @@ void * ram_page_alloc() {
 }
 
 void ram_page_free(void * addr) {
-    region_table_entry_t * region = find_addr_entry((uint32_t)addr);
+    size_t region_index = find_addr_entry((uint32_t)addr);
+    region_table_entry_t * region = &region_table->entries[region_index];
     if (!region)
         return;
 
-    uint16_t bit = find_addr_bit(region, (uint32_t)addr);
+    uint16_t bit = find_addr_bit(region_index, (uint32_t)addr);
     if (!bit)
         return;
 
-    set_bitmask(region, bit, true);
+    set_bitmask(region_index, bit, true);
     region->free_count++;
 }
 
@@ -218,7 +221,11 @@ static void sort_ram() {
     }
 }
 
-static void create_bitmask(region_table_entry_t * region) {
+static void create_bitmask(size_t region_index) {
+    if (region_index > REGION_TABLE_SIZE)
+        return;
+
+    region_table_entry_t * region = &region_table->entries[region_index];
     uint8_t * bitmask = (uint8_t *)(region->addr_flags & MASK_ADDR);
 
     size_t pages = region->page_count;
@@ -239,10 +246,14 @@ static void create_bitmask(region_table_entry_t * region) {
     }
 
     // Set bitmask page as used
-    set_bitmask(region, 0, false);
+    set_bitmask(region_index, 0, false);
 }
 
-static void set_bitmask(region_table_entry_t * region, uint16_t bit, bool free) {
+static void set_physical_bitmask(size_t region_index, uint16_t bit, bool free) {
+    if (region_index > REGION_TABLE_SIZE)
+        return;
+
+    region_table_entry_t * region = &region_table->entries[region_index];
     uint8_t * bitmask = (uint8_t *)(region->addr_flags & MASK_ADDR);
     size_t byte = bit / 8;
     bit = bit % 8;
@@ -255,8 +266,29 @@ static void set_bitmask(region_table_entry_t * region, uint16_t bit, bool free) 
     }
 }
 
-static bool get_bitmask(region_table_entry_t * region, uint16_t bit) {
-    uint8_t * bitmask = (uint8_t *)(region->addr_flags & MASK_ADDR);
+static void set_bitmask(size_t region_index, uint16_t bit, bool free) {
+    if (region_index > REGION_TABLE_SIZE)
+        return;
+
+    uint8_t * bitmask =
+        (uint8_t *)(REGION_VIRT_BITMASK_ADDR + region_index * PAGE_SIZE);
+    size_t byte = bit / 8;
+    bit = bit % 8;
+
+    if (free) {
+        bitmask[byte] |= 1 << bit;
+    }
+    else {
+        bitmask[byte] &= ~(1 << bit);
+    }
+}
+
+static bool get_bitmask(size_t region_index, uint16_t bit) {
+    if (region_index > REGION_TABLE_SIZE)
+        return false;
+
+    uint8_t * bitmask =
+        (uint8_t *)(REGION_VIRT_BITMASK_ADDR + region_index * PAGE_SIZE);
     size_t byte = bit / 8;
     bit = bit % 8;
 
@@ -265,19 +297,23 @@ static bool get_bitmask(region_table_entry_t * region, uint16_t bit) {
 }
 
 // Returns 0 on failure, 0 is always invalid
-static uint16_t find_free_bit(region_table_entry_t * region) {
+static uint16_t find_free_bit(size_t region_index) {
+    if (region_index > REGION_TABLE_SIZE)
+        return 0;
+
+    region_table_entry_t * region = &region_table->entries[region_index];
     if (region->free_count == 0)
         return 0;
 
     for (uint16_t i = 1; i < region->page_count; i++) {
-        if (get_bitmask(region, i))
+        if (get_bitmask(region_index, i))
             return i;
     }
 
     return 0;
 }
 
-static region_table_entry_t * find_addr_entry(uint32_t addr) {
+static size_t find_addr_entry(uint32_t addr) {
     if (addr & MASK_FLAGS)
         return 0;
 
@@ -296,7 +332,11 @@ static region_table_entry_t * find_addr_entry(uint32_t addr) {
 }
 
 // Returns 0 for error, 0 is always invalid
-static size_t find_addr_bit(region_table_entry_t * region, uint32_t addr) {
+static size_t find_addr_bit(size_t region_index, uint32_t addr) {
+    if (region_index > REGION_TABLE_SIZE)
+        return 0;
+
+    region_table_entry_t * region = &region_table->entries[region_index];
     if (addr & MASK_FLAGS || !(region->addr_flags & REGION_TABLE_FLAG_PRESENT))
         return 0;
 
