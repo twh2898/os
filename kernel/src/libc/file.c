@@ -1,6 +1,6 @@
 #include "libc/file.h"
 
-#include "libc/mem.h"
+#include "libc/memory.h"
 #include "libc/string.h"
 
 struct _file {
@@ -13,14 +13,14 @@ file_t * file_open(const char * filename, const char * mode) {
         return 0;
     // TODO check if filename exists
 
-    file_t * file = malloc(sizeof(file_t));
+    file_t * file = kmalloc(sizeof(file_t));
     if (file) {
     }
     return file;
 }
 
 void file_close(file_t * file) {
-    free(file);
+    kfree(file);
 }
 
 bool file_seek(file_t * file, int offset, enum FILE_SEEK_ORIGIN origin) {

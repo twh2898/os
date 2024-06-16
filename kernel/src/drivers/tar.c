@@ -3,7 +3,7 @@
 #include <stdint.h>
 
 #include "kernel.h"
-#include "libc/mem.h"
+#include "libc/memory.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
 
@@ -52,18 +52,18 @@ tar_fs_t * tar_open(disk_t * disk) {
     if (!disk)
         return 0;
 
-    tar_fs_t * tar = malloc(sizeof(tar_fs_t));
+    tar_fs_t * tar = kmalloc(sizeof(tar_fs_t));
     if (tar) {
         tar->disk = disk;
         tar->file_count = count_files(tar);
-        tar->files = malloc(sizeof(tar_file_t) * tar->file_count);
+        tar->files = kmalloc(sizeof(tar_file_t) * tar->file_count);
         load_headers(tar);
     }
     return tar;
 }
 
 void tar_close(tar_fs_t * tar) {
-    free(tar);
+    kfree(tar);
 }
 
 size_t tar_file_count(tar_fs_t * tar) {
@@ -126,7 +126,7 @@ tar_fs_file_t * tar_file_open(tar_fs_t * tar, const char * filename) {
     if (!tar || !filename)
         return 0;
 
-    tar_fs_file_t * file = malloc(sizeof(tar_fs_file_t));
+    tar_fs_file_t * file = kmalloc(sizeof(tar_fs_file_t));
     if (file) {
         file->tar = tar;
         file->file = find_filename(tar, filename);
@@ -134,7 +134,7 @@ tar_fs_file_t * tar_file_open(tar_fs_t * tar, const char * filename) {
         file->size = file->file->size;
 
         if (!file->file) {
-            free(file);
+            kfree(file);
             return 0;
         }
     }
@@ -142,7 +142,7 @@ tar_fs_file_t * tar_file_open(tar_fs_t * tar, const char * filename) {
 }
 
 void tar_file_close(tar_fs_file_t * file) {
-    free(file);
+    kfree(file);
 }
 
 bool tar_file_seek(tar_fs_file_t * file, int offset, enum FILE_SEEK_ORIGIN origin) {

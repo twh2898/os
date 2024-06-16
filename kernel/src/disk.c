@@ -1,7 +1,7 @@
 #include "disk.h"
 
 #include "drivers/ata.h"
-#include "libc/mem.h"
+#include "libc/memory.h"
 #include "libc/string.h"
 
 #define DISK_BUFFER_SIZE 4096
@@ -29,14 +29,14 @@ static size_t disk_ata_read(disk_t * disk, uint8_t * buff, size_t count, size_t 
 static size_t disk_ata_write(disk_t * disk, uint8_t * buff, size_t count, size_t pos);
 
 disk_t * disk_open(int id, enum DISK_DRIVER driver) {
-    disk_t * disk = malloc(sizeof(disk_t));
+    disk_t * disk = kmalloc(sizeof(disk_t));
     if (disk) {
         disk->driver = driver;
 
         disk->buff_size = DISK_BUFFER_SIZE;
-        disk->buff = malloc(disk->buff_size);
+        disk->buff = kmalloc(disk->buff_size);
         if (!disk->buff) {
-            free(disk);
+            kfree(disk);
             return 0;
         }
 
@@ -44,8 +44,8 @@ disk_t * disk_open(int id, enum DISK_DRIVER driver) {
             case DISK_DRIVER_ATA: {
                 disk->device.ata = ata_open(id);
                 if (!disk->device.ata) {
-                    free(disk->buff);
-                    free(disk);
+                    kfree(disk->buff);
+                    kfree(disk);
                     return 0;
                 }
 
@@ -55,14 +55,14 @@ disk_t * disk_open(int id, enum DISK_DRIVER driver) {
             } break;
             case DISK_DRIVER_FLOPPY: {
                 // TODO open floppy driver
-                free(disk->buff);
-                free(disk);
+                kfree(disk->buff);
+                kfree(disk);
                 return 0;
             } break;
             case DISK_DRIVER_RAM_DISK: {
                 // TODO open ram disk driver
-                free(disk->buff);
-                free(disk);
+                kfree(disk->buff);
+                kfree(disk);
                 return 0;
             } break;
             default: {
@@ -89,8 +89,8 @@ void disk_close(disk_t * disk) {
 
             } break;
         }
-        free(disk->buff);
-        free(disk);
+        kfree(disk->buff);
+        kfree(disk);
     }
 }
 

@@ -12,7 +12,7 @@
 #include "drivers/rtc.h"
 #include "drivers/tar.h"
 #include "drivers/vga.h"
-#include "libc/mem.h"
+#include "libc/memory.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
 #include "term.h"
@@ -357,19 +357,19 @@ static int fs_read_cmd(size_t argc, char ** argv) {
     }
 
     ls_print_file(&stat);
-    uint8_t * buff = malloc(stat.size);
+    uint8_t * buff = kmalloc(stat.size);
     if (!buff)
         return 1;
 
     tar_fs_file_t * file = tar_file_open(tar, filename);
     if (!file) {
-        free(buff);
+        kfree(buff);
         return 1;
     }
 
     if (!tar_file_read(file, buff, stat.size)) {
         tar_file_close(file);
-        free(buff);
+        kfree(buff);
         return 1;
     }
     kprint_hexblock(buff, stat.size, 0);
@@ -378,7 +378,7 @@ static int fs_read_cmd(size_t argc, char ** argv) {
         return 0;
 
     tar_file_close(file);
-    free(buff);
+    kfree(buff);
 
     return 0;
 }

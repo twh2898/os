@@ -5,7 +5,7 @@
 #include "debug.h"
 #include "drivers/rtc.h"
 #include "kernel.h"
-#include "libc/mem.h"
+#include "libc/memory.h"
 #include "libc/stdio.h"
 
 // https://wiki.osdev.org/ATA_PIO_Mode
@@ -133,13 +133,13 @@ ata_t * ata_open(uint8_t id) {
     if (id > 0)
         return 0;
 
-    ata_t * disk = malloc(sizeof(ata_t));
+    ata_t * disk = kmalloc(sizeof(ata_t));
     if (disk) {
         disk->io_base = ATA_BUS_0_IO_BASE;
         disk->ct_base = ATA_BUS_0_CTL_BASE;
         if (!ata_identify(disk)) {
             kputs("ERROR: failed to identify disk\n");
-            free(disk);
+            kfree(disk);
             return 0;
         }
     }
@@ -147,7 +147,7 @@ ata_t * ata_open(uint8_t id) {
 }
 
 void ata_close(ata_t * disk) {
-    free(disk);
+    kfree(disk);
 }
 
 void init_ata() {

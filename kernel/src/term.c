@@ -5,7 +5,7 @@
 #include "drivers/vga.h"
 #include "kernel.h"
 #include "libc/circbuff.h"
-#include "libc/mem.h"
+#include "libc/memory.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
 
@@ -226,9 +226,9 @@ static void exec_buff() {
 
         // Free parsed args
         for (size_t i = 0; i < argc; i++) {
-            free(argv[i]);
+            kfree(argv[i]);
         }
-        free(argv);
+        kfree(argv);
 
         break;
     }
@@ -297,7 +297,7 @@ static char ** parse_args(const char * line, size_t * out_len) {
     }
 
     *out_len = len;
-    char ** args = malloc(sizeof(char *) * len);
+    char ** args = kmalloc(sizeof(char *) * len);
     size_t arg_i = 0;
 
     while (*line) {
@@ -324,7 +324,7 @@ static char ** parse_args(const char * line, size_t * out_len) {
 
             line++;
 
-            args[arg_i] = malloc(sizeof(char) * next);
+            args[arg_i] = kmalloc(sizeof(char) * next);
             memcpy(args[arg_i], line, next - 1);
             args[arg_i][next - 1] = 0;
             arg_i++;
@@ -338,7 +338,7 @@ static char ** parse_args(const char * line, size_t * out_len) {
         while (*line && !is_ws(*line)) line++;
 
         size_t word_len = line - start;
-        args[arg_i] = malloc(sizeof(char) * word_len + 1);
+        args[arg_i] = kmalloc(sizeof(char) * word_len + 1);
         memcpy(args[arg_i], start, word_len);
         args[arg_i][word_len] = 0;
         arg_i++;

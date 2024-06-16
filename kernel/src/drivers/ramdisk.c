@@ -1,7 +1,7 @@
 #include "drivers/ramdisk.h"
 
 #include "kernel.h"
-#include "libc/mem.h"
+#include "libc/memory.h"
 #include "libc/string.h"
 
 struct _ramdisk {
@@ -19,7 +19,7 @@ int ramdisk_create(size_t size) {
     if (device_count == RAMDISK_MAX)
         KERNEL_PANIC("TOO MANY RAM DISK DEVICES");
 
-    void * data = malloc(size);
+    void * data = kmalloc(size);
     if (!data)
         KERNEL_PANIC("RAMDISK OUT OF MEMORY");
 
