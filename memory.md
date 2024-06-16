@@ -91,19 +91,7 @@ Region Type can be one of the following
 | 0xffc01000 | 0xffffefff | 0x003fe | all page tables from the active directory |
 | 0xfffff000 | 0xffffffff | 0x00001 | last table (last entry is this table)     |
 
-## Memory Allocation
-
-Physical Allocator
-
-- Allocates single pages from each region in order
-- Keeps track of free and used pages
-
-Paging Allocator
-
-- Requests pages form the physical allocator to append to page tables as needed
-- Keeps track of free pages in the middle and can re-use them
-
-## Physical Allocator
+## Physical Allocator (`ram.h`)
 
 Physical pages are tracked by a region table. The region table has on entry
 for each region of free pages where the first page is a bitmask with one bit
@@ -152,6 +140,61 @@ any pages after the region end should be 0).
 > [!IMPORTANT] Bitmask bit 1
 > The first bit of the bitmask will always be 0 for the bitmask page itself.
 
-## Paging Allocator
+## Paging Allocator (`memory.h`)
 
-TODO - everything here
+Paging allocator (aka `kmalloc` and `kfree`) is responsible for connecting the
+physical memory allocator (ram) and page tables (mmu). This allocator keeps
+a linked list of tables, 1022 entries each.
+
+Each entry of the table describes a region of memory with address, flags and
+size in bytes (page aligned).
+
+### Memory Table
+
+There are a total of 511 entries per table.
+
+| start | size | description |
+| ----- | ---- | ----------- |
+| 0     | 4    | next        |
+| 4     | 4    | prev        |
+| 8     | 4088 | entries     |
+
+### Memory Table Entries
+
+The first 12 bits of a table entry are flags. The page number can be converted
+to a memory address by shifting it left by 12 bits, or by using the max
+(0xfffff000). Because the size is page aligned, the same strategy can be used
+for getting the page number or memory address.
+
+| start | size | description                            |
+| ----- | ---- | -------------------------------------- |
+| 0     | 12   | flags                                  |
+| 12    | 20   | page no (address if flags masked away) |
+| 32    | 32   | size in bytes (page aligned)           |
+
+> [!IMPORTANT] Size is page aligned
+> The size is page aligned such that a page no / address + size points to the
+> next valid, page aligned, address.
+
+> [!NOTE] Size has unused bits
+> Because the size is page aligned, the first 12 bits should always be 0
+
+#### Flags
+
+All entries before the last must be present. The first entry that does not have
+the present flag set will be treated as the end of all entries.
+
+| flag | description                             |
+| ---- | --------------------------------------- |
+| 0x1  | Present - this is a valid entry         |
+| 0x2  | Free (1 if memory is free, 0 if in use) |
+
+### Algorithm
+
+- Adjacent free memory entries can be merged.
+- Large free memory entries can be split to allocate smaller requests
+  - Maybe this is when a request is less than half of the free space?
+- Memory tables can be moved and removed. Only a pointer to the first table
+  should be stored. All other tables are reachable via the linked list.
+
+TODO - everything else here

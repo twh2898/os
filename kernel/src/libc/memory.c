@@ -2,37 +2,60 @@
 
 #include "drivers/ram.h"
 #include "kernel.h"
+#include "libc/string.h"
 
-#define MEMORY_TABLE_ENTRY_COUNT 1022
+#define MEMORY_TABLE_ENTRY_COUNT \
+    ((PAGE_SIZE - 8) / sizeof(memory_table_entry_t)) // 511
 
-typedef uint32_t memory_table_entry_t;
+typedef struct {
+    uint32_t addr_flags;
+    uint32_t size;
+} memory_table_entry_t;
 
 typedef struct {
     uint32_t next;
     uint32_t prev;
     memory_table_entry_t entries[MEMORY_TABLE_ENTRY_COUNT];
-} __attribute__((packed)) memory_table_t;
+} memory_table_t;
 
 mmu_page_dir_t * pdir = 0;
 size_t next_page = 0;
 memory_table_t * mtable;
 
 static void * add_page();
-static mmu_page_table_t * add_table();
+static void init_table(memory_table_t * table, uint32_t prev, uint32_t next);
 
 void init_malloc(mmu_page_dir_t * dir, size_t first_page) {
     pdir = dir;
     next_page = first_page;
 
-    // TODO init first malloc table
     mtable = add_page();
+    init_table(mtable, 0, 0);
 }
 
 void * kmalloc(size_t size) {
+    if (!size)
+        return 0;
+
+    size = PAGE_ALIGNED(size);
+
+    // TODO find next free memory of at least size
+    // TODO if free memory is more than twice size, split it
+    // TODO if end found, request more physical pages, add to virtual memory
+    // TODO check if no more physical memory is available
+
     return 0;
 }
 
-void kfree(void * ptr) {}
+void kfree(void * ptr) {
+    if (!ptr)
+        return;
+
+    // TODO find entry for ptr
+    // TODO mark as free
+    // TODO If adjacent memory is free, merge
+    // TODO move table entries
+}
 
 static void * add_page() {
     void * page = ram_page_alloc();
@@ -48,4 +71,10 @@ static void * add_page() {
 
     next_page++;
     return page;
+}
+
+static void init_table(memory_table_t * table, uint32_t prev, uint32_t next) {
+    table->prev = prev;
+    table->next = next;
+    memset(table->entries, 0, sizeof(table->entries));
 }
