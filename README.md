@@ -25,7 +25,7 @@ The OS will be finished when all of the following are implemented.
   - [ ] Need to find end of kernel to not overflow at runtime (for malloc start)
   - [x] Detect max memory for malloc
   - [x] Do that fancy memory map
-- [ ] Paging
+- [x] Paging
   - [ ] Load user space application
 - [ ] Ring 3
   - [ ] Kernel Service Calls
@@ -38,13 +38,14 @@ The OS will be finished when all of the following are implemented.
 ### Long Term
 
 - [ ] Switch to 2d graphics mode
-- [ ] Virtual memory pages / memory paging
+- [x] Virtual memory pages / memory paging
 - [ ] Memory permissions (eg. stack can't exec, code can't write)
 - [ ] User level applications (might need 3rd level kernel from filesystem)
 - [ ] Testing
 - [ ] FAT or EXT2 filesystem driver
 - [ ] Audio Driver
 - [x] 64 bit support printf (needs libgcc)
+- [ ] Text editor
 
 ### Long Long Term
 
