@@ -7,6 +7,11 @@
 #define MEMORY_TABLE_ENTRY_COUNT \
     ((PAGE_SIZE - 8) / sizeof(memory_table_entry_t)) // 511
 
+enum MEMORY_ENTRY_FLAG {
+    MEMORY_ENTRY_FLAG_PRESENT = 0x1,
+    MEMORY_ENTRY_FLAG_FREE = 0x2,
+};
+
 typedef struct {
     uint32_t addr_flags;
     uint32_t size;
@@ -24,6 +29,7 @@ memory_table_t * mtable;
 
 static void * add_page();
 static void init_table(memory_table_t * table, uint32_t prev, uint32_t next);
+static memory_table_entry_t * find_entry(memory_table_t * table, void * ptr);
 
 void init_malloc(mmu_page_dir_t * dir, size_t first_page) {
     pdir = dir;
@@ -51,10 +57,10 @@ void kfree(void * ptr) {
     if (!ptr)
         return;
 
-    // TODO find entry for ptr
-    // TODO mark as free
-    // TODO If adjacent memory is free, merge
-    // TODO move table entries
+    memory_table_entry_t * entry = find_entry(mtable, ptr);
+    if (entry) {
+        entry->addr_flags |= MEMORY_ENTRY_FLAG_FREE;
+    }
 }
 
 static void * add_page() {
@@ -77,4 +83,27 @@ static void init_table(memory_table_t * table, uint32_t prev, uint32_t next) {
     table->prev = prev;
     table->next = next;
     memset(table->entries, 0, sizeof(table->entries));
+}
+
+static memory_table_entry_t * find_entry(memory_table_t * table, void * ptr) {
+    if (!table || !ptr)
+        return 0;
+
+    while (table->prev) table = (memory_table_t *)table->prev;
+
+    while (table) {
+        for (size_t i = 0; i < MEMORY_TABLE_ENTRY_COUNT; i++) {
+            memory_table_entry_t * entry = &table->entries[i];
+
+            // First non-present page is end of all tables
+            if (!(entry->addr_flags & MEMORY_ENTRY_FLAG_PRESENT))
+                return 0;
+
+            if (entry->addr_flags & MASK_ADDR == PTR2UINT(ptr))
+                return entry;
+        }
+        table = (memory_table_t *)table->next;
+    }
+
+    return 0;
 }
