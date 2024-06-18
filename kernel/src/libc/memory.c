@@ -46,11 +46,28 @@ void * kmalloc(size_t size) {
     size = PAGE_ALIGNED(size);
 
     // TODO find next free memory of at least size
-    // TODO if free memory is more than twice size, split it
+    memory_table_entry_t * entry = 0;
+    if (!entry) {
+        // TODO request more pages
+        // TODO check if no more physical memory is available
+        return 0;
+    }
+
+    if (entry->size < size) {
+        // TODO find next free and loop
+    }
+
+    if (entry->size >= size * 2) {
+        // TODO if next is free, move extra space from current to next
+        // TODO if entry is last, create a new entry after for remaining space
+    }
+
     // TODO if end found, request more physical pages, add to virtual memory
     // TODO check if no more physical memory is available
 
-    return 0;
+    entry->addr_flags &= ~MEMORY_ENTRY_FLAG_FREE;
+
+    return entry->addr_flags & MASK_FLAGS;
 }
 
 void kfree(void * ptr) {
