@@ -16,9 +16,10 @@ expect direct access (identity mapping) of the region bitmask page.
 
 ### Tasks
 
-- [ ] It looks like I might have already accounted for this in the virtual
+- [x] It looks like I might have already accounted for this in the virtual
   address space table. I need to check if this has been implemented.
   - The bitmasks are already mapped to their virtual space starting at 0x9f000
+  - ram.h functions operate in virtual address space (except `init_ram` and `create_bitmask`)
 - [x] Finish commenting `map_virt_page_dir` in kernel.c
 
 ## Creation of Page Tables
