@@ -10,6 +10,13 @@ the first and last.
 The first and last page tables are setup but nothing in between. Does the paging
 allocator create new page tables if needed?
 
+### Tasks
+
+- [ ] Check if page allocator checks if the first page table is full
+- [ ] Check if page allocator will create and add new page tables to the page directory
+
+lol, it's all TODO comments
+
 
 # Completed
 
