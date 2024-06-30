@@ -1,5 +1,10 @@
 # Notes and ToDos for active and planned future work
 
+Misc. TODO
+
+- [ ] Update list of completed features in README.md
+- [ ] Update boot stages in README.md
+
 ## Creation of Page Tables
 
 **TODO** how are page tables added to the virtual space?
