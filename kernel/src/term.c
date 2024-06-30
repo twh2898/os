@@ -9,9 +9,9 @@
 #include "libc/stdio.h"
 #include "libc/string.h"
 
-#define ERROR(MSG)                                \
-    {                                             \
-        vga_color(VGA_RED_ON_WHITE);              \
+#define ERROR(MSG)                                 \
+    {                                              \
+        vga_color(VGA_RED_ON_WHITE);               \
         kprintf(__FILE__ ":%u %s", __LINE__, MSG); \
     }
 
@@ -174,9 +174,7 @@ static void exec_buff() {
     }
 
     if (debug)
-        kprintf("Trimmed line length %u starting at +%u\n",
-               line_len,
-               (line - command_buff));
+        kprintf("Trimmed line length %u starting at +%u\n", line_len, (line - command_buff));
 
     // Terminate trimmed line
     line[line_len] = 0;

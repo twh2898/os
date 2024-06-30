@@ -233,8 +233,7 @@ size_t ata_sect_read(ata_t * disk, uint8_t * buff, size_t sect_count, uint32_t l
     software_reset(disk);
     START_TIMEOUT
     size_t retry = 0;
-    while (port_byte_in(disk->ct_base + ATA_CTL_ALT_STATUS)
-           & (ATA_STATUS_FLAG_DRQ | ATA_STATUS_FLAG_BSY)) {
+    while (port_byte_in(disk->ct_base + ATA_CTL_ALT_STATUS) & (ATA_STATUS_FLAG_DRQ | ATA_STATUS_FLAG_BSY)) {
         TEST_TIMEOUT
         if (retry++ > MAX_RETRY) {
             kputs("[ERROR] max retries for ata_sect_read wait for first status\n");
@@ -244,8 +243,7 @@ size_t ata_sect_read(ata_t * disk, uint8_t * buff, size_t sect_count, uint32_t l
 
     port_byte_out(disk->io_base + ATA_IO_DRIVE_HEAD, (0xE0 | ((lba >> 24) & 0xF)));
     port_byte_out(0x1F1, 0); // delay?
-    port_byte_out(disk->io_base + ATA_IO_SECTOR_COUNT,
-                  (sect_count >= 256 ? 0 : sect_count));
+    port_byte_out(disk->io_base + ATA_IO_SECTOR_COUNT, (sect_count >= 256 ? 0 : sect_count));
     port_byte_out(disk->io_base + ATA_IO_LBA_LOW, lba & 0xFF);
     port_byte_out(disk->io_base + ATA_IO_LBA_MID, (lba >> 8) & 0xFF);
     port_byte_out(disk->io_base + ATA_IO_LBA_HIGH, (lba >> 16) & 0xFF);
@@ -256,8 +254,7 @@ size_t ata_sect_read(ata_t * disk, uint8_t * buff, size_t sect_count, uint32_t l
         for (size_t i = 0; i < ATA_SECTOR_WORDS; i++) {
             // Wait for drive to be ready
             retry = 0;
-            while (!(port_byte_in(disk->ct_base + ATA_CTL_ALT_STATUS)
-                     & ATA_STATUS_FLAG_DRQ)) {
+            while (!(port_byte_in(disk->ct_base + ATA_CTL_ALT_STATUS) & ATA_STATUS_FLAG_DRQ)) {
                 TEST_TIMEOUT
                 if (retry++ > MAX_RETRY) {
                     kputs("[ERROR] max retries for ata_sect_read wait to read next sect\n");
@@ -296,8 +293,7 @@ size_t ata_sect_write(ata_t * disk, uint8_t * buff, size_t sect_count, uint32_t 
     START_TIMEOUT
     uint32_t start = time_ms();
     size_t retry = 0;
-    while (port_byte_in(disk->ct_base + ATA_CTL_ALT_STATUS)
-           & (ATA_STATUS_FLAG_DRQ | ATA_STATUS_FLAG_BSY)) {
+    while (port_byte_in(disk->ct_base + ATA_CTL_ALT_STATUS) & (ATA_STATUS_FLAG_DRQ | ATA_STATUS_FLAG_BSY)) {
         TEST_TIMEOUT
         if (retry++ > MAX_RETRY) {
             kputs("[ERROR] max retries for ata_sect_write wait for first status\n");
@@ -307,8 +303,7 @@ size_t ata_sect_write(ata_t * disk, uint8_t * buff, size_t sect_count, uint32_t 
 
     port_byte_out(disk->io_base + ATA_IO_DRIVE_HEAD, (0xE0 | ((lba >> 24) & 0xF)));
     port_byte_out(0x1F1, 0); // delay?
-    port_byte_out(disk->io_base + ATA_IO_SECTOR_COUNT,
-                  (sect_count >= 256 ? 0 : sect_count));
+    port_byte_out(disk->io_base + ATA_IO_SECTOR_COUNT, (sect_count >= 256 ? 0 : sect_count));
     port_byte_out(disk->io_base + ATA_IO_LBA_LOW, lba & 0xFF);
     port_byte_out(disk->io_base + ATA_IO_LBA_MID, (lba >> 8) & 0xFF);
     port_byte_out(disk->io_base + ATA_IO_LBA_HIGH, (lba >> 16) & 0xFF);
@@ -320,8 +315,7 @@ size_t ata_sect_write(ata_t * disk, uint8_t * buff, size_t sect_count, uint32_t 
         for (size_t i = 0; i < ATA_SECTOR_WORDS; i++) {
             // Wait for drive to be ready
             retry = 0;
-            while (!(port_byte_in(disk->ct_base + ATA_CTL_ALT_STATUS)
-                     & ATA_STATUS_FLAG_DRQ)) {
+            while (!(port_byte_in(disk->ct_base + ATA_CTL_ALT_STATUS) & ATA_STATUS_FLAG_DRQ)) {
                 TEST_TIMEOUT
                 if (retry++ > MAX_RETRY) {
                     kputs("[ERROR] max retries for ata_sect_write wait to write next sect\n");
@@ -375,8 +369,7 @@ static bool ata_identify(ata_t * disk) {
     if (debug)
         kputc('\n');
 
-    if (port_byte_in(disk->io_base + ATA_IO_LBA_MID)
-        || port_byte_in(disk->io_base + ATA_IO_LBA_HIGH)) {
+    if (port_byte_in(disk->io_base + ATA_IO_LBA_MID) || port_byte_in(disk->io_base + ATA_IO_LBA_HIGH)) {
         kputs("Disk does not support ATA\n");
         return false;
     }

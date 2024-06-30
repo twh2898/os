@@ -4,8 +4,7 @@
 #include "kernel.h"
 #include "libc/string.h"
 
-#define MEMORY_TABLE_ENTRY_COUNT \
-    ((PAGE_SIZE - 8) / sizeof(memory_table_entry_t)) // 511
+#define MEMORY_TABLE_ENTRY_COUNT ((PAGE_SIZE - 8) / sizeof(memory_table_entry_t)) // 511
 
 enum MEMORY_ENTRY_FLAG {
     MEMORY_ENTRY_FLAG_PRESENT = 0x1,

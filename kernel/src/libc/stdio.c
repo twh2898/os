@@ -14,31 +14,11 @@ static char digit(uint32_t num, uint8_t base, bool upper);
 
 static size_t pad(char c, size_t len);
 
-static size_t padded_int(size_t width,
-                         bool left_align,
-                         int32_t num,
-                         uint8_t base,
-                         bool upper,
-                         bool lead_zero);
-static size_t padded_long_int(size_t width,
-                              bool left_align,
-                              int64_t num,
-                              uint8_t base,
-                              bool upper,
-                              bool lead_zero);
+static size_t padded_int(size_t width, bool left_align, int32_t num, uint8_t base, bool upper, bool lead_zero);
+static size_t padded_long_int(size_t width, bool left_align, int64_t num, uint8_t base, bool upper, bool lead_zero);
 
-static size_t padded_uint(size_t width,
-                          bool left_align,
-                          uint32_t num,
-                          uint8_t base,
-                          bool upper,
-                          bool lead_zero);
-static size_t padded_long_uint(size_t width,
-                               bool left_align,
-                               uint64_t num,
-                               uint8_t base,
-                               bool upper,
-                               bool lead_zero);
+static size_t padded_uint(size_t width, bool left_align, uint32_t num, uint8_t base, bool upper, bool lead_zero);
+static size_t padded_long_uint(size_t width, bool left_align, uint64_t num, uint8_t base, bool upper, bool lead_zero);
 
 static size_t padded_str(size_t width, bool left_align, char * str);
 
@@ -265,64 +245,54 @@ size_t kprintf(const char * fmt, ...) {
                 case 'd': {
                     if (is_long) {
                         int64_t arg = va_arg(params, int);
-                        o_len += padded_long_int(
-                            width, left_align, arg, 10, false, lead_zero);
+                        o_len += padded_long_int(width, left_align, arg, 10, false, lead_zero);
                     }
                     else {
                         int32_t arg = va_arg(params, int);
-                        o_len += padded_int(
-                            width, left_align, arg, 10, false, lead_zero);
+                        o_len += padded_int(width, left_align, arg, 10, false, lead_zero);
                     }
                 } break;
                 case 'u': {
                     if (is_long) {
                         uint64_t arg = va_arg(params, unsigned int);
-                        o_len += padded_long_uint(
-                            width, left_align, arg, 10, false, lead_zero);
+                        o_len += padded_long_uint(width, left_align, arg, 10, false, lead_zero);
                     }
                     else {
                         uint32_t arg = va_arg(params, unsigned int);
-                        o_len += padded_uint(
-                            width, left_align, arg, 10, false, lead_zero);
+                        o_len += padded_uint(width, left_align, arg, 10, false, lead_zero);
                     }
                 } break;
                 case 'p': {
                     if (is_long) {
                         uint64_t arg = va_arg(params, unsigned int);
                         o_len += kputs("0x");
-                        o_len += padded_long_uint(
-                            width, left_align, arg, 16, false, true);
+                        o_len += padded_long_uint(width, left_align, arg, 16, false, true);
                     }
                     else {
                         uint32_t arg = va_arg(params, unsigned int);
                         o_len += kputs("0x");
-                        o_len +=
-                            padded_uint(width, left_align, arg, 16, false, true);
+                        o_len += padded_uint(width, left_align, arg, 16, false, true);
                     }
                 } break;
                 case 'o': {
                     if (is_long) {
                         uint64_t arg = va_arg(params, int);
-                        o_len += padded_long_uint(
-                            width, left_align, arg, 8, false, lead_zero);
+                        o_len += padded_long_uint(width, left_align, arg, 8, false, lead_zero);
                     }
                     else {
                         uint32_t arg = va_arg(params, int);
-                        o_len += padded_uint(
-                            width, left_align, arg, 8, false, lead_zero);
+                        o_len += padded_uint(width, left_align, arg, 8, false, lead_zero);
                     }
                 } break;
                 case 'x':
                 case 'X': {
                     if (is_long) {
                         uint64_t arg = va_arg(params, int);
-                        o_len += padded_long_uint(
-                            width, left_align, arg, 16, *fmt == 'X', lead_zero);
+                        o_len += padded_long_uint(width, left_align, arg, 16, *fmt == 'X', lead_zero);
                     }
                     else {
                         uint32_t arg = va_arg(params, int);
-                        o_len += padded_uint(
-                            width, left_align, arg, 16, *fmt == 'X', lead_zero);
+                        o_len += padded_uint(width, left_align, arg, 16, *fmt == 'X', lead_zero);
                     }
                 } break;
                 case 'c': {
@@ -458,12 +428,7 @@ static size_t pad(char c, size_t len) {
     return o_len;
 }
 
-static size_t padded_int(size_t width,
-                         bool left_align,
-                         int32_t num,
-                         uint8_t base,
-                         bool upper,
-                         bool lead_zero) {
+static size_t padded_int(size_t width, bool left_align, int32_t num, uint8_t base, bool upper, bool lead_zero) {
     size_t num_len = int_width(num, base);
     bool is_neg = num < 0;
 
@@ -497,12 +462,7 @@ static size_t padded_int(size_t width,
     return o_len;
 }
 
-static size_t padded_long_int(size_t width,
-                              bool left_align,
-                              int64_t num,
-                              uint8_t base,
-                              bool upper,
-                              bool lead_zero) {
+static size_t padded_long_int(size_t width, bool left_align, int64_t num, uint8_t base, bool upper, bool lead_zero) {
     size_t num_len = long_int_width(num, base);
     bool is_neg = num < 0;
 
@@ -536,12 +496,7 @@ static size_t padded_long_int(size_t width,
     return o_len;
 }
 
-static size_t padded_uint(size_t width,
-                          bool left_align,
-                          uint32_t num,
-                          uint8_t base,
-                          bool upper,
-                          bool lead_zero) {
+static size_t padded_uint(size_t width, bool left_align, uint32_t num, uint8_t base, bool upper, bool lead_zero) {
     size_t num_len = uint_width(num, base);
 
     bool fill = width > num_len;
@@ -560,12 +515,7 @@ static size_t padded_uint(size_t width,
     return o_len;
 }
 
-static size_t padded_long_uint(size_t width,
-                               bool left_align,
-                               uint64_t num,
-                               uint8_t base,
-                               bool upper,
-                               bool lead_zero) {
+static size_t padded_long_uint(size_t width, bool left_align, uint64_t num, uint8_t base, bool upper, bool lead_zero) {
     size_t num_len = long_uint_width(num, base);
 
     bool fill = width > num_len;

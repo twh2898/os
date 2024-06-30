@@ -1,8 +1,8 @@
 #include "cpu/timer.h"
 
-#include "libc/stdio.h"
 #include "cpu/isr.h"
 #include "cpu/ports.h"
+#include "libc/stdio.h"
 
 // https://wiki.osdev.org/PIT
 

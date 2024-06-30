@@ -243,21 +243,9 @@ static void print_cr0(uint32_t cr0) {
 }
 
 static void print_trace(registers_t * r) {
-    kprintf("EAX: 0x%08X EBX: 0x%08X ECX: 0x%08X EDX: 0x%08X\n",
-            r->eax,
-            r->ebx,
-            r->ecx,
-            r->edx);
-    kprintf("ESI: 0x%08X EDI: 0x%08X EBP: 0x%08X ESP: 0x%08X\n",
-            r->esi,
-            r->edi,
-            r->ebp,
-            r->esp);
-    kprintf("CR0: 0x%08X CR2: 0x%08X CR3: 0x%08X CR4: 0x%08X\n",
-            r->cr0,
-            r->cr2,
-            r->cr3,
-            r->cr4);
+    kprintf("EAX: 0x%08X EBX: 0x%08X ECX: 0x%08X EDX: 0x%08X\n", r->eax, r->ebx, r->ecx, r->edx);
+    kprintf("ESI: 0x%08X EDI: 0x%08X EBP: 0x%08X ESP: 0x%08X\n", r->esi, r->edi, r->ebp, r->esp);
+    kprintf("CR0: 0x%08X CR2: 0x%08X CR3: 0x%08X CR4: 0x%08X\n", r->cr0, r->cr2, r->cr3, r->cr4);
     print_cr0(r->cr0);
     kputc('\n');
 }

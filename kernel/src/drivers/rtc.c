@@ -68,7 +68,7 @@ rtc_time_t * rtc_time() {
     time.month = read_rtc(0x08);
     time.year = read_rtc(0x09);
 
-    // TODO there's a lot more 
+    // TODO there's a lot more
 
     return &time;
 }

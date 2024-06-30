@@ -50,31 +50,17 @@ void test_interrupt() {
 
 int demo(size_t argc, char ** argv) {
     kprintf("Lets demo some cool features of kprintf\n");
-    int len = kprintf(
-        "Like the percent sign %%, \na signed int %d, a signed int with width formatting %4d, \nleading zeros %04d, left align %-4d\n",
-        10,
-        10,
-        10,
-        10);
-    len += kprintf(
-        "How about negative numbers: signed %d and unsigned %u\n", -10, -10);
-    len += kprintf(
-        "Now for non decimal 0x%04x and 0x%04X or octal %o\n", 1234, 1234, 1234);
-    len += kprintf("There's booleans to %b and chars like %c and strings like %s\n",
-                   true,
-                   'c',
-                   "this");
+    int len = kprintf("Like the percent sign %%, \na signed int %d, a signed int with width formatting %4d, \nleading zeros %04d, left align %-4d\n", 10, 10, 10, 10);
+    len += kprintf("How about negative numbers: signed %d and unsigned %u\n", -10, -10);
+    len += kprintf("Now for non decimal 0x%04x and 0x%04X or octal %o\n", 1234, 1234, 1234);
+    len += kprintf("There's booleans to %b and chars like %c and strings like %s\n", true, 'c', "this");
     int store = 0;
     len += kprintf("The last part is pointers %8p\n", &store);
 
     void * data = kmalloc(10);
 
     kprintf("\nMalloc memory got pointer %p\n", data);
-    kprintf("Float number %f or shorter %3f or digits %.4f or lead %.04f\n",
-            3.14,
-            31.45,
-            3.14,
-            3.14);
+    kprintf("Float number %f or shorter %3f or digits %.4f or lead %.04f\n", 3.14, 31.45, 3.14, 3.14);
     kprintf("%f\n", 12345678.0);
 }
 
@@ -147,8 +133,7 @@ static void map_virt_page_dir(mmu_page_dir_t * dir) {
     mmu_dir_set(dir, PAGE_DIR_SIZE - 1, lastTable, MMU_DIR_RW);
 
     mmu_table_set(lastTable, 0, PTR2UINT(firstTable), MMU_TABLE_RW);
-    mmu_table_set(
-        lastTable, PAGE_TABLE_SIZE - 1, PTR2UINT(lastTable), MMU_TABLE_RW);
+    mmu_table_set(lastTable, PAGE_TABLE_SIZE - 1, PTR2UINT(lastTable), MMU_TABLE_RW);
 }
 
 static void enter_paging() {

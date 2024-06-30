@@ -34,38 +34,38 @@ END_TESTS
     int fail = 0;   \
     int total = 0;
 
-#define END_TESTS                                    \
-    if (fail) {                                      \
-        int pass = total - fail;                     \
+#define END_TESTS                                     \
+    if (fail) {                                       \
+        int pass = total - fail;                      \
         kprintf("%d tests ran\n", total);             \
         kprintf("%d passed %d failed\n", pass, fail); \
-    }                                                \
+    }                                                 \
     return fail;
 
-#define TEST(NAME)                \
-    {                             \
+#define TEST(NAME)                 \
+    {                              \
         kprintf("%10s : ", #NAME); \
-        int err = NAME();         \
-        if (err)                  \
+        int err = NAME();          \
+        if (err)                   \
             kputs(": FAIL");       \
-        else                      \
+        else                       \
             kputs("PASS");         \
-        fail += err;              \
-        total++;                  \
+        fail += err;               \
+        total++;                   \
         kputc('\n');               \
     }
 
-#define ASSERT(expr)                                      \
-    if (!(expr)) {                                        \
+#define ASSERT(expr)                                       \
+    if (!(expr)) {                                         \
         kprintf("%s (%s:%d) ", #expr, __func__, __LINE__); \
-        return 1;                                         \
+        return 1;                                          \
     }
 #define ASSERT_EQ(a, b) ASSERT((a) == (b))
 #define ASSERT_NOT_EQ(a, b) ASSERT((a) != (b))
 #define ASSERT_TRUE(a) ASSERT((a) == true)
 #define ASSERT_FALSE(a) ASSERT((a) == false)
-#define FATAL                                               \
-    {                                                       \
+#define FATAL                                                \
+    {                                                        \
         kprintf("FATAL ERROR! %s:%d\n", __func__, __LINE__); \
-        return -1;                                          \
+        return -1;                                           \
     }

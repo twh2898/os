@@ -241,10 +241,7 @@ static int mem_cmd(size_t argc, char ** argv) {
 
     kputs("| Start              | End                | Size               | Type\n");
     for (size_t i = 0; i < count; i++) {
-        print_upper(ram_upper_start(i),
-                    ram_upper_end(i),
-                    ram_upper_size(i),
-                    ram_upper_type(i));
+        print_upper(ram_upper_start(i), ram_upper_end(i), ram_upper_size(i), ram_upper_type(i));
     }
     return 0;
 }

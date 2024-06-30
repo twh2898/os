@@ -1,0 +1,42 @@
+BasedOnStyle: Google
+AccessModifierOffset: '-4'
+AlignEscapedNewlines: Left
+AlignTrailingComments: 'false'
+AllowAllArgumentsOnNextLine: 'true'
+AllowShortBlocksOnASingleLine: 'false'
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLambdasOnASingleLine: Empty
+AlwaysBreakTemplateDeclarations: 'Yes'
+BinPackArguments: 'false'
+BinPackParameters: 'false'
+BraceWrapping:
+  AfterEnum: 'false'
+  BeforeCatch: 'true'
+  BeforeElse: 'true'
+  BeforeLambdaBody: 'false'
+  BeforeWhile: 'false'
+BreakBeforeBinaryOperators: NonAssignment
+BreakBeforeBraces: Custom
+BreakBeforeTernaryOperators: 'false'
+BreakConstructorInitializers: BeforeColon
+BreakInheritanceList: BeforeColon
+BreakStringLiterals: 'false'
+ColumnLimit: '0'
+DerivePointerAlignment: 'false'
+ExperimentalAutoDetectBinPacking: 'true'
+FixNamespaceComments: 'false'
+IndentCaseLabels: 'true'
+IndentWidth: '4'
+KeepEmptyLinesAtTheStartOfBlocks: 'true'
+Language: Cpp
+MaxEmptyLinesToKeep: '10'
+NamespaceIndentation: All
+PenaltyBreakComment: '20'
+PenaltyExcessCharacter: '5'
+PointerAlignment: Middle
+SortUsingDeclarations: 'false'
+SpaceAfterTemplateKeyword: 'false'
+SpaceBeforeCpp11BracedList: 'true'
+SpacesBeforeTrailingComments: '1'
+UseTab: Never

@@ -148,8 +148,7 @@ uint64_t ram_upper_size(uint16_t i) {
 }
 
 bool ram_upper_usable(uint16_t i) {
-    return upper_ram[i].type == RAM_TYPE_USABLE
-           || upper_ram[i].type == RAM_TYPE_ACPI_RECLAIMABLE;
+    return upper_ram[i].type == RAM_TYPE_USABLE || upper_ram[i].type == RAM_TYPE_ACPI_RECLAIMABLE;
 }
 
 enum RAM_TYPE ram_upper_type(uint16_t i) {
@@ -165,16 +164,14 @@ uint32_t get_bitmask_addr(size_t i) {
 void * ram_page_alloc() {
     for (size_t i = 0; i < REGION_TABLE_SIZE; i++) {
         uint8_t flag = region_table->entries[i].addr_flags & MASK_FLAGS;
-        if (flag & REGION_TABLE_FLAG_PRESENT
-            && region_table->entries[i].free_count) {
+        if (flag & REGION_TABLE_FLAG_PRESENT && region_table->entries[i].free_count) {
             uint16_t bit = find_free_bit(i);
             if (!bit)
                 KERNEL_PANIC("Could not find free bit in page with free count");
 
             set_bitmask(i, bit, false);
             region_table->entries[i].free_count--;
-            uint32_t page_addr = region_table->entries[i].addr_flags
-                                 & MASK_ADDR + bit * PAGE_SIZE;
+            uint32_t page_addr = region_table->entries[i].addr_flags & MASK_ADDR + bit * PAGE_SIZE;
             return (void *)page_addr;
         }
     }
@@ -232,11 +229,7 @@ static void create_bitmask(size_t region_index) {
     size_t bytes = pages / 8;
     size_t bits = pages % 8;
 
-    // kprintf("Bitmask at %p for region of %u pages %u bytes and %u bites\n",
-    //         bitmask,
-    //         pages,
-    //         bytes,
-    //         bits);
+    // kprintf("Bitmask at %p for region of %u pages %u bytes and %u bites\n", bitmask, pages, bytes, bits);
 
     memset(bitmask, 0, PAGE_SIZE);
     memset(bitmask, 0xff, bytes);
@@ -270,8 +263,7 @@ static void set_bitmask(size_t region_index, uint16_t bit, bool free) {
     if (region_index > REGION_TABLE_SIZE)
         return;
 
-    uint8_t * bitmask =
-        (uint8_t *)(REGION_VIRT_BITMASK_ADDR + region_index * PAGE_SIZE);
+    uint8_t * bitmask = (uint8_t *)(REGION_VIRT_BITMASK_ADDR + region_index * PAGE_SIZE);
     size_t byte = bit / 8;
     bit = bit % 8;
 
@@ -320,8 +312,7 @@ static size_t find_addr_entry(uint32_t addr) {
     for (size_t i = 0; i < REGION_TABLE_SIZE; i++) {
         if (region_table->entries[i].addr_flags & REGION_TABLE_FLAG_PRESENT) {
             uint32_t region_start = region_table->entries[i].addr_flags & MASK_ADDR;
-            uint32_t region_end =
-                region_start + region_table->entries[i].page_count * PAGE_SIZE;
+            uint32_t region_end = region_start + region_table->entries[i].page_count * PAGE_SIZE;
 
             if (addr >= region_start && addr <= region_end)
                 &region_table->entries[i];
