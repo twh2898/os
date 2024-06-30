@@ -128,11 +128,17 @@ static void map_virt_page_dir(mmu_page_dir_t * dir) {
             mmu_table_set(firstTable, 0x9f + i, 0, 0);
     }
 
+    /* SKIP FREE MEMORY */
+
+    // create page table for the last entry of the page directory
     mmu_page_table_t * lastTable = ram_page_alloc();
     mmu_table_create(lastTable);
     mmu_dir_set(dir, PAGE_DIR_SIZE - 1, lastTable, MMU_DIR_RW);
 
+    // first entry of the last page is an identity map
     mmu_table_set(lastTable, 0, PTR2UINT(firstTable), MMU_TABLE_RW);
+
+    // last entry of the last page table points to the block of page tables
     mmu_table_set(lastTable, PAGE_TABLE_SIZE - 1, PTR2UINT(lastTable), MMU_TABLE_RW);
 }
 
