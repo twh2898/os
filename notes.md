@@ -1,5 +1,18 @@
 # Notes and ToDos for active and planned future work
 
+## Creation of Page Tables
+
+**TODO** how are page tables added to the virtual space?
+
+Idk if the kernel initializes all of the entries of the final page table or only
+the first and last.
+
+The first and last page tables are setup but nothing in between. Does the paging
+allocator create new page tables if needed?
+
+
+# Completed
+
 ## Physical Allocator
 
 **TODO** how to access region bitmask in paging mode?
@@ -21,13 +34,3 @@ expect direct access (identity mapping) of the region bitmask page.
   - The bitmasks are already mapped to their virtual space starting at 0x9f000
   - ram.h functions operate in virtual address space (except `init_ram` and `create_bitmask`)
 - [x] Finish commenting `map_virt_page_dir` in kernel.c
-
-## Creation of Page Tables
-
-**TODO** how are page tables added to the virtual space?
-
-Idk if the kernel initializes all of the entries of the final page table or only
-the first and last.
-
-The first and last page tables are setup but nothing in between. Does the paging
-allocator create new page tables if needed?
