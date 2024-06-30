@@ -25,8 +25,10 @@ typedef struct {
 
 region_table_t * region_table;
 
+// THIS IS IN PHYSICAL ADDRESS SPACE NOT VIRTUAL
 static void create_bitmask(size_t region_index);
-static void set_physical_bitmask(size_t region_index, uint16_t bit, bool free);
+// END THIS IS IN PHYSICAL ADDRESS SPACE NOT VIRTUAL
+
 static void set_bitmask(size_t region_index, uint16_t bit, bool free);
 static bool get_bitmask(size_t region_index, uint16_t bit);
 // Returns 0 for error, 0 is always invalid
@@ -218,6 +220,7 @@ static void sort_ram() {
     }
 }
 
+// THIS IS IN PHYSICAL ADDRESS SPACE NOT VIRTUAL
 static void create_bitmask(size_t region_index) {
     if (region_index > REGION_TABLE_SIZE)
         return;
@@ -239,25 +242,9 @@ static void create_bitmask(size_t region_index) {
     }
 
     // Set bitmask page as used
-    set_bitmask(region_index, 0, false);
+    bitmask[0] &= 0xfe;
 }
-
-static void set_physical_bitmask(size_t region_index, uint16_t bit, bool free) {
-    if (region_index > REGION_TABLE_SIZE)
-        return;
-
-    region_table_entry_t * region = &region_table->entries[region_index];
-    uint8_t * bitmask = (uint8_t *)(region->addr_flags & MASK_ADDR);
-    size_t byte = bit / 8;
-    bit = bit % 8;
-
-    if (free) {
-        bitmask[byte] |= 1 << bit;
-    }
-    else {
-        bitmask[byte] &= ~(1 << bit);
-    }
-}
+// END THIS IS IN PHYSICAL ADDRESS SPACE NOT VIRTUAL
 
 static void set_bitmask(size_t region_index, uint16_t bit, bool free) {
     if (region_index > REGION_TABLE_SIZE)

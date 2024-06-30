@@ -11,6 +11,7 @@ enum RAM_TYPE {
     RAM_TYPE_BAD = 5,
 };
 
+// THIS IS IN PHYSICAL ADDRESS SPACE NOT VIRTUAL
 void init_ram();
 
 uint16_t ram_lower_size();
@@ -23,6 +24,7 @@ uint64_t ram_upper_size(uint16_t i);
 
 bool ram_upper_usable(uint16_t i);
 enum RAM_TYPE ram_upper_type(uint16_t i);
+// END THIS IS IN PHYSICAL ADDRESS SPACE NOT VIRTUAL
 
 uint32_t get_bitmask_addr(size_t i);
 
