@@ -153,11 +153,11 @@ size in bytes (page aligned).
 
 There are a total of 511 entries per table.
 
-| start | size | description |
-| ----- | ---- | ----------- |
-| 0     | 4    | next        |
-| 4     | 4    | prev        |
-| 8     | 4088 | entries     |
+| start | size | description   |
+| ----- | ---- | ------------- |
+| 0     | 4    | next          |
+| 4     | 4    | prev          |
+| 8     | 4088 | entries x 511 |
 
 ### Memory Table Entries
 
