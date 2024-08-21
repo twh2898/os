@@ -16,4 +16,13 @@
 
 _Noreturn void kernel_panic(const char * msg, const char * file, unsigned int line);
 
+#define assert(CHECK)                             \
+    if (!(CHECK)) {                               \
+        KERNEL_PANIC("assertion failed "#CHECK); \
+    }
+#define assert_msg(CHECK, MSG)                                \
+    if (!(CHECK)) {                                       \
+        KERNEL_PANIC("assertion failed "#CHECK" : "MSG); \
+    }
+
 #endif // KERNEL_H
