@@ -5,8 +5,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "kernel.h"
-
 #define MASK_ADDR 0xfffff000
 #define MASK_FLAGS 0xfff
 
