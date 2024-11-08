@@ -25,4 +25,19 @@ _Noreturn void kernel_panic(const char * msg, const char * file, unsigned int li
         KERNEL_PANIC("assertion failed "#CHECK" : "MSG); \
     }
 
+enum PHYS_PAGE_ADDR {
+    PHYS_PAGE_ADDR_NULL = 0,
+    PHYS_PAGE_ADDR_PAGE_DIR = 0x1000,
+    PHYS_PAGE_ADDR_PAGE_TABLE = 0x2000,
+    PHYS_PAGE_ADDR_KERNEL = 0x7e00,
+};
+
+enum VIRT_PAGE_ADDR {
+    VIRT_PAGE_ADDR_NULL = 0,
+    VIRT_PAGE_ADDR_PAGE_DIR = 0x1000,
+    VIRT_PAGE_ADDR_RAM_TABLE = 0x2000,
+    VIRT_PAGE_ADDR_KERNEL = 0x7000, // TODO: ??? Why is this not 0x7e00?
+    VIRT_PAGE_ADDR_PAGE_TABLE = 0xffc00000,
+};
+
 #endif // KERNEL_H

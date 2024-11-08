@@ -4,15 +4,15 @@
 #include <stddef.h>
 #include <stdint.h>
 
-int memcmp(const void * lhs, const void * rhs, size_t n);
-void * memcpy(void * dest, const void * src, size_t n);
-void * memmove(void * dest, const void * src, size_t n);
-void * memset(void * dest, uint8_t value, size_t n);
+int kmemcmp(const void * lhs, const void * rhs, size_t n);
+void * kmemcpy(void * dest, const void * src, size_t n);
+void * kmemmove(void * dest, const void * src, size_t n);
+void * kmemset(void * dest, uint8_t value, size_t n);
 
-int strlen(const char * str);
-int nstrlen(const char * str, int max);
-int strfind(const char * str, size_t start, char c);
-char * strtok(char * str, char * delim);
+int kstrlen(const char * str);
+int knstrlen(const char * str, int max);
+int kstrfind(const char * str, size_t start, char c);
+char * kstrtok(char * str, char * delim);
 
 int atoi(const char * str);
 int atoib(const char * str, int base);

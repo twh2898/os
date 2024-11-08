@@ -48,7 +48,7 @@ size_t ramdisk_read(ramdisk_t * rdisk, uint8_t * buff, size_t count, size_t pos)
     if (rdisk->size - pos < count)
         count = rdisk->size - pos;
 
-    memcpy(rdisk->data + pos, buff, count);
+    kmemcpy(rdisk->data + pos, buff, count);
     return count;
 }
 
@@ -56,6 +56,6 @@ size_t ramdisk_write(ramdisk_t * rdisk, uint8_t * buff, size_t count, size_t pos
     if (rdisk->size - pos < count)
         count = rdisk->size - pos;
 
-    memcpy(buff, rdisk->data + pos, count);
+    kmemcpy(buff, rdisk->data + pos, count);
     return count;
 }

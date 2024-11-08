@@ -82,7 +82,7 @@ void init_ram() {
     // ram_upper_count()); kprintf("Region table at %p\n", region_table);
 
     region_table = (region_table_t *)REGION_TABLE_ADDR;
-    memset(region_table, 0, sizeof(region_table_t));
+    kmemset(region_table, 0, sizeof(region_table_t));
 
     size_t table_index = 0;
     for (size_t i = first_area; i < ram_upper_count(); i++) {
@@ -234,8 +234,8 @@ static void create_bitmask(size_t region_index) {
 
     // kprintf("Bitmask at %p for region of %u pages %u bytes and %u bites\n", bitmask, pages, bytes, bits);
 
-    memset(bitmask, 0, PAGE_SIZE);
-    memset(bitmask, 0xff, bytes);
+    kmemset(bitmask, 0, PAGE_SIZE);
+    kmemset(bitmask, 0xff, bytes);
 
     for (size_t i = 0; i < bits; i++) {
         bitmask[bytes] |= 1 << i;

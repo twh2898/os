@@ -102,6 +102,7 @@ static void identity_map(mmu_page_table_t * table, size_t n_pages) {
 
 static void map_virt_page_dir(mmu_page_dir_t * dir) {
     mmu_page_table_t * firstTable = ram_page_alloc();
+    kprintf("Page table created at %p\n", firstTable);
     mmu_table_create(firstTable);
     mmu_dir_set(dir, 0, firstTable, MMU_DIR_RW);
 
@@ -161,7 +162,7 @@ void kernel_main() {
     enter_paging();
     // trigger_page_fault();
     // kprintf("Paging enabled: %b\n", mmu_paging_enabled());
-    init_malloc(pdir, 10);
+    init_malloc(pdir, 0x9f+512);
 
     // init_ata();
 
