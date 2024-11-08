@@ -65,12 +65,12 @@ Region Type can be one of the following
 | 0x07e00 | 0x9efff | 604.5 KiB | Kernel (second stage)                         |
 
 > [!IMPORTANT] Kernel Size in Protected Mode
-> Reserved memory in protected mode starts at 0x9fc00 while real mode free area
-> ends at 0x9ffff
+> Reserved memory in protected mode starts at 0x9fc00 while real mode starts at
+> 0xa0000
 
 ### Virtual Address Space
 
-- The first 10 pages are identity mapped. The heap starts with virtual page 11.
+- ~~The first 10 pages are identity mapped. The heap starts with virtual page 11.~~
 - The address 0x1000 will always point to the active page directory.
 - ~~The address 0x2000 will always point to the active page table~~
 - The address 0x2000 will not be present / mapped to anything
@@ -78,18 +78,18 @@ Region Type can be one of the following
 - 0xffc00000 is the first virtual address of the last page table
   - This goes up to 0xffffffff as the last address in all of virtual space
 
-| start      | end        | pages   | description                               |
-| ---------- | ---------- | ------- | ----------------------------------------- |
-| 0x00000000 | 0x00000fff | 0x00001 | null page (not present)                   |
-| 0x00001000 | 0x00001fff | 0x00001 | Page Directory                            |
-| 0x00002000 | 0x00002fff | 0x00001 | ram region table                          |
-| 0x00003000 | 0x00006fff | 0x00004 | Stack                                     |
-| 0x00007000 | 0x0009efff | 0x00098 | Kernel (0x0009fbff end of kernel)         |
-| 0x0009f000 | 0x0029efff | 0x00200 | ram region bitmasks                       |
-| 0x0029f000 | 0xffbfffff | 0xff961 | _free memory_                             |
-| 0xffc00000 | 0xffc00fff | 0x00001 | first page table (includes identity map)  |
-| 0xffc01000 | 0xffffefff | 0x003fe | all page tables from the active directory |
-| 0xfffff000 | 0xffffffff | 0x00001 | last table (last entry is this table)     |
+| start      | end        | pages   | physical addr   | description                                        |
+| ---------- | ---------- | ------- | --------------- | -------------------------------------------------- |
+| 0x00000000 | 0x00000fff | 0x00001 | 0x00000000      | null page (not present)                            |
+| 0x00001000 | 0x00001fff | 0x00001 | 0x00001000      | Page Directory                                     |
+| 0x00002000 | 0x00002fff | 0x00001 |                 | ram region table                                   |
+| 0x00003000 | 0x00006fff | 0x00004 |                 | Stack                                              |
+| 0x00007000 | 0x0009efff | 0x00098 |                 | Kernel (why not 0x7e00) (0x0009fbff end of kernel) |
+| 0x0009f000 | 0x0029efff | 0x00200 |                 | ram region bitmasks                                |
+| 0x0029f000 | 0xffbfffff | 0xff961 |                 | _free memory_                                      |
+| 0xffc00000 | 0xffc00fff | 0x00001 | 0x0002000       | first page table (includes identity map)           |
+| 0xffc01000 | 0xffffefff | 0x003fe | ... (allocated) | all page tables from the active directory          |
+| 0xfffff000 | 0xffffffff | 0x00001 | ... (allocated) | last table (last entry is this table)              |
 
 ## Physical Allocator (`ram.h`)
 

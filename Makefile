@@ -104,6 +104,9 @@ dump-kernel: os-image.bin $(BUILD_DIR)/kernel.elf
 	$(QEMU) -s -S $(QEMUFLAGS) -drive format=raw,file=os-image.bin,index=0,if=floppy &
 	$(GDB) -ex "target remote localhost:1234" -ex "b *0x7e00" -ex "c" -ex "dump binary memory dump_kernel.bin 0x0 0x19000" -ex "kill" -ex "quit"
 
+test:
+	@make -C tests
+
 debugbuild:
 	@echo -e "CROSS_PREFIX\n$(CROSS_PREFIX)\n"
 	@echo -e "ASM\n$(ASM)\n"
@@ -127,4 +130,4 @@ debugbuild:
 clean:
 	rm -rf *.bin qemu_log.txt drive.img $(BUILD_DIR)
 
-.PHONY: all run debug debugbuild clean
+.PHONY: all run debug debugbuild test clean
