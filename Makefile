@@ -18,7 +18,7 @@ QEMUFLAGS = -m 1G -drive format=raw,file=drive.tar -d int,mmu -D qemu_log.txt -n
 SRCDIR = kernel/src
 INCDIR = kernel/include
 BOOTDIR = boot
-BUILD_DIR = build
+BUILD_DIR = b2
 
 # =======
 #  BUILD

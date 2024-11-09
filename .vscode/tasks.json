@@ -8,10 +8,7 @@
             "type": "shell",
             "command": "make run",
             "problemMatcher": [],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
+            "group": "build",
             "presentation": {
                 "echo": true,
                 "reveal": "always",
@@ -19,6 +16,15 @@
                 "panel": "shared",
                 "showReuseMessage": true,
                 "clear": true
+            }
+        },
+        {
+            "label": "cmake",
+            "type": "cmake",
+            "command": "build",
+            "group": {
+                "kind": "build",
+                "isDefault": true
             }
         }
     ]
