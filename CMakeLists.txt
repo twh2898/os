@@ -8,7 +8,7 @@ message("Cross prefix is " ${CROSS_PREFIX})
 
 set(CMAKE_C_COMPILER "${CROSS_PREFIX}/bin/i386-elf-gcc")
 set(CMAKE_C_FLAGS "-g -Werror -ffreestanding")
-
+set(CMAKE_AR "${CROSS_PREFIX}/bin/i386-elf-ar" CACHE FILEPATH "" FORCE)
 set(CMAKE_LINKER "${CROSS_PREFIX}/bin/i386-elf-ld")
 
 # ------------------------------------------------------------------------------
@@ -29,51 +29,14 @@ if(CMAKE_ASM_NASM_COMPILER_LOADED)
     )
 endif()
 
-# ------------------------------------------------------->-----------------------
-# LIBC
-
-file(GLOB SOURCE_LIST ${CMAKE_CURRENT_SOURCE_DIR}/kernel/src/libc/*.c)
-file(GLOB HEADER_LIST ${CMAKE_CURRENT_SOURCE_DIR}/kernel/include/libc/*.h)
-
-add_library(libc STATIC ${SOURCE_LIST} ${HEADER_LIST})
-target_include_directories(libc PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/kernel/include)
-
-# ------------------------------------------------------------------------------
-# DRIVERS
-
-file(GLOB SOURCE_LIST ${CMAKE_CURRENT_SOURCE_DIR}/kernel/src/drivers/*.c)
-file(GLOB HEADER_LIST ${CMAKE_CURRENT_SOURCE_DIR}/kernel/include/drivers/*.h)
-
-add_library(drivers STATIC ${SOURCE_LIST} ${HEADER_LIST})
-target_include_directories(drivers PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/kernel/include)
-
-# ------------------------------------------------------------------------------
-# CPU
-
-file(GLOB SOURCE_LIST ${CMAKE_CURRENT_SOURCE_DIR}/kernel/src/cpu/*.c ${CMAKE_CURRENT_SOURCE_DIR}/kernel/src/cpu/*.asm)
-file(GLOB HEADER_LIST ${CMAKE_CURRENT_SOURCE_DIR}/kernel/include/cpu/*.h)
-
-add_library(cpu STATIC ${SOURCE_LIST} ${HEADER_LIST})
-set_target_properties(cpu PROPERTIES NASM_OBJ_FORMAT elf)
-target_include_directories(cpu PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/kernel/include)
-
-# ------------------------------------------------------------------------------
-# KERNEL
-
-file(GLOB SOURCE_LIST ${CMAKE_CURRENT_SOURCE_DIR}/kernel/src/*.c)
-file(GLOB HEADER_LIST ${CMAKE_CURRENT_SOURCE_DIR}/kernel/include/*.h)
-file(GLOB ASM_SOURCE_LIST ${CMAKE_CURRENT_SOURCE_DIR}/kernel/*.asm)
-
-add_library(kernel STATIC ${ASM_SOURCE_LIST} ${SOURCE_LIST} ${HEADER_LIST})
-target_include_directories(kernel PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/kernel/include)
-set_target_properties(kernel PROPERTIES NASM_OBJ_FORMAT elf)
-
 # ------------------------------------------------------------------------------
 # UNI
 
-file(GLOB SOURCE_LIST ${CMAKE_CURRENT_SOURCE_DIR}/kernel/src/**/*.c)
-file(GLOB HEADER_LIST ${CMAKE_CURRENT_SOURCE_DIR}/kernel/include/**/*.h)
-file(GLOB ASM_SOURCE_LIST ${CMAKE_CURRENT_SOURCE_DIR}/kernel/**/*.asm)
+file(GLOB_RECURSE SOURCE_LIST ${CMAKE_CURRENT_SOURCE_DIR}/kernel/src/*.c)
+file(GLOB_RECURSE HEADER_LIST ${CMAKE_CURRENT_SOURCE_DIR}/kernel/include/*.h)
+file(GLOB_RECURSE ASM_SOURCE_LIST ${CMAKE_CURRENT_SOURCE_DIR}/kernel/*.asm)
+
+message("Kernel asm ${ASM_SOURCE_LIST}")
 
 add_library(uni STATIC ${ASM_SOURCE_LIST} ${SOURCE_LIST} ${HEADER_LIST})
 target_include_directories(uni PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/kernel/include)
@@ -82,29 +45,21 @@ set_target_properties(uni PROPERTIES NASM_OBJ_FORMAT elf)
 # ------------------------------------------------------------------------------
 # BOOT
 
-add_library(boot STATIC ${CMAKE_CURRENT_SOURCE_DIR}/boot/boot.asm)
+add_library(boot OBJECT ${CMAKE_CURRENT_SOURCE_DIR}/boot/boot.asm)
 target_compile_options(boot PRIVATE "-i${CMAKE_CURRENT_SOURCE_DIR}")
 set_target_properties(boot PROPERTIES NASM_OBJ_FORMAT bin)
 
 # ------------------------------------------------------------------------------
 # LINK
 
-# # THIS IS COMMENTED OUT BECAUSE LINKING STATIC ARCHIVES DOES NOT WORK
-# add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/kernel.bin
-# COMMAND ${CMAKE_LINKER} -T"${CMAKE_CURRENT_SOURCE_DIR}/link.ld" --oformat binary -o ${CMAKE_CURRENT_BINARY_DIR}/kernel.bin
-#     $<TARGET_FILE:kernel> $<TARGET_FILE:libc> $<TARGET_FILE:drivers> $<TARGET_FILE:cpu>
-#     -nostdlib -L"${CROSS_PREFIX}/lib/gcc/i386-elf/12.2.0" -lgcc
-# DEPENDS kernel libc drivers cpu)
-
-# THIS REPLACES THE ABOVE WITH SINGLE STATIC ARCHIVE TARGET
 add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/kernel.bin
-    COMMAND ${CMAKE_LINKER} -T"${CMAKE_CURRENT_SOURCE_DIR}/link.ld" --oformat binary -o ${CMAKE_CURRENT_BINARY_DIR}/kernel.bin
-        $<TARGET_FILE:uni>
-        -nostdlib -L"${CROSS_PREFIX}/lib/gcc/i386-elf/12.2.0" -lgcc
+	COMMAND ${CMAKE_LINKER} "-T${CMAKE_CURRENT_SOURCE_DIR}/link.ld" --oformat binary -o "${CMAKE_CURRENT_BINARY_DIR}/kernel.bin" $<TARGET_FILE:uni> -nostdlib "-L${CROSS_PREFIX}/lib/gcc/i386-elf/12.2.0" -lgcc
     DEPENDS uni)
 
+add_custom_target(kernel ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/kernel.bin)
+
 add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/os-image.bin
-    COMMAND cat $<TARGET_FILE:boot> ${CMAKE_CURRENT_BINARY_DIR}/kernel.bin > ${CMAKE_CURRENT_BINARY_DIR}/os-image.bin
+    COMMAND cat $<TARGET_OBJECTS:boot> ${CMAKE_CURRENT_BINARY_DIR}/kernel.bin > ${CMAKE_CURRENT_BINARY_DIR}/os-image.bin
     DEPENDS boot ${CMAKE_CURRENT_BINARY_DIR}/kernel.bin)
  
 add_custom_target(os_image ALL # echo $<TARGET_FILE:boot> $<TARGET_FILE:kernel> 
@@ -112,8 +67,21 @@ add_custom_target(os_image ALL # echo $<TARGET_FILE:boot> $<TARGET_FILE:kernel>
     ${CMAKE_CURRENT_BINARY_DIR}/os-image.bin
     ${CMAKE_CURRENT_BINARY_DIR}/kernel.bin
     )
-# add_dependencies(os_image boot kernel)
+add_dependencies(os_image boot kernel)
+
+add_custom_command(TARGET os_image POST_BUILD COMMAND ${CMAKE_COMMAND} -E
+    copy ${CMAKE_CURRENT_BINARY_DIR}/os-image.bin ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+# ------------------------------------------------------------------------------
+# TESTS
 
 # include(CTest)
 # enable_testing()
 
+# # find_package(gtest REQUIRED)
+
+# add_executable(test1 tests/test_main.cpp)
+# target_link_libraries(test1 gtest)
+
+# add_test(NAME test1 COMMAND test1)

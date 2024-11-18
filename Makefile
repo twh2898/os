@@ -84,6 +84,12 @@ $(BUILD_DIR)/%.o: %.asm Makefile
 # ===============
 #  LAUNCH & UTIL
 # ===============
+cmake_build:
+	cmake --build build
+
+cmake_run:
+	qemu-system-i386 -boot order=a -m 1G -drive format=raw,file=drive.tar -d int,mmu -D qemu_log.txt -no-reboot -no-shutdown -drive format=raw,file=build/os-image.bin,index=0,if=floppy
+
 run: os-image.bin drive.img
 	$(QEMU) $(QEMUFLAGS) -drive format=raw,file=os-image.bin,index=0,if=floppy
 
