@@ -4,7 +4,7 @@ jmp do_thing
 
 db "Near", 0
 
-%include "boot/lib/print.asm"
+%include "lib/print.asm"
 
 do_thing:
     mov bx, MSG_LOAD_KERNEL

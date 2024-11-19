@@ -17,11 +17,11 @@ halt:
     hlt
     jmp halt
 
-%include "boot/lib/print.asm"
-%include "boot/lib/memory.asm"
-%include "boot/lib/disk.asm"
-%include "boot/lib/gdt.asm"
-%include "boot/lib/switch.asm"
+%include "lib/print.asm"
+%include "lib/memory.asm"
+%include "lib/disk.asm"
+%include "lib/gdt.asm"
+%include "lib/switch.asm"
 
 [bits 32]
 BEGIN_PM:

@@ -4,7 +4,6 @@ project(os VERSION 0.1.0 LANGUAGES C)
 # set(CMAKE_VERBOSE_MAKEFILE on)
 
 set(CROSS_PREFIX "$ENV{HOME}/.local/opt/cross")
-message("Cross prefix is " ${CROSS_PREFIX})
 
 set(CMAKE_C_COMPILER "${CROSS_PREFIX}/bin/i386-elf-gcc")
 set(CMAKE_C_FLAGS "-g -Werror -ffreestanding")
@@ -29,45 +28,21 @@ if(CMAKE_ASM_NASM_COMPILER_LOADED)
     )
 endif()
 
-# ------------------------------------------------------------------------------
-# UNI
-
-file(GLOB_RECURSE SOURCE_LIST ${CMAKE_CURRENT_SOURCE_DIR}/kernel/src/*.c)
-file(GLOB_RECURSE HEADER_LIST ${CMAKE_CURRENT_SOURCE_DIR}/kernel/include/*.h)
-file(GLOB_RECURSE ASM_SOURCE_LIST ${CMAKE_CURRENT_SOURCE_DIR}/kernel/*.asm)
-
-message("Kernel asm ${ASM_SOURCE_LIST}")
-
-add_library(uni STATIC ${ASM_SOURCE_LIST} ${SOURCE_LIST} ${HEADER_LIST})
-target_include_directories(uni PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/kernel/include)
-set_target_properties(uni PROPERTIES NASM_OBJ_FORMAT elf)
+add_subdirectory(src)
 
 # ------------------------------------------------------------------------------
-# BOOT
+# OS IMAGE
 
-add_library(boot OBJECT ${CMAKE_CURRENT_SOURCE_DIR}/boot/boot.asm)
-target_compile_options(boot PRIVATE "-i${CMAKE_CURRENT_SOURCE_DIR}")
-set_target_properties(boot PROPERTIES NASM_OBJ_FORMAT bin)
-
-# ------------------------------------------------------------------------------
-# LINK
-
-add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/kernel.bin
-	COMMAND ${CMAKE_LINKER} "-T${CMAKE_CURRENT_SOURCE_DIR}/link.ld" --oformat binary -o "${CMAKE_CURRENT_BINARY_DIR}/kernel.bin" $<TARGET_FILE:uni> -nostdlib "-L${CROSS_PREFIX}/lib/gcc/i386-elf/12.2.0" -lgcc
-    DEPENDS uni)
-
-add_custom_target(kernel ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/kernel.bin)
-
-add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/os-image.bin
-    COMMAND cat $<TARGET_OBJECTS:boot> ${CMAKE_CURRENT_BINARY_DIR}/kernel.bin > ${CMAKE_CURRENT_BINARY_DIR}/os-image.bin
-    DEPENDS boot ${CMAKE_CURRENT_BINARY_DIR}/kernel.bin)
+add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/os-image.bin
+    COMMAND cat $<TARGET_OBJECTS:boot> ${CMAKE_BINARY_DIR}/kernel.bin > ${CMAKE_BINARY_DIR}/os-image.bin
+    DEPENDS boot kernel ${CMAKE_BINARY_DIR}/kernel.bin)
  
-add_custom_target(os_image ALL # echo $<TARGET_FILE:boot> $<TARGET_FILE:kernel> 
+add_custom_target(os_image ALL
     DEPENDS 
     ${CMAKE_CURRENT_BINARY_DIR}/os-image.bin
     ${CMAKE_CURRENT_BINARY_DIR}/kernel.bin
     )
-add_dependencies(os_image boot kernel)
+add_dependencies(os_image boot kernel kernel_image kernel_image_debug)
 
 add_custom_command(TARGET os_image POST_BUILD COMMAND ${CMAKE_COMMAND} -E
     copy ${CMAKE_CURRENT_BINARY_DIR}/os-image.bin ${CMAKE_CURRENT_SOURCE_DIR}
