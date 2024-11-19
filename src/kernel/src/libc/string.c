@@ -4,8 +4,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "term.h"
-
 static char * strtok_curr = 0;
 
 int kmemcmp(const void * lhs, const void * rhs, size_t n) {
