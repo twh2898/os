@@ -16,13 +16,13 @@
 
 _Noreturn void kernel_panic(const char * msg, const char * file, unsigned int line);
 
-#define kassert(CHECK)                             \
+#define kassert(CHECK)                            \
     if (!(CHECK)) {                               \
-        KERNEL_PANIC("assertion failed "#CHECK); \
+        KERNEL_PANIC("assertion failed " #CHECK); \
     }
-#define kassert_msg(CHECK, MSG)                                \
-    if (!(CHECK)) {                                       \
-        KERNEL_PANIC("assertion failed "#CHECK" : "MSG); \
+#define kassert_msg(CHECK, MSG)                             \
+    if (!(CHECK)) {                                         \
+        KERNEL_PANIC("assertion failed " #CHECK " : " MSG); \
     }
 
 enum PHYS_PAGE_ADDR {

@@ -1,10 +1,10 @@
 #include "cpu/ram.h"
 
+#include "defs.h"
 #include "kernel.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
 
-#define REGION_TABLE_ADDR        0x2000
 #define REGION_TABLE_SIZE        (PAGE_SIZE / sizeof(region_table_entry_t)) // 512
 #define REGION_MAX_PAGE_COUNT    0x8000
 #define REGION_MAX_SIZE          (REGION_MAX_PAGE_COUNT * PAGE_SIZE)
@@ -54,7 +54,7 @@ static upper_ram_t * upper_ram;
 
 static void sort_ram();
 
-void init_ram() {
+void * init_ram(void * ram_table, size_t * ram_table_count) {
     lower_ram = *(uint16_t *)LOWER_RAM_ADDR;
     upper_ram_count = *(uint16_t *)UPPER_RAM_COUNT;
     upper_ram = (upper_ram_t *)UPPER_RAM_ADDR;
@@ -74,21 +74,21 @@ void init_ram() {
         }
     }
 
-    uint32_t first_free_size = ram_upper_end(first_area) - ram_upper_start(first_area);
-
-    // First 4 pages ()
-    if (first_free_size < 4096 * 4) {
+    if (!found_free) {
         KERNEL_PANIC("FAILED TO FIND FREE RAM");
     }
 
     // kprintf("Found available at index %u of %u\n", first_area,
     // ram_upper_count()); kprintf("Region table at %p\n", region_table);
 
-    if (!found_free) {
+    uint32_t first_free_size = ram_upper_end(first_area) - ram_upper_start(first_area);
+
+    // First 2 pages (first page table, last page table)
+    if (first_free_size < PAGE_SIZE * 4) {
         KERNEL_PANIC("FAILED TO FIND FREE RAM");
     }
 
-    region_table = (region_table_t *)REGION_TABLE_ADDR;
+    region_table = (region_table_t *)ram_table;
     kmemset(region_table, 0, sizeof(region_table_t));
 
     size_t table_index = 0;
@@ -100,6 +100,10 @@ void init_ram() {
         uint32_t end = (uint32_t)ram_upper_end(i) & MASK_ADDR;
         uint32_t len = end - start;
 
+        bool isFirst = !table_index;
+
+        // Skip the very first 2 pages???
+        // Need 2 pages for first page tables
         if (!table_index)
             start += PAGE_SIZE;
         start &= MASK_ADDR;
@@ -109,6 +113,9 @@ void init_ram() {
         size_t region_count = len / REGION_MAX_SIZE;
         if (len % REGION_MAX_SIZE)
             region_count++;
+
+        // TODO - THOMAS YOU WANT TO WRAP THIS IN A FUNCTION
+        // TODO - THOMAS YOU WANT TO CHECK IF THIS IS CORRECT
 
         for (size_t r = 0; r < region_count; r++) {
             if (table_index >= REGION_TABLE_SIZE)
@@ -133,7 +140,17 @@ void init_ram() {
             if (start & MASK_FLAGS)
                 start += PAGE_SIZE;
         }
+
+        if (isFirst) {
+            region_table_entry_t * region = &region_table->entries[0];
+            uint8_t * bitmask = (uint8_t *)(region->addr_flags & MASK_ADDR);
+            bitmask[0] |= 0x7;
+        }
     }
+
+    *ram_table_count = table_index;
+
+    return LUINT2PTR(ram_upper_start(first_area));
 }
 
 uint16_t ram_lower_size() {
@@ -166,7 +183,7 @@ enum RAM_TYPE ram_upper_type(uint16_t i) {
 }
 
 uint32_t get_bitmask_addr(size_t i) {
-    if (i > REGION_TABLE_SIZE)
+    if (i <= REGION_TABLE_SIZE)
         return region_table->entries[i].addr_flags & MASK_ADDR;
 }
 

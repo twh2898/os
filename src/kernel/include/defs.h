@@ -5,37 +5,38 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define MASK_ADDR 0xfffff000
+#define MASK_ADDR  0xfffff000
 #define MASK_FLAGS 0xfff
 
-#define PAGE_SIZE 4096
+#define PAGE_SIZE              4096
 #define PAGE_ALIGNED_DOWN(PTR) ((PTR) & MASK_ADDR)
-#define PAGE_ALIGNED_UP(PTR) ((PAGE_ALIGNED_DOWN(PTR)) + PAGE_SIZE)
-#define PAGE_ALIGNED(PTR) (((PTR) & MASK_FLAGS) ? PAGE_ALIGNED_UP(PTR) : (PTR))
+#define PAGE_ALIGNED_UP(PTR)   ((PAGE_ALIGNED_DOWN(PTR)) + PAGE_SIZE)
+#define PAGE_ALIGNED(PTR)      (((PTR) & MASK_FLAGS) ? PAGE_ALIGNED_UP(PTR) : (PTR))
 
-#define PTR2UINT(PTR) ((uint32_t)(PTR))
+#define PTR2UINT(PTR)  ((uint32_t)(PTR))
 #define UINT2PTR(UINT) ((void *)(UINT))
+#define LUINT2PTR(UINT) ((void *)((uint32_t)(UINT)))
 
-#define PHYS_ADDR_BOOT_PARAMS 0x500
-#define PHYS_ADDR_PAGE_DIR 0x1000
-#define PHYS_ADDR_RAM_TABLE 0x2000
-#define PHYS_ADDR_STACK 0x3000
-#define PHYS_ADDR_GDT 0x7c00
-#define PHYS_ADDR_KERNEL 0x7e00
+#define PADDR_BOOT_PARAMS 0x500
+#define PADDR_PAGE_DIR    0x1000
+#define PADDR_RAM_TABLE   0x2000
+#define PADDR_STACK       0x3000
+#define PADDR_GDT         0x7c00
+#define PADDR_KERNEL      0x7e00
 
 // Identity mapped
-#define VIRT_ADDR_NULL 0x0
-#define VIRT_ADDR_PAGE_DIR PHYS_ADDR_PAGE_DIR
-#define VIRT_ADDR_RAM_TABLE PHYS_ADDR_RAM_TABLE
-#define VIRT_ADDR_STACK PHYS_ADDR_STACK
-#define VIRT_ADDR_KERNEL PHYS_ADDR_KERNEL
-#define VIRT_ADDR_FIRST_PAGE_TABLE 0xffc00000
-#define VIRT_ADDR_SECOND_PAGE_TABLE 0xffc01000
-#define VIRT_ADDR_LAST_PAGE_TABLE 0xfffff000
+#define VADDR_NULL              0x0
+#define VADDR_PAGE_DIR          PHYS_ADDR_PAGE_DIR
+#define VADDR_RAM_TABLE         PHYS_ADDR_RAM_TABLE
+#define VADDR_STACK             PHYS_ADDR_STACK
+#define VADDR_KERNEL            PHYS_ADDR_KERNEL
+#define VADDR_FIRST_PAGE_TABLE  0xffc00000
+#define VADDR_SECOND_PAGE_TABLE 0xffc01000
+#define VADDR_LAST_PAGE_TABLE   0xfffff000
 
 // Physical address allocated at runtime
-#define VIRT_ADDR_RAM_BITMASKS 0x9f000
-#define VIRT_ADDR_FREE_MEM_KERNEL 0x29f000
-#define VIRT_ADDR_FREE_MEM_USER 0x400000
+#define VADDR_RAM_BITMASKS    0x9f000
+#define VADDR_FREE_MEM_KERNEL 0x29f000
+#define VADDR_FREE_MEM_USER   0x400000
 
 #endif // DEFS_H

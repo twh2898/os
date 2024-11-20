@@ -79,29 +79,9 @@ static void trigger_page_fault() {
     *v = 0;
 }
 
-static mmu_page_dir_t * pdir;
-
-static void identity_map(mmu_page_table_t * table, size_t n_pages) {
-    if (n_pages > 1024)
-        n_pages = 1024;
-
-    for (size_t i = 0; i < PAGE_TABLE_SIZE; i++) {
-        if (i > 10) {
-            mmu_table_set_addr(table, i, 0);
-            mmu_table_set_flags(table, i, 0);
-            continue;
-        }
-
-        mmu_table_set_addr(table, i, i << 12);
-        enum MMU_PAGE_TABLE_FLAG flags = 0;
-        if (i)
-            flags = MMU_TABLE_RW;
-        mmu_table_set_flags(table, i, flags);
-    }
-}
-
 static void map_virt_page_dir(mmu_page_dir_t * dir) {
-    mmu_page_table_t * firstTable = ram_page_alloc();
+    size_t ram_table_count;
+    mmu_page_table_t * firstTable = init_ram(UINT2PTR(PADDR_RAM_TABLE), &ram_table_count);
     kprintf("Page table created at %p\n", firstTable);
     mmu_table_create(firstTable);
     mmu_dir_set(dir, 0, firstTable, MMU_DIR_RW);
@@ -110,43 +90,49 @@ static void map_virt_page_dir(mmu_page_dir_t * dir) {
     mmu_table_set(firstTable, 0, 0, 0);
 
     // Page Directory
-    mmu_table_set(firstTable, 1, 0x1000, MMU_TABLE_RW);
+    mmu_table_set(firstTable, 1, PADDR_PAGE_DIR, MMU_TABLE_RW);
 
     // Ram region table
-    mmu_table_set(firstTable, 2, 0x2000, MMU_TABLE_RW);
+    mmu_table_set(firstTable, 2, PADDR_RAM_TABLE, MMU_TABLE_RW);
 
-    // stack (4) + kernel (0x98)
-    for (size_t i = 0; i < 0x9c; i++) {
-        mmu_table_set(firstTable, 3 + i, 0x3000 + (i << 12), MMU_TABLE_RW);
+    // stack (4)
+    for (size_t i = 0; i < 4; i++) {
+        mmu_table_set(firstTable, 3 + i, PADDR_STACK + (i << 12), MMU_TABLE_RW);
+    }
+
+    // kernel (0x98)
+    for (size_t i = 0; i < 0x98; i++) {
+        mmu_table_set(firstTable, 3 + i, PADDR_KERNEL + (i << 12), MMU_TABLE_RW);
     }
 
     // ram region bitmasks
     for (size_t i = 0; i < 512; i++) {
         uint32_t addr = get_bitmask_addr(i);
         if (addr)
-            mmu_table_set(firstTable, 0x9f + i, 0x9f000 + (i << 12), MMU_TABLE_RW);
+            mmu_table_set(firstTable, 0xa1 + i, 0xa1000 + (i << 12), MMU_TABLE_RW);
         else
-            mmu_table_set(firstTable, 0x9f + i, 0, 0);
+            mmu_table_set(firstTable, 0xa1 + i, 0, 0);
     }
 
     /* SKIP FREE MEMORY */
 
     // create page table for the last entry of the page directory
-    mmu_page_table_t * lastTable = ram_page_alloc();
+    mmu_page_table_t * lastTable = firstTable + PAGE_SIZE;
     mmu_table_create(lastTable);
     mmu_dir_set(dir, PAGE_DIR_SIZE - 1, lastTable, MMU_DIR_RW);
 
-    // first entry of the last page is an identity map
+    // first entry of the last page is the memory map
     mmu_table_set(lastTable, 0, PTR2UINT(firstTable), MMU_TABLE_RW);
 
     // last entry of the last page table points to the block of page tables
     mmu_table_set(lastTable, PAGE_TABLE_SIZE - 1, PTR2UINT(lastTable), MMU_TABLE_RW);
 }
 
-static void enter_paging() {
-    pdir = mmu_dir_create((void *)0x1000);
+static mmu_page_dir_t * enter_paging() {
+    mmu_page_dir_t * pdir = mmu_dir_create((void *)PADDR_PAGE_DIR);
     map_virt_page_dir(pdir);
     mmu_enable_paging(pdir);
+    return pdir;
 }
 
 void kernel_main() {
@@ -157,12 +143,11 @@ void kernel_main() {
 
     vga_print("Welcome to kernel v..\n");
 
-    init_ram();
     // kprintf("Paging enabled: %b\n", mmu_paging_enabled());
-    enter_paging();
+    mmu_page_dir_t * pdir = enter_paging();
     // trigger_page_fault();
     // kprintf("Paging enabled: %b\n", mmu_paging_enabled());
-    init_malloc(pdir, 0x9f+512);
+    init_malloc(pdir, 0x9f + 512);
 
     // init_ata();
 

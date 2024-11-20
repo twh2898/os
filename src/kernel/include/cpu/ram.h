@@ -12,7 +12,8 @@ enum RAM_TYPE {
 };
 
 // THIS IS IN PHYSICAL ADDRESS SPACE NOT VIRTUAL
-void init_ram();
+// Returns pointer to the pre-allocated pages (first page table, last page table, )
+void * init_ram(void * ram_table, size_t * ram_table_count);
 
 uint16_t ram_lower_size();
 
