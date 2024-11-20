@@ -72,9 +72,9 @@ Region Type can be one of the following
 
 | start | size | description                      |
 | ----- | ---- | -------------------------------- |
-| 0     | 4    | Low memory address               |
-| 4     | 4    | Upper memory address table       |
-| 8     | 4    | Upper memory address table count |
+| 0     | 2    | Low memory address               |
+| 2     | 2    | Upper memory address table count |
+| 4     |      | Upper memory address table       |
 
 ### Virtual Address Space
 
