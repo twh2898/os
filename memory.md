@@ -68,6 +68,14 @@ Region Type can be one of the following
 > Reserved memory in protected mode starts at 0x9fc00 while real mode starts at
 > 0xa0000
 
+### Boot Parameters
+
+| start | size | description                      |
+| ----- | ---- | -------------------------------- |
+| 0     | 4    | Low memory address               |
+| 4     | 4    | Upper memory address table       |
+| 8     | 4    | Upper memory address table count |
+
 ### Virtual Address Space
 
 See https://wiki.osdev.org/Paging for information about page tables and
@@ -102,7 +110,7 @@ directory.
 | 0x00400000 | 0xffbfffff | 0xff800 |               | _free memory for user (second+ page tables)_       |
 | 0xffc00000 | 0xffc00fff | 0x00001 | 0x0002000     | first page table (includes identity map)           |
 | 0xffc01000 | 0xffffefff | 0x003fe |               | all page tables from the active directory          |
-| 0xfffff000 | 0xffffffff | 0x00001 |               | last table (all the page tables)              |
+| 0xfffff000 | 0xffffffff | 0x00001 |               | last table (all the page tables)                   |
 
 _Pages with a blank physical address are allocated form free physical memory._
 
