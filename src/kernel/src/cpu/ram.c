@@ -4,14 +4,14 @@
 #include "libc/stdio.h"
 #include "libc/string.h"
 
-#define REGION_TABLE_ADDR 0x2000
-#define REGION_TABLE_SIZE (PAGE_SIZE / sizeof(region_table_entry_t)) // 512
-#define REGION_MAX_PAGE_COUNT 0x8000
-#define REGION_MAX_SIZE (REGION_MAX_PAGE_COUNT * PAGE_SIZE)
+#define REGION_TABLE_ADDR        0x2000
+#define REGION_TABLE_SIZE        (PAGE_SIZE / sizeof(region_table_entry_t)) // 512
+#define REGION_MAX_PAGE_COUNT    0x8000
+#define REGION_MAX_SIZE          (REGION_MAX_PAGE_COUNT * PAGE_SIZE)
 #define REGION_VIRT_BITMASK_ADDR 0x9f000
 
 #define REGION_TABLE_FLAG_PRESENT 0x1
-#define BITMASK_PAGE_FREE 0x1
+#define BITMASK_PAGE_FREE         0x1
 
 typedef struct {
     uint32_t addr_flags;
@@ -19,7 +19,7 @@ typedef struct {
     uint16_t free_count;
 } __attribute__((packed)) region_table_entry_t;
 
-typedef struct { 
+typedef struct {
     region_table_entry_t entries[REGION_TABLE_SIZE];
 } __attribute__((packed)) region_table_t;
 
@@ -37,9 +37,9 @@ static size_t find_addr_entry(uint32_t addr);
 // Returns 0 for error, 0 is always invalid
 static size_t find_addr_bit(size_t region_index, uint32_t addr);
 
-#define LOWER_RAM_ADDR 0x0500
+#define LOWER_RAM_ADDR  0x0500
 #define UPPER_RAM_COUNT 0x0502
-#define UPPER_RAM_ADDR 0x0504
+#define UPPER_RAM_ADDR  0x0504
 
 typedef struct {
     uint64_t base_addr;
@@ -74,12 +74,19 @@ void init_ram() {
         }
     }
 
-    if (!found_free) {
+    uint32_t first_free_size = ram_upper_end(first_area) - ram_upper_start(first_area);
+
+    // First 4 pages ()
+    if (first_free_size < 4096 * 4) {
         KERNEL_PANIC("FAILED TO FIND FREE RAM");
     }
 
     // kprintf("Found available at index %u of %u\n", first_area,
     // ram_upper_count()); kprintf("Region table at %p\n", region_table);
+
+    if (!found_free) {
+        KERNEL_PANIC("FAILED TO FIND FREE RAM");
+    }
 
     region_table = (region_table_t *)REGION_TABLE_ADDR;
     kmemset(region_table, 0, sizeof(region_table_t));

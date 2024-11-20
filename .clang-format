@@ -1,5 +1,6 @@
 BasedOnStyle: Google
 AccessModifierOffset: '-4'
+AlignConsecutiveMacros: true
 AlignEscapedNewlines: Left
 AlignTrailingComments: 'false'
 AllowAllArgumentsOnNextLine: 'true'

@@ -5,13 +5,13 @@
 #include "cpu/isr.h"
 #include "cpu/ports.h"
 
-#define RTC_REG_PORT 0x70
+#define RTC_REG_PORT  0x70
 #define RTC_DATA_PORT 0x71
 
 #define RTC_FLAG_DISABLE_NMI 0x80
-#define RTC_REG_A 0xa
-#define RTC_REG_B 0xb
-#define RTC_REG_C 0xc
+#define RTC_REG_A            0xa
+#define RTC_REG_B            0xb
+#define RTC_REG_C            0xc
 
 static uint32_t ticks = 0;
 uint32_t frequency;

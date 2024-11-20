@@ -9,7 +9,7 @@
 #define PIT_CTR0_PORT 0x40
 #define PIT_CTR1_PORT 0x41
 #define PIT_CTR2_PORT 0x42
-#define PIT_CTL_PORT 0x43
+#define PIT_CTL_PORT  0x43
 
 uint32_t tick = 0;
 

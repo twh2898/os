@@ -3,7 +3,7 @@
 #include "cpu/ports.h"
 #include "libc/string.h"
 
-#define VGA_ADDRESS 0xb8000
+#define VGA_ADDRESS     0xb8000
 #define REG_SCREEN_CTRL 0x3d4
 #define REG_SCREEN_DATA 0x3d5
 

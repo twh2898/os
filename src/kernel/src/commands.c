@@ -5,10 +5,10 @@
 #include <stdint.h>
 
 #include "cpu/ports.h"
+#include "cpu/ram.h"
 #include "cpu/timer.h"
 #include "debug.h"
 #include "disk.h"
-#include "cpu/ram.h"
 #include "drivers/rtc.h"
 #include "drivers/tar.h"
 #include "drivers/vga.h"

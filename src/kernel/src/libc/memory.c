@@ -1,8 +1,8 @@
 #include "libc/memory.h"
 
-#include "libc/stdio.h"
 #include "cpu/ram.h"
 #include "kernel.h"
+#include "libc/stdio.h"
 #include "libc/string.h"
 
 #define MEMORY_TABLE_ENTRY_COUNT ((PAGE_SIZE - 8) / sizeof(memory_table_entry_t)) // 511

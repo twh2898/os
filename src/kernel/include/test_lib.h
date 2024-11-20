@@ -60,10 +60,10 @@ END_TESTS
         kprintf("%s (%s:%d) ", #expr, __func__, __LINE__); \
         return 1;                                          \
     }
-#define ASSERT_EQ(a, b) ASSERT((a) == (b))
+#define ASSERT_EQ(a, b)     ASSERT((a) == (b))
 #define ASSERT_NOT_EQ(a, b) ASSERT((a) != (b))
-#define ASSERT_TRUE(a) ASSERT((a) == true)
-#define ASSERT_FALSE(a) ASSERT((a) == false)
+#define ASSERT_TRUE(a)      ASSERT((a) == true)
+#define ASSERT_FALSE(a)     ASSERT((a) == false)
 #define FATAL                                                \
     {                                                        \
         kprintf("FATAL ERROR! %s:%d\n", __func__, __LINE__); \

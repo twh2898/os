@@ -33,8 +33,8 @@
 #define TEST_PTR_RET(REF)
 #endif
 
-#define MAX_RETRY 5000
-#define TIMEOUT_MS 1000
+#define MAX_RETRY     5000
+#define TIMEOUT_MS    1000
 #define START_TIMEOUT uint32_t __timeout = time_ms() + TIMEOUT_MS;
 #define TEST_TIMEOUT                                           \
     if (time_ms() > __timeout) {                               \
@@ -53,7 +53,7 @@
         kprintf("no timeout %u < %u\n", time_ms(), __timeout); \
     }
 
-#define ATA_BUS_0_IO_BASE 0x1F0
+#define ATA_BUS_0_IO_BASE  0x1F0
 #define ATA_BUS_0_CTL_BASE 0x3F6
 
 enum ATA_IO {
