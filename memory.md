@@ -28,6 +28,8 @@ at address 0x500.
 | 2     | 2    | Memory Entry Count |
 | 4     | x    | Memory Map Entries |
 
+x is the value of Memory Entry Count * 24
+
 #### Memory Entry
 
 There is a single memory entry for each region of memory. It is possible to have
@@ -67,14 +69,6 @@ Region Type can be one of the following
 > [!IMPORTANT] Kernel Size in Protected Mode
 > Reserved memory in protected mode starts at 0x9fc00 while real mode starts at
 > 0xa0000
-
-### Boot Parameters
-
-| start | size | description                      |
-| ----- | ---- | -------------------------------- |
-| 0     | 2    | Low memory address               |
-| 2     | 2    | Upper memory address table count |
-| 4     |      | Upper memory address table       |
 
 ### Virtual Address Space
 
