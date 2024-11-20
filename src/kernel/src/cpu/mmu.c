@@ -1,6 +1,6 @@
 #include "cpu/mmu.h"
 
-#include "drivers/ram.h"
+#include "cpu/ram.h"
 #include "kernel.h"
 #include "libc/string.h"
 

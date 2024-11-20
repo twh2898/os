@@ -8,7 +8,7 @@
 #include "cpu/timer.h"
 #include "debug.h"
 #include "disk.h"
-#include "drivers/ram.h"
+#include "cpu/ram.h"
 #include "drivers/rtc.h"
 #include "drivers/tar.h"
 #include "drivers/vga.h"

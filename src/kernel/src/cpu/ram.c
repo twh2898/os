@@ -1,4 +1,4 @@
-#include "drivers/ram.h"
+#include "cpu/ram.h"
 
 #include "kernel.h"
 #include "libc/stdio.h"
@@ -19,7 +19,7 @@ typedef struct {
     uint16_t free_count;
 } __attribute__((packed)) region_table_entry_t;
 
-typedef struct {
+typedef struct { 
     region_table_entry_t entries[REGION_TABLE_SIZE];
 } __attribute__((packed)) region_table_t;
 
