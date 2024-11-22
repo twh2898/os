@@ -59,7 +59,19 @@ irq_common_stub:
     mov es, ax
     mov fs, ax
     mov gs, ax
+
+    push_spec eax, cr4
+    push_spec eax, cr3
+    push_spec eax, cr2
+    push_spec eax, cr0
+
     call irq_handler ; Different than the ISR code
+
+    pop eax
+    pop eax
+    pop eax
+    pop eax
+
     pop ebx  ; Different than the ISR code
     mov ds, bx
     mov es, bx

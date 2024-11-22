@@ -187,6 +187,13 @@ void irq_handler(registers_t r) {
         port_byte_out(0xA0, 0x20); /* slave */
     port_byte_out(0x20, 0x20); /* master */
 
+    if (r.int_no >= 256) {
+        kprintf("BAD INTERRUPT 0x%X\n", r.int_no);
+        print_trace(&r);
+        KERNEL_PANIC("BAD INTERRUPT");
+        return;
+    }
+
     /* Handle the interrupt in a more modular way */
     if (interrupt_handlers[r.int_no] != 0) {
         isr_t handler = interrupt_handlers[r.int_no];

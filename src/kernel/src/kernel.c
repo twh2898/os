@@ -166,7 +166,6 @@ void kernel_main() {
     // trigger_page_fault();
     // kprintf("Paging enabled: %b\n", mmu_paging_enabled());
     init_malloc(pdir, VADDR_FREE_MEM_KERNEL >> 12);
-    init_ata();
 
     term_init();
     commands_init();
