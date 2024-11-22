@@ -81,7 +81,7 @@ static void trigger_page_fault() {
 
 static void id_map(mmu_page_table_t * table, size_t start, size_t end) {
     if (end > 1023) {
-        kprintf("End is past table limits %d\n", end);
+        KERNEL_PANIC("End is past table limits");
         end = 1023;
     }
     while (start <= end) {
@@ -93,7 +93,7 @@ static void id_map(mmu_page_table_t * table, size_t start, size_t end) {
 static void map_virt_page_dir(mmu_page_dir_t * dir) {
     size_t ram_table_count;
     mmu_page_table_t * firstTable = init_ram(UINT2PTR(PADDR_RAM_TABLE), &ram_table_count);
-    kprintf("Page table created at %p\n", firstTable);
+    // kprintf("Page table created at %p\n", firstTable);
     mmu_table_create(firstTable);
     mmu_dir_set(dir, 0, firstTable, MMU_DIR_RW);
 
@@ -135,7 +135,7 @@ static void map_virt_page_dir(mmu_page_dir_t * dir) {
 
     // create page table for the last entry of the page directory
     mmu_page_table_t * lastTable = firstTable + PAGE_SIZE;
-    kprintf("Last table created at %p\n", lastTable);
+    // kprintf("Last table created at %p\n", lastTable);
     mmu_table_create(lastTable);
     mmu_dir_set(dir, PAGE_DIR_SIZE - 1, lastTable, MMU_DIR_RW);
 
@@ -166,15 +166,15 @@ void kernel_main() {
     // trigger_page_fault();
     // kprintf("Paging enabled: %b\n", mmu_paging_enabled());
     init_malloc(pdir, VADDR_FREE_MEM_KERNEL >> 12);
-    // init_ata();
+    init_ata();
 
-    // term_init();
-    // commands_init();
+    term_init();
+    commands_init();
 
-    // term_command_add("demo", demo);
-    // term_command_add("test", test_cmd);
+    term_command_add("demo", demo);
+    term_command_add("test", test_cmd);
 
-    // ramdisk_create(4096);
+    ramdisk_create(4096);
 
     term_run();
 }
