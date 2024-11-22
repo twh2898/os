@@ -47,10 +47,12 @@ void mmu_table_free(mmu_page_table_t * table);
 
 void mmu_dir_set_table(mmu_page_dir_t * dir, size_t i, mmu_page_table_t * table);
 void mmu_dir_set_flags(mmu_page_dir_t * dir, size_t i, enum MMU_PAGE_DIR_FLAG flags);
+/// This is in the virtual address space, use mmu_dir_get_paddr for physical address
 mmu_page_table_t * mmu_dir_get_table(mmu_page_dir_t * dir, size_t i);
 void mmu_dir_set(mmu_page_dir_t * dir, size_t i, mmu_page_table_t * table, enum MMU_PAGE_DIR_FLAG flags);
 
-uint32_t mmu_dir_get_addr(mmu_page_dir_t * dir, size_t i);
+uint32_t mmu_dir_get_paddr(mmu_page_dir_t * dir, size_t i);
+uint32_t mmu_dir_get_vaddr(mmu_page_dir_t * dir, size_t i);
 enum MMU_PAGE_DIR_FLAG mmu_dir_get_flags(mmu_page_dir_t * dir, size_t i);
 
 void mmu_table_set_addr(mmu_page_table_t * table, size_t i, uint32_t page_addr);

@@ -76,9 +76,9 @@ mmu_page_table_t * mmu_dir_get_table(mmu_page_dir_t * dir, size_t i) {
     if (!dir || i >= PAGE_DIR_SIZE)
         return 0;
 
-    mmu_page_entry_t table_entry = dir->entries[i];
-    uint32_t table_addr = table_addr & MASK_ADDR;
-    return (mmu_page_table_t *)table_addr;
+    uint32_t virtual_address = mmu_dir_get_vaddr(dir, i);
+
+    return UINT2PTR(virtual_address);
 }
 
 void mmu_dir_set(mmu_page_dir_t * dir, size_t i, mmu_page_table_t * table, enum MMU_PAGE_DIR_FLAG flags) {
@@ -89,11 +89,18 @@ void mmu_dir_set(mmu_page_dir_t * dir, size_t i, mmu_page_table_t * table, enum 
     dir->entries[i] = entry;
 }
 
-uint32_t mmu_dir_get_addr(mmu_page_dir_t * dir, size_t i) {
+uint32_t mmu_dir_get_paddr(mmu_page_dir_t * dir, size_t i) {
     if (!dir || i >= PAGE_DIR_SIZE)
         return 0;
 
     return dir->entries[i] & MASK_ADDR;
+}
+
+uint32_t mmu_dir_get_vaddr(mmu_page_dir_t * dir, size_t i) {
+    if (!dir || i >= PAGE_DIR_SIZE)
+        return 0;
+
+    return VADDR_FIRST_PAGE_TABLE + (i << 12);
 }
 
 enum MMU_PAGE_DIR_FLAG mmu_dir_get_flags(mmu_page_dir_t * dir, size_t i) {

@@ -5,10 +5,9 @@
 #include "libc/stdio.h"
 #include "libc/string.h"
 
-#define REGION_TABLE_SIZE        (PAGE_SIZE / sizeof(region_table_entry_t)) // 512
-#define REGION_MAX_PAGE_COUNT    0x8000
-#define REGION_MAX_SIZE          (REGION_MAX_PAGE_COUNT * PAGE_SIZE)
-#define REGION_VIRT_BITMASK_ADDR 0x9f000
+#define REGION_TABLE_SIZE     (PAGE_SIZE / sizeof(region_table_entry_t)) // 512
+#define REGION_MAX_PAGE_COUNT 0x8000
+#define REGION_MAX_SIZE       (REGION_MAX_PAGE_COUNT * PAGE_SIZE)
 
 #define REGION_TABLE_FLAG_PRESENT 0x1
 #define BITMASK_PAGE_FREE         0x1
@@ -26,7 +25,9 @@ typedef struct {
 region_table_t * region_table;
 
 // THIS IS IN PHYSICAL ADDRESS SPACE NOT VIRTUAL
+static size_t build_table();
 static void create_bitmask(size_t region_index);
+static void set_bitmask_early(size_t region_index, uint16_t bit, bool free);
 // END THIS IS IN PHYSICAL ADDRESS SPACE NOT VIRTUAL
 
 static void set_bitmask(size_t region_index, uint16_t bit, bool free);
@@ -55,102 +56,22 @@ static upper_ram_t * upper_ram;
 static void sort_ram();
 
 void * init_ram(void * ram_table, size_t * ram_table_count) {
+    region_table = (region_table_t *)ram_table;
+    kmemset(region_table, 0, sizeof(region_table_t));
+
     lower_ram = *(uint16_t *)LOWER_RAM_ADDR;
     upper_ram_count = *(uint16_t *)UPPER_RAM_COUNT;
     upper_ram = (upper_ram_t *)UPPER_RAM_ADDR;
     sort_ram();
 
-    size_t first_area = 0;
-    bool found_free = false;
+    *ram_table_count = build_table(ram_table_count);
 
-    for (size_t i = 0; i < ram_upper_count(); i++) {
-        uint32_t addr = (uint32_t)ram_upper_start(i);
-        if (ram_upper_usable(i) && addr > 0x9fbff) {
-            if (addr & MASK_FLAGS)
-                addr += PAGE_SIZE;
-            found_free = true;
-            first_area = i;
-            break;
-        }
-    }
+    set_bitmask_early(0, 1, 0);
+    set_bitmask_early(0, 2, 0);
+    
+    region_table->entries[0].free_count -= 2;
 
-    if (!found_free) {
-        KERNEL_PANIC("FAILED TO FIND FREE RAM");
-    }
-
-    // kprintf("Found available at index %u of %u\n", first_area,
-    // ram_upper_count()); kprintf("Region table at %p\n", region_table);
-
-    uint32_t first_free_size = ram_upper_end(first_area) - ram_upper_start(first_area);
-
-    // First 2 pages (first page table, last page table)
-    if (first_free_size < PAGE_SIZE * 4) {
-        KERNEL_PANIC("FAILED TO FIND FREE RAM");
-    }
-
-    region_table = (region_table_t *)ram_table;
-    kmemset(region_table, 0, sizeof(region_table_t));
-
-    size_t table_index = 0;
-    for (size_t i = first_area; i < ram_upper_count(); i++) {
-        if (!ram_upper_usable(i))
-            continue;
-
-        uint32_t start = (uint32_t)ram_upper_start(i);
-        uint32_t end = (uint32_t)ram_upper_end(i) & MASK_ADDR;
-        uint32_t len = end - start;
-
-        bool isFirst = !table_index;
-
-        // Skip the very first 2 pages???
-        // Need 2 pages for first page tables
-        if (!table_index)
-            start += PAGE_SIZE;
-        start &= MASK_ADDR;
-
-        // kprintf("Ram region %u is usable %p - %p\n", i, start, end);
-
-        size_t region_count = len / REGION_MAX_SIZE;
-        if (len % REGION_MAX_SIZE)
-            region_count++;
-
-        // TODO - THOMAS YOU WANT TO WRAP THIS IN A FUNCTION
-        // TODO - THOMAS YOU WANT TO CHECK IF THIS IS CORRECT
-
-        for (size_t r = 0; r < region_count; r++) {
-            if (table_index >= REGION_TABLE_SIZE)
-                KERNEL_PANIC("Region table overflow");
-
-            size_t region_len = len;
-            if (region_len > REGION_MAX_SIZE)
-                region_len = REGION_MAX_SIZE;
-            start &= MASK_ADDR;
-            size_t region_end = (start + region_len);
-
-            region_table_entry_t * region = &region_table->entries[table_index++];
-            region->addr_flags = start | REGION_TABLE_FLAG_PRESENT;
-            region->page_count = region_len / PAGE_SIZE;
-            // -1 for bitmask page
-            region->free_count = region->page_count - 1;
-
-            create_bitmask(r);
-
-            len -= region_len;
-            start += region_len;
-            if (start & MASK_FLAGS)
-                start += PAGE_SIZE;
-        }
-
-        if (isFirst) {
-            region_table_entry_t * region = &region_table->entries[0];
-            uint8_t * bitmask = (uint8_t *)(region->addr_flags & MASK_ADDR);
-            bitmask[0] |= 0x7;
-        }
-    }
-
-    *ram_table_count = table_index;
-
-    return LUINT2PTR(ram_upper_start(first_area));
+    return LUINT2PTR(ram_bitmask_paddr(0) + PAGE_SIZE);
 }
 
 uint16_t ram_lower_size() {
@@ -182,9 +103,16 @@ enum RAM_TYPE ram_upper_type(uint16_t i) {
     return upper_ram[i].type;
 }
 
-uint32_t get_bitmask_addr(size_t i) {
-    if (i <= REGION_TABLE_SIZE)
-        return region_table->entries[i].addr_flags & MASK_ADDR;
+uint32_t ram_bitmask_paddr(size_t region_index) {
+    if (region_index <= REGION_TABLE_SIZE)
+        return region_table->entries[region_index].addr_flags & MASK_ADDR;
+    return 0;
+}
+
+uint32_t ram_bitmask_vaddr(size_t region_index) {
+    if (region_index <= REGION_TABLE_SIZE)
+        return VADDR_RAM_BITMASKS + region_index * PAGE_SIZE;;
+    return 0;
 }
 
 void * ram_page_alloc() {
@@ -197,7 +125,7 @@ void * ram_page_alloc() {
 
             set_bitmask(i, bit, false);
             region_table->entries[i].free_count--;
-            uint32_t page_addr = region_table->entries[i].addr_flags & MASK_ADDR + bit * PAGE_SIZE;
+            uint32_t page_addr = ram_bitmask_paddr(i) + bit * PAGE_SIZE;
             return (void *)page_addr;
         }
     }
@@ -245,6 +173,75 @@ static void sort_ram() {
 }
 
 // THIS IS IN PHYSICAL ADDRESS SPACE NOT VIRTUAL
+static size_t build_table() {
+    size_t first_area = 0;
+    bool found_free = false;
+
+    for (size_t i = 0; i < ram_upper_count(); i++) {
+        uint32_t addr = (uint32_t)ram_upper_start(i);
+        if (ram_upper_usable(i) && addr > 0x9fbff) {
+            if (addr & MASK_FLAGS)
+                addr += PAGE_SIZE;
+            found_free = true;
+            first_area = i;
+            break;
+        }
+    }
+
+    if (!found_free) {
+        KERNEL_PANIC("FAILED TO FIND FREE RAM");
+    }
+
+    uint32_t first_free_size = ram_upper_end(first_area) - ram_upper_start(first_area);
+
+    // First 2 pages (first page table, last page table)
+    if (first_free_size < PAGE_SIZE * 4) {
+        KERNEL_PANIC("FAILED TO FIND FREE RAM");
+    }
+
+    size_t table_index = 0;
+    for (size_t i = first_area; i < ram_upper_count(); i++) {
+        if (!ram_upper_usable(i))
+            continue;
+
+        uint32_t start = (uint32_t)ram_upper_start(i);
+        uint32_t end = (uint32_t)ram_upper_end(i) & MASK_ADDR;
+        uint32_t len = end - start;
+
+        start &= MASK_ADDR;
+
+        size_t region_count = len / REGION_MAX_SIZE;
+        if (len % REGION_MAX_SIZE)
+            region_count++;
+
+        for (size_t r = 0; r < region_count; r++) {
+            if (table_index >= REGION_TABLE_SIZE)
+                KERNEL_PANIC("Region table overflow");
+
+            size_t region_len = len;
+            if (region_len > REGION_MAX_SIZE)
+                region_len = REGION_MAX_SIZE;
+            start &= MASK_ADDR;
+            size_t region_end = (start + region_len);
+
+            region_table_entry_t * region = &region_table->entries[table_index];
+            region->addr_flags = start | REGION_TABLE_FLAG_PRESENT;
+            region->page_count = region_len / PAGE_SIZE;
+            // -1 for bitmask page
+            region->free_count = region->page_count - 1;
+
+            create_bitmask(table_index);
+
+            len -= region_len;
+            start += region_len;
+
+            table_index++;
+        }
+    }
+
+    return table_index;
+}
+
 static void create_bitmask(size_t region_index) {
     if (region_index > REGION_TABLE_SIZE)
         return;
@@ -256,8 +253,6 @@ static void create_bitmask(size_t region_index) {
     size_t bytes = pages / 8;
     size_t bits = pages % 8;
 
-    // kprintf("Bitmask at %p for region of %u pages %u bytes and %u bites\n", bitmask, pages, bytes, bits);
-
     kmemset(bitmask, 0, PAGE_SIZE);
     kmemset(bitmask, 0xff, bytes);
 
@@ -268,13 +263,30 @@ static void create_bitmask(size_t region_index) {
     // Set bitmask page as used
     bitmask[0] &= 0xfe;
 }
+
+static void set_bitmask_early(size_t region_index, uint16_t bit, bool free) {
+    if (region_index > REGION_TABLE_SIZE)
+        return;
+
+    size_t byte = bit / 8;
+    bit = bit % 8;
+
+    uint8_t * bitmask = UINT2PTR(ram_bitmask_paddr(region_index));
+
+    if (free) {
+        bitmask[byte] |= 1 << bit;
+    }
+    else {
+        bitmask[byte] &= ~(1 << bit);
+    }
+}
 // END THIS IS IN PHYSICAL ADDRESS SPACE NOT VIRTUAL
 
 static void set_bitmask(size_t region_index, uint16_t bit, bool free) {
     if (region_index > REGION_TABLE_SIZE)
         return;
 
-    uint8_t * bitmask = (uint8_t *)(REGION_VIRT_BITMASK_ADDR + region_index * PAGE_SIZE);
+    uint8_t * bitmask = UINT2PTR(ram_bitmask_vaddr(region_index));
     size_t byte = bit / 8;
     bit = bit % 8;
 
@@ -290,8 +302,7 @@ static bool get_bitmask(size_t region_index, uint16_t bit) {
     if (region_index > REGION_TABLE_SIZE)
         return false;
 
-    uint8_t * bitmask =
-        (uint8_t *)(REGION_VIRT_BITMASK_ADDR + region_index * PAGE_SIZE);
+    uint8_t * bitmask = UINT2PTR(ram_bitmask_vaddr(region_index));
     size_t byte = bit / 8;
     bit = bit % 8;
 
@@ -322,7 +333,7 @@ static size_t find_addr_entry(uint32_t addr) {
 
     for (size_t i = 0; i < REGION_TABLE_SIZE; i++) {
         if (region_table->entries[i].addr_flags & REGION_TABLE_FLAG_PRESENT) {
-            uint32_t region_start = region_table->entries[i].addr_flags & MASK_ADDR;
+            uint32_t region_start = ram_bitmask_paddr(i);
             uint32_t region_end = region_start + region_table->entries[i].page_count * PAGE_SIZE;
 
             if (addr >= region_start && addr <= region_end)

@@ -27,7 +27,8 @@ bool ram_upper_usable(uint16_t i);
 enum RAM_TYPE ram_upper_type(uint16_t i);
 // END THIS IS IN PHYSICAL ADDRESS SPACE NOT VIRTUAL
 
-uint32_t get_bitmask_addr(size_t i);
+uint32_t ram_bitmask_paddr(size_t region_index);
+uint32_t ram_bitmask_vaddr(size_t region_index);
 
 /*
  Bits 12 - 31 of memory address (ie. page aligned pointer)

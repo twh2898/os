@@ -65,6 +65,8 @@ Region Type can be one of the following
 | 0x07000 | 0x07bff | 3 KiB     | Unused                |
 | 0x07c00 | 0x07dff | 512 bytes | GDT                   |
 | 0x07e00 | 0x9efff | 604.5 KiB | Kernel (second stage) |
+| ...     | ...     | ...       | ...                   |
+| 0xb8000 | 0xb8fff | 0x01000   | VGA Memory            |
 
 > [!IMPORTANT] Kernel Size in Protected Mode
 > Reserved memory in protected mode starts at 0x9fc00 while real mode starts at
@@ -92,19 +94,21 @@ directory.
   - Each of the 1024 tables from the page directory are stored here sequentially
   - The first table includes the null page and kernel memory mapping (see bellow)
 
-| start      | end        | pages   | physical addr | description                                  |
-| ---------- | ---------- | ------- | ------------- | -------------------------------------------- |
-| 0x00000000 | 0x00000fff | 0x00001 | 0x00000000    | null page (not present)                      |
-| 0x00001000 | 0x00001fff | 0x00001 | 0x00001000    | Page Directory                               |
-| 0x00002000 | 0x00002fff | 0x00001 | 0x00002000    | ram region table                             |
-| 0x00003000 | 0x00006fff | 0x00004 | 0x00003000    | Stack                                        |
-| 0x00007000 | 0x0009efff | 0x00098 | 0x00007000    | Kernel (from 0x7e00 to 0x9efff)              |
-| 0x0009f000 | 0x0029efff | 0x00200 |               | ram region bitmasks                          |
-| 0x0029f000 | 0x003fffff | 0x00161 |               | _free memory for kernel (first page table)_  |
-| 0x00400000 | 0xffbfffff | 0xff800 |               | _free memory for user (second+ page tables)_ |
-| 0xffc00000 | 0xffc00fff | 0x00001 |               | first page table (includes identity map)     |
-| 0xffc01000 | 0xffffefff | 0x003fe |               | all page tables from the active directory    |
-| 0xfffff000 | 0xffffffff | 0x00001 |               | last table (all the page tables)             |
+| start      | end        | pages   | physical addr | description                                               |
+| ---------- | ---------- | ------- | ------------- | --------------------------------------------------------- |
+| 0x00000000 | 0x00000fff | 0x00001 | 0x00000000    | null page (not present)                                   |
+| 0x00001000 | 0x00001fff | 0x00001 | 0x00001000    | Page Directory                                            |
+| 0x00002000 | 0x00002fff | 0x00001 | 0x00002000    | ram region table                                          |
+| 0x00003000 | 0x00006fff | 0x00004 | 0x00003000    | Stack                                                     |
+| 0x00007000 | 0x0009efff | 0x00098 | 0x00007000    | Kernel (from 0x7e00 to 0x9efff)                           |
+| 0x0009f000 | 0x000b7fff | 0x00019 |               | _free memory for kernel_                                  |
+| 0x000b8000 | 0x000b8fff | 0x00001 | 0x000b8000    | VGA Memory                                                |
+| 0x000b9000 | 0x002b9fff | 0x00200 |               | ram region bitmasks                                       |
+| 0x002ba000 | 0x003fffff | 0x00146 |               | _free memory for kmalloc (remainder of first page table)_ |
+| 0x00400000 | 0xffbfffff | 0xff800 |               | _free memory for user (second+ page tables)_              |
+| 0xffc00000 | 0xffc00fff | 0x00001 |               | first page table (includes identity map)                  |
+| 0xffc01000 | 0xffffefff | 0x003fe |               | all page tables from the active directory                 |
+| 0xfffff000 | 0xffffffff | 0x00001 |               | last table (all the page tables)                          |
 
 _Pages with a blank physical address are allocated form free physical memory._
 
