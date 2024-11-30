@@ -12,6 +12,9 @@ QEMUFLAGS = -m 1G -drive format=raw,file=drive.tar -d int,mmu -D qemu_log.txt -n
 # ===============
 #  LAUNCH & UTIL
 # ===============
+setup:
+	cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+
 build:
 	cmake --build build
 
@@ -38,4 +41,4 @@ dump-kernel:
 clean:
 	rm -rf *.bin qemu_log.txt drive.img build/
 
-.PHONY: all run debug debugbuild test clean
+.PHONY: setup build run debug boot-debug dump dump-kernel clean
