@@ -380,6 +380,53 @@ static int fs_read_cmd(size_t argc, char ** argv) {
     return 0;
 }
 
+static int fs_cat_cmd(size_t argc, char ** argv) {
+    if (argc != 2) {
+        kprintf("Usage: %s <filename>\n", argv[0]);
+        return 1;
+    }
+
+    char * filename = argv[1];
+
+    if (!tar) {
+        kputs("Filesystem not mounted\n");
+        return 1;
+    }
+
+    tar_stat_t stat;
+    if (!tar_stat_file(tar, filename, &stat)) {
+        kputs("Failed to find file\n");
+        return 1;
+    }
+
+    uint8_t * buff = kmalloc(stat.size);
+    if (!buff)
+        return 1;
+
+    tar_fs_file_t * file = tar_file_open(tar, filename);
+    if (!file) {
+        kfree(buff);
+        return 1;
+    }
+
+    if (!tar_file_read(file, buff, stat.size)) {
+        tar_file_close(file);
+        kfree(buff);
+        return 1;
+    }
+    for (size_t i = 0; i < stat.size; i++) {
+        kputc(buff[i]);
+    }
+
+    if (!disk || !buff)
+        return 0;
+
+    tar_file_close(file);
+    kfree(buff);
+
+    return 0;
+}
+
 // static int status_cmd(size_t argc, char ** argv) {
 //     // ata_status();
 //     return 0;
@@ -475,6 +522,7 @@ void commands_init() {
     term_command_add("stat", stat_cmd);
     // term_command_add("status", status_cmd);
     term_command_add("read", fs_read_cmd);
+    term_command_add("cat", fs_cat_cmd);
     // term_command_add("read", disk_read_cmd);
     term_command_add("write", disk_write_cmd);
     term_command_add("size", disk_size_cmd);
