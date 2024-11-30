@@ -54,9 +54,4 @@ add_custom_command(TARGET os_image POST_BUILD COMMAND ${CMAKE_COMMAND} -E
 # include(CTest)
 # enable_testing()
 
-# # find_package(gtest REQUIRED)
-
-# add_executable(test1 tests/test_main.cpp)
-# target_link_libraries(test1 gtest)
-
-# add_test(NAME test1 COMMAND test1)
+# add_subdirectory(tests)
