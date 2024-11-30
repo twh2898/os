@@ -6,9 +6,9 @@ Active and planned work is tracked in [notes.md](notes.md)
 
 For current specs see
 
-- [memory.md](memory.md)
-- [boot.md](boot.md)
-- ~~[filesystem.md](filesystem.md)~~
+- [memory.md](design/memory.md)
+- [boot.md](design/boot.md)
+- ~~[filesystem.md](design/filesystem.md)~~
 
 ## Goals
 

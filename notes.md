@@ -9,10 +9,10 @@ section once they are finished.
   - [x] Add design doc for boot stages and move out of readme
   - [ ] Update boot stages to be more accurate
   - [ ] Filesystem documentation
-  - [ ] Move doc files under design folder
-  - [ ] Clean up goals in readme
-    - [ ] Remove completed section (make checked boxes in list)
-    - [ ] Cleanup Goals term lists
+  - [x] Move doc files under design folder
+  - [x] Clean up goals in readme
+    - [x] Remove completed section (make checked boxes in list)
+    - [x] Cleanup Goals term lists
 - [ ] mmu
   - [ ] free interior pages when malloc free's entire virtual page
 - [ ] tar
