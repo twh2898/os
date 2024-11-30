@@ -2,7 +2,13 @@
 
 ~~Following the tutorials under https://github.com/cfenollosa/os-tutorial~~
 
-For current specs see [memory.md](memory.md) and ~~[filesystem.md](filesystem.md)~~
+Active and planned work is tracked in [notes.md](notes.md)
+
+For current specs see
+
+- [memory.md](memory.md)
+- ~~[boot_stages.md](boot_stages.md)~~
+- ~~[filesystem.md](filesystem.md)~~
 
 ## Goals
 
@@ -12,7 +18,7 @@ The OS will be finished when all of the following are implemented.
 2. Compiler for at least Assembly or C
 3. Playable Minecraft Clone
 
-## ToDo
+### Near Term
 
 - [ ] Kernel stats (stats command returns # disk io, keys, mounts, etc.)
 - [ ] Detect stack overflows

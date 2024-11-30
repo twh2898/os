@@ -1,33 +1,72 @@
 # Notes and ToDos for active and planned future work
 
-Misc. TODO
+This is a list of all active and planned work. They can be removed once they are
+checked off. Use the task template bellow for larger tasks that need some design
+work or require additional information. Those can be moved under the Completed
+section once they are finished.
 
-- [ ] Update list of completed features in README.md
-- [ ] Update boot stages in README.md
+- [ ] Add design doc for boot stages and move out of readme
+- [ ] Clean up goals in readme
+  - [ ] Remove completed section (make checked boxes in list)
+  - [ ] Cleanup Goals term lists
+- [ ] mmu
+  - [ ] free interior pages when malloc free's entire virtual page
+- [ ] tar
+  - [ ] list directories
+- [ ] disk
+  - [x] ata driver
+  - [ ] floppy driver
+  - [ ] ram disk driver
+- [ ] test (os built in)
+  - [ ] circbuff_rpop
+  - [ ] circbuff_read edge case read after remove where start has changed
+- [ ] ram
+  - [ ] handle region overlap
+- [ ] rtc
+  - [ ] pretty much everything
+- [ ] dir
+  - [ ] pretty much everything
+- [ ] file
+  - [ ] pretty much everything
+- [ ] Document code
+  - [ ] cpu/idt.h
+  - [ ] cpu/isr.h
+  - [ ] cpu/mmu.h
+  - [ ] cpu/ports.h
+  - [ ] cpu/ram.h
+  - [ ] cpu/timer.h
+  - [ ] drivers/ata.h
+  - [ ] drivers/keyboard.h
+  - [ ] drivers/ramdisk.h
+  - [ ] drivers/rtc.h
+  - [ ] drivers/tar.h
+  - [ ] drivers/vga.h
+  - [x] libc/circbuff.h
+  - [ ] libc/dir.h
+  - [ ] libc/file.h
+  - [ ] libc/memory.h
+  - [ ] libc/stdio.h
+  - [ ] libc/string.h
+  - [ ] commands.h
+  - [ ] debug.h
+  - [ ] defs.h
+  - [ ] disk.h
+  - [ ] kernel.h
+  - [ ] term.h
 
-## Creation of Page Tables
+## _Template Task_
 
-**TODO** how are page tables added to the virtual space?
-
-Idk if the kernel initializes all of the entries of the final page table or only
-the first and last.
-
-The first and last page tables are setup but nothing in between. Does the paging
-allocator create new page tables if needed?
+Description of task and any relevant details / information.
 
 ### Tasks
 
-- [ ] Check if page allocator checks if the first page table is full
-- [ ] Check if page allocator will create and add new page tables to the page directory
-
-lol, it's all TODO comments
-
+- [ ] Sub task list
 
 # Completed
 
 ## Physical Allocator
 
-**TODO** how to access region bitmask in paging mode?
+How to access region bitmask in paging mode?
 
 I wrote the physical allocator before the paging allocator. So all operations
 expect direct access (identity mapping) of the region bitmask page.

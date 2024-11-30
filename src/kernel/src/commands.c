@@ -298,7 +298,6 @@ static int ls_cmd(size_t argc, char ** argv) {
         return 1;
     }
 
-    // TODO implement
     size_t file_count = tar_file_count(tar);
     kprintf("Found %u files\n", file_count);
 

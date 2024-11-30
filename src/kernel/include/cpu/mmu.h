@@ -68,16 +68,6 @@ extern bool mmu_paging_enabled();
 extern void mmu_change_dir(mmu_page_dir_t * dir);
 extern mmu_page_dir_t * mmu_get_curr_dir();
 
-// TODO re-enable when you actually have page dir mapped
-// void * mmu_phys_addr(void * virt_addr);
-// TODO re-enable when you actually have paging working
-// void mmu_map_page(mmu_page_dir_t * dir, void *phys_addr, void *virtual_addr,
-// unsigned int flags);
-
-// TODO request page increase
-// TODO request page decrease
-
-// TODO way in the future, free interior pages when malloc free's entire virtual
-// page,
+// TODO way in the future, free interior pages when malloc free's entire virtual page
 
 #endif // MMU_H
