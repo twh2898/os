@@ -8,9 +8,9 @@ For current specs see [memory.md](memory.md) and ~~[filesystem.md](filesystem.md
 
 The OS will be finished when all of the following are implemented.
 
-- [ ] Able to get and draw basic http web page
-- [ ] Compiler for at least Assembly or C
-- [ ] Playable Minecraft Clone
+1. Able to get and draw basic http web page
+2. Compiler for at least Assembly or C
+3. Playable Minecraft Clone
 
 ## ToDo
 
@@ -20,13 +20,15 @@ The OS will be finished when all of the following are implemented.
   - [ ] Finish implementing fs functions
   - [ ] Implement file io
 - [x] basic malloc (linked list)
-- [ ] malloc
+- [x] malloc
   - [x] Actually manage memory
-  - [ ] Need to find end of kernel to not overflow at runtime (for malloc start)
+  - [x] Need to find end of kernel to not overflow at runtime (for malloc start)
   - [x] Detect max memory for malloc
   - [x] Do that fancy memory map
 - [x] Paging
-  - [ ] Load user space application
+  - [x] Setup page dir and table
+  - [x] Enter paging
+- [ ] Load user space application
 - [ ] Ring 3
   - [ ] Kernel Service Calls
 - [ ] Date and Time
@@ -66,6 +68,9 @@ The OS will be finished when all of the following are implemented.
 - circular buffer + tests (builtin, needs separating)
 
 ## Boot Stages
+
+This describes the planned stages and steps, it does not represent the current
+implementation or progress.
 
 ### BIOS
 
@@ -114,6 +119,26 @@ The OS will be finished when all of the following are implemented.
 5. Shell
 
 ## Setup
+
+```sh
+git clone git@github.com:twh2898/os.git
+cd os
+make setup
+```
+
+### Building
+
+```sh
+make build
+```
+
+### Running
+
+```sh
+make run
+```
+
+Once running, use the `help` command to see what you can do.
 
 ### Format drive.img
 
