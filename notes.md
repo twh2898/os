@@ -5,10 +5,14 @@ checked off. Use the task template bellow for larger tasks that need some design
 work or require additional information. Those can be moved under the Completed
 section once they are finished.
 
-- [ ] Add design doc for boot stages and move out of readme
-- [ ] Clean up goals in readme
-  - [ ] Remove completed section (make checked boxes in list)
-  - [ ] Cleanup Goals term lists
+- [ ] Documentation
+  - [x] Add design doc for boot stages and move out of readme
+  - [ ] Update boot stages to be more accurate
+  - [ ] Filesystem documentation
+  - [ ] Move doc files under design folder
+  - [ ] Clean up goals in readme
+    - [ ] Remove completed section (make checked boxes in list)
+    - [ ] Cleanup Goals term lists
 - [ ] mmu
   - [ ] free interior pages when malloc free's entire virtual page
 - [ ] tar
