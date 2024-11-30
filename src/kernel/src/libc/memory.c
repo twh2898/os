@@ -91,14 +91,16 @@ void * kmalloc(size_t size) {
             add_page();
             size += PAGE_SIZE;
         }
-        entry_set(entry_of(table, i), PTR2UINT(next_free), new_size, MEMORY_ENTRY_FLAG_PRESENT | MEMORY_ENTRY_FLAG_FREE);
+
+        entry = entry_of(table, i);
+        entry_set(entry, PTR2UINT(next_free), new_size, MEMORY_ENTRY_FLAG_PRESENT | MEMORY_ENTRY_FLAG_FREE);
     }
 
     if (entry->size >= size + PAGE_SIZE) {
         split_entry(table, i, size);
     }
 
-    entry_set_flags(entry_of(table, i), MEMORY_ENTRY_FLAG_PRESENT);
+    entry_set_flags(entry, MEMORY_ENTRY_FLAG_PRESENT);
 
     return UINT2PTR(entry->addr_flags & MASK_ADDR);
 }
@@ -246,8 +248,13 @@ static memory_table_entry_t * find_free(memory_table_t ** table, size_t * i, siz
             // memory_table_entry_t * entry = &(*table)->entries[*i];
             memory_table_entry_t * entry = entry_of(*table, *i);
 
+            // Found end of entries, keep i at this spot
+            if (!entry_is_present(entry)) {
+                return 0;
+            }
+
             // if (entry->addr_flags & (MEMORY_ENTRY_FLAG_PRESENT | MEMORY_ENTRY_FLAG_FREE)) {
-            if (entry_is_present_free(entry)) {
+            if (entry_is_free(entry)) {
                 if (entry->size >= size)
                     return entry;
 
