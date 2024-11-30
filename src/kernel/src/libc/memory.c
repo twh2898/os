@@ -286,7 +286,7 @@ static inline bool entry_is_present(memory_table_entry_t * entry) {
 }
 
 static inline bool entry_is_present_free(memory_table_entry_t * entry) {
-    return (entry->addr_flags & MASK_FLAGS) == MEMORY_ENTRY_FLAG_FREE | MEMORY_ENTRY_FLAG_PRESENT;
+    return entry->addr_flags & (MEMORY_ENTRY_FLAG_FREE | MEMORY_ENTRY_FLAG_PRESENT);
 }
 
 static memory_table_entry_t * next_entry(memory_table_t * table, size_t i) {
