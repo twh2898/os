@@ -135,6 +135,22 @@ static mmu_page_dir_t * enter_paging() {
     return pdir;
 }
 
+static void check_malloc() {
+    void * a = ram_page_alloc();
+    void * b = ram_page_alloc();
+
+    kprintf("Ram page alloc gave 0x%x and 0x%X\n", PTR2UINT(a), PTR2UINT(b));
+
+    void * c = kmalloc(1);
+    void * d = kmalloc(1);
+
+    kprintf("Malloc gave vaddr %p and %p\n", c, d);
+
+    void * e = ram_page_alloc();
+
+    kprintf("Ram page alloc gave %p\n", e);
+}
+
 void kernel_main() {
     vga_clear();
 
@@ -149,6 +165,8 @@ void kernel_main() {
     // kprintf("Paging enabled: %b\n", mmu_paging_enabled());
     init_malloc(pdir, VADDR_FREE_MEM_KERNEL >> 12);
 
+    // check_malloc();
+
     term_init();
     commands_init();
 
@@ -156,6 +174,8 @@ void kernel_main() {
     term_command_add("test", test_cmd);
 
     ramdisk_create(4096);
+
+    // run_tests();
 
     term_run();
 }

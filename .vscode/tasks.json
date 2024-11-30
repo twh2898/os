@@ -36,6 +36,9 @@
             "isBackground": true,
             // "command": "qemu-system-i386 -s -S -boot order=a -m 1G -drive format=raw,file=drive.tar -d int,mmu -D qemu_log.txt -no-reboot -no-shutdown -drive format=raw,file=build/os-image.bin,index=0,if=floppy &",
             "command": "make debug",
+            // "dependsOn": [
+            //     "cmake"
+            // ],
             // This task is run before some debug tasks.
             // Problem is, it's a watch script, and since it never exits, VSCode
             // complains. All this is needed so VSCode just lets it run.

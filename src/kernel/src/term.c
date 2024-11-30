@@ -41,6 +41,12 @@ static bool is_ws(char c);
 static void exec_buff();
 static char ** parse_args(const char * line, size_t * out_len);
 
+static void dump_buff() {
+    for (size_t i = 0; i < circbuff_len(keybuff); i++) {
+        kprintf("%X ", circbuff_at(keybuff, i));
+    }
+}
+
 static void key_cb(uint8_t code, char c, keyboard_event_t event, keyboard_mod_t mod) {
     if (event != KEY_EVENT_RELEASE && c) {
         if (circbuff_len(keybuff) >= MAX_CHARS) {
@@ -62,6 +68,9 @@ static void key_cb(uint8_t code, char c, keyboard_event_t event, keyboard_mod_t 
             ERROR("key buffer write error");
             return;
         }
+
+        // kprintf("Circbuff char %x at len %d / %d\n", c, circbuff_len(keybuff), circbuff_buff_size(keybuff));
+        // dump_buff();
 
         if (code == KEY_ENTER)
             command_ready++;
@@ -97,6 +106,8 @@ void term_update() {
 
     size_t cmd_len = 0;
     bool found_nl = false;
+    // kputs("Ready\n");
+    // dump_buff();
     for (size_t i = 0; i < circbuff_len(keybuff); i++) {
         if (circbuff_at(keybuff, i) == '\n') {
             cmd_len = i;
