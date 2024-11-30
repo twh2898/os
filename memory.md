@@ -14,8 +14,8 @@ See https://wiki.osdev.org/Memory_Map_(x86) for reserved BIOS memory.
 | 0x7e00 | 0x9fbff | 607.5 KiB | Kernel (second stage)       |
 
 > [!IMPORTANT] Kernel Size in Protected Mode
-> Reserved memory in protected mode starts at 0x9fc00 while real mode free area
-> ends at 0x9ffff
+> Reserved memory in protected mode starts at 0x9fc00 while real mode starts at
+> 0xa0000
 
 ### Boot Parameters
 
@@ -64,7 +64,7 @@ Region Type can be one of the following
 | 0x03000 | 0x06fff | 16 KiB    | Stack                 |
 | 0x07000 | 0x07bff | 3 KiB     | Unused                |
 | 0x07c00 | 0x07dff | 512 bytes | GDT                   |
-| 0x07e00 | 0x9efff | 604.5 KiB | Kernel (second stage) |
+| 0x07e00 | 0x9fbff | 607.5 KiB | Kernel (second stage) |
 | ...     | ...     | ...       | ...                   |
 | 0xb8000 | 0xb8fff | 0x01000   | VGA Memory            |
 
@@ -82,8 +82,8 @@ directory.
 - Each page directory and table contain 1024 entries
 - 0x1000 will always point to the active page directory
 - 0x2000 will always point to the ram region table
-- 0x9f000 will always point to the first ram region bitmasks
-  - There are 512 sequential pages of ram bitmasks ending at 0x29efff
+- 0xb9000 will always point to the first ram region bitmasks
+  - There are 512 sequential pages of ram bitmasks ending at 0x2b9fff
 - _0x400000 is the first virtual address of the second page table_
   - It is suggested to keep kernel level memory bellow this address to allow
     user space application switching out the second+ page table
@@ -101,7 +101,7 @@ directory.
 | 0x00002000 | 0x00002fff | 0x00001 | 0x00002000    | ram region table                                          |
 | 0x00003000 | 0x00006fff | 0x00004 | 0x00003000    | Stack                                                     |
 | 0x00007000 | 0x0009efff | 0x00098 | 0x00007000    | Kernel (from 0x7e00 to 0x9efff)                           |
-| 0x0009f000 | 0x000b7fff | 0x00019 |               | _free memory for kernel_                                  |
+| 0x0009f000 | 0x000b7fff | 0x00019 |               | Unused                                                    |
 | 0x000b8000 | 0x000b8fff | 0x00001 | 0x000b8000    | VGA Memory                                                |
 | 0x000b9000 | 0x002b9fff | 0x00200 |               | ram region bitmasks                                       |
 | 0x002ba000 | 0x003fffff | 0x00146 |               | _free memory for kmalloc (remainder of first page table)_ |

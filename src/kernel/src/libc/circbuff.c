@@ -87,7 +87,8 @@ size_t circbuff_len(const circbuff_t * cbuff) {
 uint8_t circbuff_at(const circbuff_t * cbuff, size_t index) {
     if (!cbuff || cbuff->len == 0)
         return 0;
-    return cbuff->buff[_wrap_index(cbuff, cbuff->start + index)];
+    size_t i = _wrap_index(cbuff, cbuff->start + index);
+    return cbuff->buff[i];
 }
 
 size_t circbuff_push(circbuff_t * cbuff, uint8_t data) {

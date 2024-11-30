@@ -91,7 +91,7 @@ void vga_color(unsigned char attr) {
 }
 
 size_t vga_putc(char c) {
-    int ret = 0;
+    size_t ret = 0;
     if (c == '\n') {
         int row = vga_row(index);
         index = vga_index(row + 1, 0);
@@ -120,7 +120,7 @@ size_t vga_print(const char * str) {
     if (!str)
         return 0;
 
-    int len = 0;
+    size_t len = 0;
     while (*str != 0) {
         vga_putc(*str++);
         len++;

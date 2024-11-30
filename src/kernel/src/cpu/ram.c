@@ -64,11 +64,14 @@ void * init_ram(void * ram_table, size_t * ram_table_count) {
     upper_ram = (upper_ram_t *)UPPER_RAM_ADDR;
     sort_ram();
 
-    *ram_table_count = build_table(ram_table_count);
+    *ram_table_count = build_table();
 
+    // first page table
     set_bitmask_early(0, 1, 0);
+
+    // ... idr
     set_bitmask_early(0, 2, 0);
-    
+
     region_table->entries[0].free_count -= 2;
 
     return LUINT2PTR(ram_bitmask_paddr(0) + PAGE_SIZE);
@@ -111,7 +114,7 @@ uint32_t ram_bitmask_paddr(size_t region_index) {
 
 uint32_t ram_bitmask_vaddr(size_t region_index) {
     if (region_index <= REGION_TABLE_SIZE)
-        return VADDR_RAM_BITMASKS + region_index * PAGE_SIZE;;
+        return VADDR_RAM_BITMASKS + region_index * PAGE_SIZE;
     return 0;
 }
 

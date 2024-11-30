@@ -93,43 +93,25 @@ static void id_map(mmu_page_table_t * table, size_t start, size_t end) {
 static void map_virt_page_dir(mmu_page_dir_t * dir) {
     size_t ram_table_count;
     mmu_page_table_t * firstTable = init_ram(UINT2PTR(PADDR_RAM_TABLE), &ram_table_count);
-    // kprintf("Page table created at %p\n", firstTable);
+    // kprintf("First table is at 0x%x\n", PTR2UINT(firstTable));
     mmu_table_create(firstTable);
     mmu_dir_set(dir, 0, firstTable, MMU_DIR_RW);
 
     // null page 0
     mmu_table_set(firstTable, 0, 0, 0);
 
+    // Kernel
     id_map(firstTable, 1, 0x9e);
 
+    /* SKIP UNUSED MEMORY */
+
+    // VGA
     mmu_table_set(firstTable, 0xb8, PADDR_VGA, MMU_TABLE_RW);
 
-    mmu_table_set(firstTable, 0x9f, PTR2UINT(firstTable) - PAGE_SIZE, MMU_TABLE_RW);
-
-    // // Page Directory
-    // mmu_table_set(firstTable, 1, PADDR_PAGE_DIR, MMU_TABLE_RW);
-
-    // // Ram region table
-    // mmu_table_set(firstTable, 2, PADDR_RAM_TABLE, MMU_TABLE_RW);
-
-    // // stack (4)
-    // for (size_t i = 0; i < 4; i++) {
-    //     mmu_table_set(firstTable, 3 + i, PADDR_STACK + (i << 12), MMU_TABLE_RW);
-    // }
-
-    // // kernel (0x98)
-    // for (size_t i = 0; i < 0x98; i++) {
-    //     mmu_table_set(firstTable, 3 + i, PADDR_KERNEL + (i << 12), MMU_TABLE_RW);
-    // }
-
-    // // ram region bitmasks
-    // for (size_t i = 0; i < 512; i++) {
-    //     uint32_t addr = ram_bitmask_paddr(i);
-    //     if (addr)
-    //         mmu_table_set(firstTable, 0xa1 + i, 0xa1000 + (i << 12), MMU_TABLE_RW);
-    //     else
-    //         mmu_table_set(firstTable, 0xa1 + i, 0, 0);
-    // }
+    // RAM region bitmasks
+    for (size_t i = 0; i < ram_table_count; i++) {
+        mmu_table_set(firstTable, (VADDR_RAM_BITMASKS >> 12) + i * PAGE_SIZE, ram_bitmask_paddr(i), MMU_TABLE_RW);
+    }
 
     /* SKIP FREE MEMORY */
 
