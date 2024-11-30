@@ -7,7 +7,7 @@ section once they are finished.
 
 - [ ] Documentation
   - [x] Add design doc for boot stages and move out of readme
-  - [ ] Update boot stages to be more accurate
+  - [x] Update boot stages to be more accurate
   - [ ] Filesystem documentation
   - [x] Move doc files under design folder
   - [x] Clean up goals in readme
@@ -57,6 +57,7 @@ section once they are finished.
   - [ ] disk.h
   - [ ] kernel.h
   - [ ] term.h
+- [ ] Move drivers and other os level code out of kernel (only keep essentials)
 
 ## _Template Task_
 

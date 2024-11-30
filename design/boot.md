@@ -5,33 +5,45 @@ implementation or progress.
 
 ## BIOS
 
-1. Load boot sector into memory at 0x7c00
+The BIOS firmware does a lot more than this, only the steps to launch the kernel
+are included.
 
-## Stage 1
+1. Power On Self Test (POST)
+2. Load boot sector (512 Bytes) into memory at 0x7c00
+3. Jump to 0x7c00
+
+## Stage 1 - Boot
+
+Execution of the first 512 bytes "boot sector".
 
 1. Store boot drive id
 2. Setup stage 1 stack at 0x06fff
 3. Read memory map to 0x500
-4. Read stage 2 from boot drive
+4. Read stage 2 from boot drive to 0x07e00
 5. Setup GDT
 7. Switch to protected mode
+8. Jump to 0x07e00
 
-## Stage 2
+## Stage 2 - Kernel
 
-1. ~~Move boot parameters out of first page~~
-   1. ~~Set first page to throw error on access to 0~~
-2. Setup ISR and IDT
-4. Setup Memory Allocator
-   1. Physical Memory
-   2. Virtual Memory (paging)
-5. Enable Paging
-6. Load VGA driver
+Kernel in protected mode setting up system for user space applications.
+
+1. Load VGA driver
    1. Clear screen
    2. Print hello
-8.  Load ATA driver
+2. Setup ISR and IDT
+   1. Init timer
+   2. Init keyboard
+   3. Init ata
+   4. Init rtc
+3. Setup Memory Allocator
+   1. Physical Memory
+   2. Virtual Memory (paging)
+4. Enable Paging
+5. Load ATA driver
    1. Mount fs
    2. Read kernel into page directory
-9.  Start kernel
+6. Start kernel
 
 ## Stage 3 - OS
 
