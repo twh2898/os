@@ -1,5 +1,6 @@
 #include "cpu/ram.h"
 
+#include "cpu/boot_params.h"
 #include "defs.h"
 #include "kernel.h"
 #include "libc/stdio.h"
@@ -38,17 +39,6 @@ static size_t find_addr_entry(uint32_t addr);
 // Returns 0 for error, 0 is always invalid
 static size_t find_addr_bit(size_t region_index, uint32_t addr);
 
-#define LOWER_RAM_ADDR  0x0500
-#define UPPER_RAM_COUNT 0x0502
-#define UPPER_RAM_ADDR  0x0504
-
-typedef struct {
-    uint64_t base_addr;
-    uint64_t length;
-    uint32_t type;
-    uint32_t ext;
-} __attribute__((packed)) upper_ram_t;
-
 static uint16_t lower_ram;
 static uint16_t upper_ram_count;
 static upper_ram_t * upper_ram;
@@ -59,9 +49,11 @@ void * init_ram(void * ram_table, size_t * ram_table_count) {
     region_table = (region_table_t *)ram_table;
     kmemset(region_table, 0, sizeof(region_table_t));
 
-    lower_ram = *(uint16_t *)LOWER_RAM_ADDR;
-    upper_ram_count = *(uint16_t *)UPPER_RAM_COUNT;
-    upper_ram = (upper_ram_t *)UPPER_RAM_ADDR;
+    boot_params_t * bparams = get_boot_params();
+
+    lower_ram = bparams->low_mem_size;
+    upper_ram_count = bparams->mem_entries_count;
+    upper_ram = bparams->mem_entries;
     sort_ram();
 
     *ram_table_count = build_table();
@@ -102,8 +94,8 @@ bool ram_upper_usable(uint16_t i) {
 }
 
 enum RAM_TYPE ram_upper_type(uint16_t i) {
-    upper_ram_t * upper_ram = (upper_ram_t *)UPPER_RAM_ADDR;
-    return upper_ram[i].type;
+    boot_params_t * bparams = get_boot_params();
+    return bparams->mem_entries[i].type;
 }
 
 uint32_t ram_bitmask_paddr(size_t region_index) {
