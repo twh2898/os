@@ -10,6 +10,9 @@ mov sp, bp
 
 call detect_mem
 
+mov eax, gdt_start
+mov [DATA_AREA_G], eax
+
 call load_kernel
 call switch_to_pm
 ; jmp SECOND_STAGE
