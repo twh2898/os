@@ -32,6 +32,13 @@ section once they are finished.
   - [ ] pretty much everything
 - [ ] file
   - [ ] pretty much everything
+- [ ] Handle page faults
+  - [ ] eg. add pages for user space stack
+- [ ] Ring 3
+  - [ ] load code
+  - [ ] add gdt
+  - [ ] setup tss
+  - [ ] kernel interrupts
 - [ ] Document code
   - [ ] cpu/idt.h
   - [ ] cpu/isr.h

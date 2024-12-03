@@ -82,7 +82,7 @@ disk_load:
     call print_nl
 
 DISK_ERROR:
-    db "Disk read error ", 0
+    db "DSKREADERROR", 0
 
 SECTORS_ERROR:
-    db "Incorrect number of secctors read ", 0
+    db "DSKSECTERROR ", 0

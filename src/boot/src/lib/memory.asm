@@ -34,7 +34,7 @@ detect_mem:
     mov bx, [DATA_AREA_COUNT]
     inc bx
     mov [DATA_AREA_COUNT], bx
-    
+
     pop ebx
     cmp ebx, 0
     je .done
@@ -54,4 +54,4 @@ detect_mem:
     jmp halt
 
 .MSG_MEM_ERROR:
-    db "Failed to detect memory", 0
+    db "MEMERROR", 0

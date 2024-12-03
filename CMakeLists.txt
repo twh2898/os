@@ -35,10 +35,12 @@ add_subdirectory(src)
 
 add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/os-image.bin
     COMMAND cat $<TARGET_OBJECTS:boot> ${CMAKE_BINARY_DIR}/kernel.bin > ${CMAKE_BINARY_DIR}/os-image.bin
-    DEPENDS boot kernel ${CMAKE_BINARY_DIR}/kernel.bin)
- 
+    DEPENDS
+    $<TARGET_OBJECTS:boot>
+    ${CMAKE_BINARY_DIR}/kernel.bin)
+
 add_custom_target(os_image ALL
-    DEPENDS 
+    DEPENDS
     ${CMAKE_CURRENT_BINARY_DIR}/os-image.bin
     ${CMAKE_CURRENT_BINARY_DIR}/kernel.bin
     )
