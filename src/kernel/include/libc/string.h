@@ -11,6 +11,7 @@ void * kmemset(void * dest, uint8_t value, size_t n);
 
 int kstrlen(const char * str);
 int knstrlen(const char * str, int max);
+int kstrcmp(const char * lhs, const char * rhs);
 int kstrfind(const char * str, size_t start, char c);
 char * kstrtok(char * str, char * delim);
 

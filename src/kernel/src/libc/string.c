@@ -78,6 +78,16 @@ int knstrlen(const char * str, int max) {
     return count;
 }
 
+int kstrcmp(const char * lhs, const char * rhs) {
+    size_t lhs_len = kstrlen(lhs);
+    size_t rhs_len = kstrlen(rhs);
+
+    if (lhs_len != rhs_len)
+        return lhs_len - rhs_len;
+
+    return kmemcmp(lhs, rhs, lhs_len);
+}
+
 int kstrfind(const char * str, size_t start, char c) {
     if (!str)
         return -1;
@@ -123,7 +133,7 @@ static char * find_not_one(char * str, char * delim) {
     return str;
 }
 
-// FIXME: Untested, idk if this actually works
+// TODO Untested, idk if this actually works
 char * kstrtok(char * str, char * delim) {
     if (!str || !delim)
         return 0;
