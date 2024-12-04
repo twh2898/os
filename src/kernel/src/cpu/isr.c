@@ -78,6 +78,7 @@ void isr_install() {
     set_idt_gate(45, (uint32_t)irq13);
     set_idt_gate(46, (uint32_t)irq14);
     set_idt_gate(47, (uint32_t)irq15);
+    set_idt_gate(48, (uint32_t)irq16);
 
     set_idt(); // Load with ASM
 }
@@ -212,6 +213,13 @@ void irq_install() {
     init_ata();
     /* IRQ8: real time clock */
     init_rtc(RTC_RATE_1024_HZ);
+}
+
+extern uint32_t send_interrupt(uint16_t);
+
+uint32_t system_call(uint8_t ah, uint8_t al) {
+    uint32_t i = send_interrupt((ah << 4) | al);
+    return i;
 }
 
 void disable_interrupts() {

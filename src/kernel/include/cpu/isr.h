@@ -53,23 +53,26 @@ extern void irq12();
 extern void irq13();
 extern void irq14();
 extern void irq15();
+extern void irq16();
 
-#define IRQ0  32
-#define IRQ1  33
-#define IRQ2  34
-#define IRQ3  35
-#define IRQ4  36
-#define IRQ5  37
-#define IRQ6  38
-#define IRQ7  39
-#define IRQ8  40
-#define IRQ9  41
-#define IRQ10 42
-#define IRQ11 43
-#define IRQ12 44
-#define IRQ13 45
-#define IRQ14 46
-#define IRQ15 47
+#define IRQ0  32 // Programmable Interrupt Timer Interrupt
+#define IRQ1  33 // Keyboard Interrupt
+#define IRQ2  34 // Cascade (used internally by the two PICs. never raised)
+#define IRQ3  35 // COM2 (if enabled)
+#define IRQ4  36 // COM1 (if enabled)
+#define IRQ5  37 // LPT2 (if enabled)
+#define IRQ6  38 // Floppy Disk
+#define IRQ7  39 // LPT1 / Unreliable "spurious" interrupt (usually)
+#define IRQ8  40 // CMOS real-time clock (if enabled)
+#define IRQ9  41 // Free for peripherals / legacy SCSI / NIC
+#define IRQ10 42 // Free for peripherals / SCSI / NIC
+#define IRQ11 43 // Free for peripherals / SCSI / NIC
+#define IRQ12 44 // PS2 Mouse
+#define IRQ13 45 // FPU / Coprocessor / Inter-processor
+#define IRQ14 46 // Primary ATA Hard Disk
+#define IRQ15 47 // Secondary ATA Hard Disk
+
+#define IRQ16 48 // System call
 
 /* Struct which aggregates many registers */
 typedef struct {
@@ -86,6 +89,8 @@ void irq_install();
 
 typedef void (*isr_t)(registers_t);
 void register_interrupt_handler(uint8_t n, isr_t handler);
+
+uint32_t system_call(uint8_t ah, uint8_t al);
 
 void disable_interrupts();
 void enable_interrupts();
