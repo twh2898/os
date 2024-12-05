@@ -27,10 +27,10 @@
 
 // Identity mapped
 #define VADDR_NULL      0x0
-#define VADDR_PAGE_DIR  PHYS_ADDR_PAGE_DIR
-#define VADDR_RAM_TABLE PHYS_ADDR_RAM_TABLE
-#define VADDR_STACK     PHYS_ADDR_STACK
-#define VADDR_KERNEL    PHYS_ADDR_KERNEL
+#define VADDR_PAGE_DIR  PADDR_PAGE_DIR
+#define VADDR_RAM_TABLE PADDR_RAM_TABLE
+#define VADDR_STACK     PADDR_STACK
+#define VADDR_KERNEL    PADDR_KERNEL
 #define VADDR_VGA       PADDR_VGA
 
 // Physical address allocated at runtime
