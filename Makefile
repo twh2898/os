@@ -22,6 +22,9 @@ build:
 run:
 	qemu-system-i386 -boot order=a -m 1G -drive format=raw,file=drive.tar -d int,mmu -D qemu_log.txt -no-reboot -no-shutdown -drive format=raw,file=build/os-image.bin,index=0,if=floppy
 
+run_tty:
+	qemu-system-i386 -boot order=a -m 1G -display curses -drive format=raw,file=drive.tar -d int,mmu -D qemu_log.txt -no-reboot -no-shutdown -drive format=raw,file=build/os-image.bin,index=0,if=floppy
+
 debug:
 	$(QEMU) -s -S $(QEMUFLAGS) -drive format=raw,file=build/os-image.bin,index=0,if=floppy
 #	$(GDB) -ex "target remote localhost:1234" -ex "symbol-file build/kernel.elf" -ex "b *0x7c00" -ex "b *0x7e00" -ex "b __start" -ex "b kernel_main" -ex "b kernel/src/cpu/isr.c:124"
