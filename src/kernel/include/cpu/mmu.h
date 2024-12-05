@@ -37,7 +37,9 @@ typedef struct {
     mmu_page_entry_t entries[PAGE_DIR_SIZE];
 } __attribute__((packed)) mmu_page_dir_t;
 
-typedef mmu_page_dir_t mmu_page_table_t;
+typedef struct {
+    mmu_page_entry_t entries[PAGE_TABLE_SIZE];
+} __attribute__((packed)) mmu_page_table_t;
 
 mmu_page_dir_t * mmu_dir_create(void * addr);
 void mmu_dir_free(mmu_page_dir_t * dir);

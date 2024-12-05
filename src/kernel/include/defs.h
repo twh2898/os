@@ -13,6 +13,9 @@
 #define PAGE_ALIGNED_UP(PTR)   ((PAGE_ALIGNED_DOWN(PTR)) + PAGE_SIZE)
 #define PAGE_ALIGNED(PTR)      (((PTR) & MASK_FLAGS) ? PAGE_ALIGNED_UP(PTR) : (PTR))
 
+#define PAGE2ADDR(PAGE) ((PAGE) << 12)
+#define ADDR2PAGE(ADDR) ((ADDR) >> 12)
+
 #define PTR2UINT(PTR)   ((uint32_t)(PTR))
 #define UINT2PTR(UINT)  ((void *)(UINT))
 #define LUINT2PTR(UINT) UINT2PTR((uint32_t)(UINT))

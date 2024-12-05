@@ -110,7 +110,7 @@ static void map_virt_page_dir(mmu_page_dir_t * dir) {
 
     // RAM region bitmasks
     for (size_t i = 0; i < ram_table_count; i++) {
-        mmu_table_set(firstTable, (VADDR_RAM_BITMASKS >> 12) + i * PAGE_SIZE, ram_bitmask_paddr(i), MMU_TABLE_RW);
+        mmu_table_set(firstTable, ADDR2PAGE(VADDR_RAM_BITMASKS) + i, ram_bitmask_paddr(i), MMU_TABLE_RW);
     }
 
     /* SKIP FREE MEMORY */
@@ -151,11 +151,17 @@ static void check_malloc() {
     kprintf("Ram page alloc gave %p\n", e);
 }
 
+static void yea_callback(registers_t regs) {
+    kprintf("Yea Baybee!");
+}
+
 void kernel_main() {
     vga_clear();
 
     isr_install();
     irq_install();
+
+    register_interrupt_handler(IRQ16, yea_callback);
 
     vga_print("Welcome to kernel v..\n");
 
@@ -176,6 +182,9 @@ void kernel_main() {
     ramdisk_create(4096);
 
     // run_tests();
+
+    // uint32_t r = system_call(4, 1);
+    // kprintf("System call got 0x%X\n", r);
 
     term_run();
 }

@@ -17,4 +17,6 @@ void term_run();
 
 bool term_command_add(const char * command, command_cb_t cb);
 
+void set_command_lookup(command_cb_t command);
+
 #endif // TERM_H

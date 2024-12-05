@@ -41,6 +41,8 @@ static bool is_ws(char c);
 static void exec_buff();
 static char ** parse_args(const char * line, size_t * out_len);
 
+static command_cb_t command_lookup;
+
 static void dump_buff() {
     for (size_t i = 0; i < circbuff_len(keybuff); i++) {
         kprintf("%X ", circbuff_at(keybuff, i));
@@ -88,6 +90,8 @@ static int help_cmd(size_t argc, char ** argv) {
 }
 
 void term_init() {
+    command_lookup = 0;
+
     term_command_add("help", help_cmd);
 
     keybuff = circbuff_new(MAX_CHARS);
@@ -170,6 +174,10 @@ bool term_command_add(const char * command, command_cb_t cb) {
     return true;
 }
 
+void set_command_lookup(command_cb_t lookup) {
+    command_lookup = lookup;
+}
+
 static void exec_buff() {
     // Skip any leading whitespace
     char * line = command_buff;
@@ -194,9 +202,20 @@ static void exec_buff() {
     int first_len = 0;
     while (first_len < line_len && !is_ws(line[first_len])) first_len++;
 
-    // Check against all commands
+    // Prepare command and args
+    size_t argc;
+    char ** argv = parse_args(line, &argc);
+    if (!argc || !argv) {
+        FATAL("SYNTAX ERROR!\n");
+        term_last_ret = 1;
+        return;
+    }
+
     bool found = false;
-    for (size_t i = 0; i < n_commands; i++) {
+    command_cb_t command = 0;
+
+    // Check against all commands
+    for (size_t i = 0; i < n_commands && !found; i++) {
         size_t command_len = kstrlen(commands[i].command);
 
         // Check length of command vs first word
@@ -213,7 +232,7 @@ static void exec_buff() {
         }
 
         // Check command string
-        int match = kmemcmp(line, commands[i].command, command_len);
+        int match = kmemcmp(argv[0], commands[i].command, command_len);
         if (match != 0) {
             if (debug)
                 kprintf("Command does not match %s\n", commands[i].command);
@@ -222,31 +241,30 @@ static void exec_buff() {
 
         // Command is a match, parse arguments
         found = true;
-        size_t argc;
-        char ** argv = parse_args(line, &argc);
-        if (!argv) {
-            FATAL("SYNTAX ERROR!\n");
-            term_last_ret = 1;
-            return;
-        }
+        command = commands[i].cb;
+    }
 
+    if (found) {
         // Execute the command with parsed args
-        term_last_ret = commands[i].cb(argc, argv);
+        term_last_ret = command(argc, argv);
+    }
 
-        // Free parsed args
-        for (size_t i = 0; i < argc; i++) {
-            kfree(argv[i]);
-        }
-        kfree(argv);
-
-        break;
+    // Try command lookup
+    else if (command_lookup) {
+        term_last_ret = command_lookup(argc, argv);
     }
 
     // No match was found
-    if (!found) {
+    else {
         kprintf("Unknown command '%s'\n", line);
         term_last_ret = 1;
     }
+
+    // Free parsed args
+    for (size_t i = 0; i < argc; i++) {
+        kfree(argv[i]);
+    }
+    kfree(argv);
 }
 
 static bool is_ws(char c) {

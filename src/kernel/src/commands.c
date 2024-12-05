@@ -12,6 +12,7 @@
 #include "drivers/rtc.h"
 #include "drivers/tar.h"
 #include "drivers/vga.h"
+#include "exec.h"
 #include "libc/memory.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
@@ -504,7 +505,50 @@ static int disk_size_cmd(size_t argc, char ** argv) {
     return 0;
 }
 
+static int command_lookup(size_t argc, char ** argv) {
+    char * filename = argv[0];
+
+    if (!tar) {
+        kputs("Filesystem not mounted\n");
+        return 1;
+    }
+
+    tar_stat_t stat;
+    if (!tar_stat_file(tar, filename, &stat)) {
+        kputs("Failed to find file\n");
+        return 1;
+    }
+
+    uint8_t * buff = kmalloc(stat.size);
+    if (!buff)
+        return 1;
+
+    tar_fs_file_t * file = tar_file_open(tar, filename);
+    if (!file) {
+        kfree(buff);
+        return 1;
+    }
+
+    if (!tar_file_read(file, buff, stat.size)) {
+        tar_file_close(file);
+        kfree(buff);
+        return 1;
+    }
+
+    int res = command_exec(buff, stat.size, argc, argv);
+
+    if (!disk || !buff)
+        return 0;
+
+    tar_file_close(file);
+    kfree(buff);
+
+    return res;
+}
+
 void commands_init() {
+    set_command_lookup(command_lookup);
+
     term_command_add("clear", clear_cmd);
     term_command_add("echo", echo_cmd);
     term_command_add("debug", debug_cmd);
