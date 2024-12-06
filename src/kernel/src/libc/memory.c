@@ -89,7 +89,7 @@ void * kmalloc(size_t size) {
         size_t new_size = PAGE_SIZE;
         while (new_size < size) {
             add_page();
-            size += PAGE_SIZE;
+            new_size += PAGE_SIZE;
         }
 
         entry = entry_of(table, i);
@@ -116,31 +116,29 @@ void kfree(void * ptr) {
 }
 
 static void * add_page() {
-    // ram_page_alloc();
-    // FIXME addr is 0x1000 if above is called first, need to figure out physical ram allocation bug
-    void * ram_page = ram_page_alloc();
-    // kprintf("add_page got page at physical address %p\n", ram_page);
+    void * ram_page_paddr = ram_page_alloc();
+
     size_t table = next_page / 1024;
     size_t cell = next_page % 1024;
 
-    void * page = UINT2PTR(next_page * PAGE_SIZE);
+    void * page_vaddr = UINT2PTR(PAGE2ADDR(next_page));
 
-    // kprintf("table=%u cell=%u\n", table, cell);
-    // kprintf("memory addr should be %p\n", page);
+    uint8_t flags = mmu_dir_get_flags(pdir, table);
+    if (!(flags & MMU_PAGE_DIR_FLAG_PRESENT)) {
+        void * new_table_page_paddr = ram_page_alloc();
 
-    // I'm pretty sure this is because mmu does not have a function to allocate
-    // a second table. Need to check that.
-    kassert_msg(table == 0, "MULTI TABLE NOT YET SUPPORTED");
+        mmu_page_table_t * last_table = mmu_dir_get_table(pdir, PAGE_DIR_SIZE - 1);
+        mmu_table_set(last_table, table, PTR2UINT(new_table_page_paddr), MMU_TABLE_RW);
+
+        mmu_page_table_t * app_table = mmu_dir_get_table(pdir, table);
+        mmu_table_create(app_table);
+    }
 
     mmu_page_table_t * ptable = mmu_dir_get_table(pdir, table);
-    mmu_table_set(ptable, cell, PTR2UINT(ram_page), MMU_TABLE_RW);
-
-    // kprintf("try first write");
-    // ((char *)page)[0] = 0;
-    // kprintf(" done\n");
+    mmu_table_set(ptable, cell, PTR2UINT(ram_page_paddr), MMU_TABLE_RW);
 
     next_page++;
-    return page;
+    return page_vaddr;
 }
 
 static void init_table(memory_table_t * table, memory_table_t * prev, memory_table_t * next) {
