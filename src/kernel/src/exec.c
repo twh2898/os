@@ -15,9 +15,10 @@ int command_exec(uint8_t * buff, size_t size, size_t argc, char ** argv) {
     mmu_dir_set(dir, 1, app_table_paddr, MMU_DIR_RW);
 
     mmu_page_table_t * last_table = mmu_dir_get_table(dir, PAGE_DIR_SIZE - 1);
-    mmu_table_set(last_table, 1, PTR2UINT(app_table_paddr), MMU_DIR_RW);
+    mmu_table_set(last_table, 1, PTR2UINT(app_table_paddr), MMU_TABLE_RW);
 
     mmu_page_table_t * app_table = mmu_dir_get_table(dir, 1);
+    mmu_table_create(app_table);
 
     size_t page_count = ADDR2PAGE(PAGE_ALIGNED(size));
     for (size_t i = 0; i < page_count; i++) {
@@ -31,13 +32,15 @@ int command_exec(uint8_t * buff, size_t size, size_t argc, char ** argv) {
 
     int res = call(argc, argv);
 
+    mmu_table_set(last_table, 1, 0, 0);
+    mmu_dir_set(dir, 1, 0, 0);
+
     for (size_t i = 0; i < page_count; i++) {
         void * page_paddr = UINT2PTR(mmu_table_get_addr(app_table, i));
         ram_page_free(page_paddr);
         mmu_table_set(app_table, i, 0, 0);
     }
 
-    mmu_dir_set(dir, 1, 0, 0);
     ram_page_free(app_table_paddr);
 
     return res;
