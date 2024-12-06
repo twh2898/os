@@ -8,7 +8,7 @@ macro(add_app target)
     file(GLOB_RECURSE ASM_SOURCE_LIST ${CMAKE_CURRENT_SOURCE_DIR}/src/*.asm)
 
     add_library(${target} STATIC ${ASM_SOURCE_LIST} ${SOURCE_LIST} ${HEADER_LIST})
-    target_link_libraries(${target} PUBLIC libc)
+    target_link_libraries(${target} PUBLIC apps_libc)
     target_include_directories(${target} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
     set_target_properties(${target} PROPERTIES NASM_OBJ_FORMAT elf)
 

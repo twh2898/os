@@ -1,12 +1,7 @@
-#include "sysint.h"
 #include "libc/sys_call.h"
 
-void sys_call_1() {
-    send_interrupt(14);
-}
-
 void foo() {
-    sys_call_1(14);
+    sys_call_print("Hello World!");
 }
 
 void __start() {
