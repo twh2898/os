@@ -162,7 +162,6 @@ void isr_handler(registers_t r) {
             break;
     }
     KERNEL_PANIC("STOP HERE");
-    return;
 }
 
 /*
