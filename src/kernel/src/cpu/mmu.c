@@ -82,7 +82,7 @@ mmu_page_table_t * mmu_dir_get_table(mmu_page_dir_t * dir, size_t i) {
 }
 
 void mmu_dir_set(mmu_page_dir_t * dir, size_t i, mmu_page_table_t * table, enum MMU_PAGE_DIR_FLAG flags) {
-    if (!dir || !table || i >= PAGE_DIR_SIZE)
+    if (!dir || i >= PAGE_DIR_SIZE)
         return;
 
     mmu_page_entry_t entry = (PTR2UINT(table) & MASK_ADDR) | (flags & MASK_FLAGS);
