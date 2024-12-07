@@ -152,7 +152,8 @@ static void check_malloc() {
 }
 
 static void yea_callback(registers_t regs) {
-    kprintf("Yea Baybee!");
+    kprintf("Yea Baybee!\n");
+    print_trace(&regs);
 }
 
 void kernel_main() {
