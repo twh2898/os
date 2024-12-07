@@ -12,18 +12,20 @@ mmu_page_dir_t * mmu_dir_create(void * addr) {
     return dir;
 }
 
-void mmu_dir_free(mmu_page_dir_t * dir) {
+void mmu_dir_clear(mmu_page_dir_t * dir) {
     if (!dir)
         return;
 
-    if (dir) {
-        for (size_t i = 0; i < PAGE_DIR_SIZE; i++) {
-            if (dir->entries[i] & MMU_PAGE_DIR_FLAG_PRESENT) {
-                uint32_t table_addr = dir->entries[i] & MASK_ADDR;
-                mmu_table_free((mmu_page_table_t *)table_addr);
-            }
+    for (size_t i = 0; i < PAGE_DIR_SIZE; i++) {
+        if (dir->entries[i] & MMU_PAGE_DIR_FLAG_PRESENT) {
+            uint32_t table_addr = dir->entries[i] & MASK_ADDR;
+            mmu_table_free((mmu_page_table_t *)table_addr);
         }
     }
+}
+
+void mmu_dir_free(mmu_page_dir_t * dir) {
+    mmu_dir_clear(dir);
     ram_page_free(dir);
 }
 
@@ -35,18 +37,20 @@ mmu_page_table_t * mmu_table_create(void * addr) {
     return table;
 }
 
-void mmu_table_free(mmu_page_table_t * table) {
+void mmu_table_clear(mmu_page_table_t * table) {
     if (!table)
         return;
 
-    if (table) {
-        for (size_t i = 0; i < PAGE_TABLE_SIZE; i++) {
-            if (table->entries[i] & MMU_PAGE_TABLE_FLAG_PRESENT) {
-                uint32_t page_addr = table->entries[i] & MASK_ADDR;
-                ram_page_free((void *)page_addr);
-            }
+    for (size_t i = 0; i < PAGE_TABLE_SIZE; i++) {
+        if (table->entries[i] & MMU_PAGE_TABLE_FLAG_PRESENT) {
+            uint32_t page_addr = table->entries[i] & MASK_ADDR;
+            ram_page_free((void *)page_addr);
         }
     }
+}
+
+void mmu_table_free(mmu_page_table_t * table) {
+    mmu_table_clear(table);
     ram_page_free(table);
 }
 

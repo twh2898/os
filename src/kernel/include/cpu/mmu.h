@@ -42,9 +42,11 @@ typedef struct {
 } __attribute__((packed)) mmu_page_table_t;
 
 mmu_page_dir_t * mmu_dir_create(void * addr);
+void mmu_dir_clear(mmu_page_dir_t * dir);
 void mmu_dir_free(mmu_page_dir_t * dir);
 
 mmu_page_table_t * mmu_table_create(void * addr);
+void mmu_table_clear(mmu_page_table_t * table);
 void mmu_table_free(mmu_page_table_t * table);
 
 void mmu_dir_set_table(mmu_page_dir_t * dir, size_t i, mmu_page_table_t * table);
