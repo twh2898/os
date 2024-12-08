@@ -1,5 +1,3 @@
-add_subdirectory(libc)
-
 set(APPS_BASE_DIR ${CMAKE_BINARY_DIR}/apps)
 
 macro(add_app target)
@@ -13,7 +11,17 @@ macro(add_app target)
     set_target_properties(${target} PROPERTIES NASM_OBJ_FORMAT elf)
 
     add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${target}.bin
-        COMMAND ${CMAKE_LINKER} "-T${CMAKE_CURRENT_SOURCE_DIR}/link.ld" --oformat binary -o "${CMAKE_CURRENT_BINARY_DIR}/${target}.bin" $<TARGET_FILE:${target}> -nostdlib "-L${CROSS_PREFIX}/lib/gcc/i386-elf/12.2.0" -lgcc
+        COMMAND ${CMAKE_LINKER}
+                "-T${CMAKE_CURRENT_SOURCE_DIR}/link.ld"
+                --oformat binary
+                -o "${CMAKE_CURRENT_BINARY_DIR}/${target}.bin"
+                --start-group
+                    $<TARGET_FILE:apps_libc>
+                    $<TARGET_FILE:${target}>
+                --end-group
+                -nostdlib
+                -L"${CROSS_PREFIX}/lib/gcc/i386-elf/12.2.0"
+                -lgcc
         DEPENDS ${target})
 
     add_custom_command(OUTPUT ${APPS_BASE_DIR}/${target}
@@ -24,6 +32,7 @@ macro(add_app target)
         DEPENDS ${APPS_BASE_DIR}/${target})
 endmacro()
 
+add_subdirectory(libc)
 add_subdirectory(foo)
 add_subdirectory(bar)
 
@@ -35,7 +44,7 @@ set(APPS_TARGETS_FILES ${APPS_TARGETS})
 list(TRANSFORM APPS_TARGETS_FILES PREPEND ${APPS_BASE_DIR}/)
 
 add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/apps.tar
-    COMMAND tar -cf ${CMAKE_BINARY_DIR}/apps.tar ${APPS_TARGETS}
+    COMMAND tar -cf ${CMAKE_BINARY_DIR}/apps.tar *
     DEPENDS ${APPS_TARGETS_FILES}
     WORKING_DIRECTORY ${APPS_BASE_DIR})
 
