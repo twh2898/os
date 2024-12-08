@@ -1,14 +1,11 @@
 cmake_minimum_required(VERSION 3.15..3.20)
+
+set(CROSS_PREFIX "$ENV{HOME}/.local/opt/cross")
+set(CMAKE_TOOLCHAIN_FILE cmake/toolchain.cmake)
+
 project(os VERSION 0.1.0 LANGUAGES C)
 
 # set(CMAKE_VERBOSE_MAKEFILE on)
-
-set(CROSS_PREFIX "$ENV{HOME}/.local/opt/cross")
-
-set(CMAKE_C_COMPILER "${CROSS_PREFIX}/bin/i386-elf-gcc")
-set(CMAKE_C_FLAGS "-g -Werror -ffreestanding")
-set(CMAKE_AR "${CROSS_PREFIX}/bin/i386-elf-ar" CACHE FILEPATH "" FORCE)
-set(CMAKE_LINKER "${CROSS_PREFIX}/bin/i386-elf-ld")
 
 # ------------------------------------------------------------------------------
 # NASM SETUP
