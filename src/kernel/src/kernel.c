@@ -152,8 +152,16 @@ static void check_malloc() {
 }
 
 static void yea_callback(registers_t regs) {
-    kprintf("Yea Baybee!\n");
+    uint32_t int_no = regs.eax;
+    kprintf("Yea Baybee! int 0x%X\n", int_no);
     print_trace(&regs);
+
+    switch (int_no) {
+        case 0xF: { // print
+            char * str = UINT2PTR(regs.ebx);
+            kputs(str);
+        } break;
+    }
 }
 
 void kernel_main() {
