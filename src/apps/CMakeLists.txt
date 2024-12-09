@@ -6,7 +6,7 @@ macro(add_app target)
     file(GLOB_RECURSE ASM_SOURCE_LIST ${CMAKE_CURRENT_SOURCE_DIR}/src/*.asm)
 
     add_library(${target} STATIC ${ASM_SOURCE_LIST} ${SOURCE_LIST} ${HEADER_LIST})
-    target_link_libraries(${target} PUBLIC apps_libc)
+    target_link_libraries(${target} PUBLIC libc)
     target_include_directories(${target} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
     set_target_properties(${target} PROPERTIES NASM_OBJ_FORMAT elf)
 
@@ -16,7 +16,8 @@ macro(add_app target)
                 --oformat binary
                 -o "${CMAKE_CURRENT_BINARY_DIR}/${target}.bin"
                 --start-group
-                    $<TARGET_FILE:apps_libc>
+                    $<TARGET_FILE:libk>
+                    $<TARGET_FILE:libc>
                     $<TARGET_FILE:${target}>
                 --end-group
                 -nostdlib
@@ -32,7 +33,6 @@ macro(add_app target)
         DEPENDS ${APPS_BASE_DIR}/${target})
 endmacro()
 
-add_subdirectory(libc)
 add_subdirectory(foo)
 add_subdirectory(bar)
 

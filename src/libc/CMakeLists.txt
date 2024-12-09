@@ -1,4 +1,4 @@
-set(TARGET kernel)
+set(TARGET libc)
 
 file(GLOB_RECURSE SOURCE_LIST ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c)
 file(GLOB_RECURSE HEADER_LIST ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h)
@@ -6,5 +6,5 @@ file(GLOB_RECURSE ASM_SOURCE_LIST ${CMAKE_CURRENT_SOURCE_DIR}/src/*.asm)
 
 add_library(${TARGET} STATIC ${ASM_SOURCE_LIST} ${SOURCE_LIST} ${HEADER_LIST})
 target_include_directories(${TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(${TARGET} libc)
+target_link_libraries(${TARGET} libk)
 set_target_properties(${TARGET} PROPERTIES NASM_OBJ_FORMAT elf)

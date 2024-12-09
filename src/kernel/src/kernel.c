@@ -153,45 +153,58 @@ static void check_malloc() {
 
 static void yea_callback(registers_t regs) {
     uint32_t int_no = regs.eax;
-
-    // Get access to stack push of eax
-    uint32_t * ret = UINT2PTR(regs.esp - 4);
+    uint32_t res = 0;
 
     switch (int_no) {
-        case 0xF: { // print
+        case 0x0200: { // malloc
+            size_t size = regs.ebx;
+            res = PTR2UINT(kmalloc(size));
+        } break;
+        case 0x0201: { // realloc
+            void * ptr = UINT2PTR(regs.ebx);
+            size_t size = regs.ecx;
+            // res = PTR2UINT(krealloc(ptr, size));
+        } break;
+        case 0x0202: { // free
+            void * ptr = UINT2PTR(regs.ebx);
+            kfree(ptr);
+        } break;
+
+        case 0x0300: { // exit
+            uint8_t code = regs.ebx;
+            KERNEL_PANIC("Exit program!");
+        } break;
+        case 0x0301: { // exit with message
+            uint8_t code = regs.ebx;
+            const char * msg = UINT2PTR(regs.ecx);
+            vga_print(msg);
+            KERNEL_PANIC("Exit program!");
+        } break;
+
+        case 0x1000: { // putc
+            char c = regs.ebx;
+            res = vga_putc(c);
+        } break;
+        case 0x1001: { // puts
             char * str = UINT2PTR(regs.ebx);
-            *ret = kputs(str);
+            res = vga_print(str);
         } break;
-        case 0x10: { // num
-            uint32_t num = regs.ebx;
-            kprintf("Interrupt with number %u\n", num);
-            *ret = 0;
-        } break;
-        case 0x11: { // num
+        case 0x1002: { // vprintf
             char * fmt = UINT2PTR(regs.ebx);
             va_list params = UINT2PTR(regs.ecx);
-            *ret = kvprintf(fmt, params);
+            res = kvprintf(fmt, params);
         } break;
+
         default: {
             kprintf("Unknown interrupt 0x%X\n", int_no);
             print_trace(&regs);
+            KERNEL_PANIC("UNKNOWN INTERRUPT");
         } break;
     }
-}
 
-extern uint32_t app_send_interrupt(uint16_t int_no, ...);
-
-static void sys_call_1() {
-    app_send_interrupt(14);
-}
-
-static uint32_t sys_call_puts(char * str) {
-    uint32_t res = app_send_interrupt(15, str);
-    return res;
-}
-
-static void sys_call_num(int n) {
-    app_send_interrupt(16, n);
+    // Get access to stack push of eax
+    uint32_t * ret = UINT2PTR(regs.esp - 4);
+    *ret = res;
 }
 
 void kernel_main() {
@@ -228,9 +241,6 @@ void kernel_main() {
     // sys_call_1();
     // sys_call_1();
     // sys_call_1();
-
-    uint32_t res = app_send_interrupt(0xF, "Hello\n");
-    kprintf("Return from interrupt is 0x%X\n", res);
 
     term_run();
 }

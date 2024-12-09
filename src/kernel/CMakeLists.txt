@@ -6,7 +6,7 @@ file(GLOB_RECURSE ASM_SOURCE_LIST ${CMAKE_CURRENT_SOURCE_DIR}/src/*.asm)
 
 add_library(${TARGET} STATIC ${ASM_SOURCE_LIST} ${SOURCE_LIST} ${HEADER_LIST})
 target_include_directories(${TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(${TARGET} libc)
+target_link_libraries(${TARGET} libk libc)
 set_target_properties(${TARGET} PROPERTIES NASM_OBJ_FORMAT elf)
 
 add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/kernel.bin

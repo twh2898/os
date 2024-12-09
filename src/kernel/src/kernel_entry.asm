@@ -66,13 +66,3 @@ mmu_get_curr_dir:
 
     popa
     ret
-
-global app_send_interrupt
-
-app_send_interrupt:
-    mov eax, [esp+4]
-    mov ebx, [esp+8]
-
-    int 48
-
-    ret
