@@ -203,7 +203,10 @@ size_t kputlu(uint64_t num, uint8_t base, bool upper) {
 size_t kprintf(const char * fmt, ...) {
     va_list params;
     va_start(params, fmt);
+    return kvprintf(fmt, params);
+}
 
+size_t kvprintf(const char * fmt, va_list params) {
     size_t o_len = 0;
     while (*fmt) {
         if (*fmt == '%') {

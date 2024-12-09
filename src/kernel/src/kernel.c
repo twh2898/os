@@ -153,8 +153,6 @@ static void check_malloc() {
 
 static void yea_callback(registers_t regs) {
     uint32_t int_no = regs.eax;
-    kprintf("Yea Baybee! int 0x%X\n", int_no);
-    print_trace(&regs);
 
     // Get access to stack push of eax
     uint32_t * ret = UINT2PTR(regs.esp - 4);
@@ -169,6 +167,15 @@ static void yea_callback(registers_t regs) {
             kprintf("Interrupt with number %u\n", num);
             *ret = 0;
         } break;
+        case 0x11: { // num
+            char * fmt = UINT2PTR(regs.ebx);
+            va_list params = UINT2PTR(regs.ecx);
+            *ret = kvprintf(fmt, params);
+        } break;
+        default: {
+            kprintf("Unknown interrupt 0x%X\n", int_no);
+            print_trace(&regs);
+        } break;
     }
 }
 
@@ -178,7 +185,7 @@ static void sys_call_1() {
     app_send_interrupt(14);
 }
 
-static uint32_t sys_call_print(char * str) {
+static uint32_t sys_call_puts(char * str) {
     uint32_t res = app_send_interrupt(15, str);
     return res;
 }
