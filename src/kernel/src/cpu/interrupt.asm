@@ -83,6 +83,7 @@ irq_common_stub:
     mov fs, bx
     mov gs, bx
     popa
+    ; mov eax, 0x1234
     add esp, 8
     sti
     iret

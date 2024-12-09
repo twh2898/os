@@ -156,12 +156,35 @@ static void yea_callback(registers_t regs) {
     kprintf("Yea Baybee! int 0x%X\n", int_no);
     print_trace(&regs);
 
+    // Get access to stack push of eax
+    uint32_t * ret = UINT2PTR(regs.esp - 4);
+
     switch (int_no) {
         case 0xF: { // print
             char * str = UINT2PTR(regs.ebx);
-            kputs(str);
+            *ret = kputs(str);
+        } break;
+        case 0x10: { // num
+            uint32_t num = regs.ebx;
+            kprintf("Interrupt with number %u\n", num);
+            *ret = 0;
         } break;
     }
+}
+
+extern uint32_t app_send_interrupt(uint16_t int_no, ...);
+
+static void sys_call_1() {
+    app_send_interrupt(14);
+}
+
+static uint32_t sys_call_print(char * str) {
+    uint32_t res = app_send_interrupt(15, str);
+    return res;
+}
+
+static void sys_call_num(int n) {
+    app_send_interrupt(16, n);
 }
 
 void kernel_main() {
@@ -194,6 +217,13 @@ void kernel_main() {
 
     // uint32_t r = system_call(4, 1);
     // kprintf("System call got 0x%X\n", r);
+
+    // sys_call_1();
+    // sys_call_1();
+    // sys_call_1();
+
+    uint32_t res = app_send_interrupt(0xF, "Hello\n");
+    kprintf("Return from interrupt is 0x%X\n", res);
 
     term_run();
 }

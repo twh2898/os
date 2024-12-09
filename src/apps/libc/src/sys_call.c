@@ -12,12 +12,17 @@
 #define SYS_INT_MEM_REALLOC 0x0202
 #define SYS_INT_MEM_FREE    0x0203
 
-extern void send_interrupt(uint16_t int_no, ...);
+extern int send_interrupt(uint16_t int_no, ...);
 
 void sys_call_1() {
     send_interrupt(14);
 }
 
-void sys_call_print(char * str) {
-    send_interrupt(15, str);
+uint32_t sys_call_print(char * str) {
+    uint32_t res = send_interrupt(15, str);
+    return res;
+}
+
+void sys_call_num(uint32_t n) {
+    send_interrupt(16, n);
 }
