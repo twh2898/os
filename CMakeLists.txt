@@ -25,23 +25,21 @@ if(CMAKE_ASM_NASM_COMPILER_LOADED)
     )
 endif()
 
+include(cmake/targets.cmake)
+
 add_subdirectory(src)
 
 # ------------------------------------------------------------------------------
 # OS IMAGE
 
 add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/os-image.bin
-    COMMAND cat $<TARGET_OBJECTS:boot> ${CMAKE_BINARY_DIR}/kernel.bin > ${CMAKE_BINARY_DIR}/os-image.bin
+    COMMAND cat $<TARGET_OBJECTS:boot> ${CMAKE_BINARY_DIR}/src/kernel/kernel.bin > ${CMAKE_BINARY_DIR}/os-image.bin
     DEPENDS
     $<TARGET_OBJECTS:boot>
-    ${CMAKE_BINARY_DIR}/kernel.bin)
+    ${CMAKE_BINARY_DIR}/src/kernel/kernel.bin
+)
 
-add_custom_target(os_image ALL
-    DEPENDS
-    ${CMAKE_CURRENT_BINARY_DIR}/os-image.bin
-    ${CMAKE_CURRENT_BINARY_DIR}/kernel.bin
-    )
-add_dependencies(os_image boot kernel kernel_image kernel_image_debug)
+add_custom_target(os_image ALL DEPENDS ${CMAKE_BINARY_DIR}/os-image.bin)
 
 add_custom_command(TARGET os_image POST_BUILD COMMAND ${CMAKE_COMMAND} -E
     copy ${CMAKE_CURRENT_BINARY_DIR}/os-image.bin ${CMAKE_CURRENT_SOURCE_DIR}

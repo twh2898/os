@@ -8,7 +8,7 @@
             "type": "gdb",
             "request": "attach",
             "name": "Attach to QEMU gdbserver",
-            "executable": "${workspaceFolder}/build/kernel.elf",
+            "executable": "${workspaceFolder}/build/src/kernel/kernel.elf",
             "target": ":1234",
             "remote": true,
             "cwd": "${workspaceRoot}",
