@@ -29,20 +29,20 @@ static int clear_cmd(size_t argc, char ** argv) {
 
 static int echo_cmd(size_t argc, char ** argv) {
     bool next_line = true;
-    if (argc > 1 && kmemcmp(argv[1], "-n", 2) == 0)
+    if (argc > 1 && memcmp(argv[1], "-n", 2) == 0)
         next_line = false;
 
     size_t i = 1;
     if (!next_line)
         i++;
     for (; i < argc; i++) {
-        kputs(argv[i]);
+        puts(argv[i]);
         if (i < argc)
-            kputc(' ');
+            putc(' ');
     }
 
     if (next_line)
-        kputc('\n');
+        putc('\n');
 
     return 0;
 }
@@ -50,20 +50,20 @@ static int echo_cmd(size_t argc, char ** argv) {
 static int debug_cmd(size_t argc, char ** argv) {
     debug = !debug;
     if (debug)
-        kputs("Enable debug\n");
+        puts("Enable debug\n");
     else
-        kputs("Disabling debug\n");
+        puts("Disabling debug\n");
     return 0;
 }
 
 static int atoi_cmd(size_t argc, char ** argv) {
     if (argc != 2) {
-        kprintf("Usage: %s <number>\n", argv[0]);
+        printf("Usage: %s <number>\n", argv[0]);
         return 1;
     }
 
     int i = atoi(argv[1]);
-    kprintf("%d\n", i);
+    printf("%d\n", i);
     return 0;
 }
 
@@ -79,7 +79,7 @@ static uint8_t hex_digit(char c) {
 }
 
 static uint16_t parse_byte(const char * str) {
-    size_t len = kstrlen(str);
+    size_t len = strlen(str);
     if (len < 1 || len > 4)
         return 1;
 
@@ -92,18 +92,18 @@ static uint16_t parse_byte(const char * str) {
 
 static int port_out_cmd(size_t argc, char ** argv) {
     if (argc != 3) {
-        kprintf("Usage: %s <port> <byte>\n", argv[0]);
+        printf("Usage: %s <port> <byte>\n", argv[0]);
         return 1;
     }
 
-    if (kstrlen(argv[1]) > 4) {
-        kputs("port has max 4 hex digits\n");
+    if (strlen(argv[1]) > 4) {
+        puts("port has max 4 hex digits\n");
         return 1;
     }
     uint16_t port = parse_byte(argv[1]);
 
-    if (kstrlen(argv[2]) > 2) {
-        kputs("byte has max 2 hex digits\n");
+    if (strlen(argv[2]) > 2) {
+        puts("byte has max 2 hex digits\n");
         return 1;
     }
     uint8_t byte = parse_byte(argv[2]);
@@ -114,72 +114,72 @@ static int port_out_cmd(size_t argc, char ** argv) {
 
 static int port_in_cmd(size_t argc, char ** argv) {
     if (argc != 2) {
-        kprintf("Usage: %s <port>\n", argv[0]);
+        printf("Usage: %s <port>\n", argv[0]);
         return 1;
     }
 
-    if (kstrlen(argv[1]) > 4) {
-        kputs("port has max 4 hex digits\n");
+    if (strlen(argv[1]) > 4) {
+        puts("port has max 4 hex digits\n");
         return 1;
     }
     uint16_t port = parse_byte(argv[1]);
 
     uint8_t byte = port_byte_in(port);
-    kprintf("0x%04X = 0x%02X\n", port, byte);
+    printf("0x%04X = 0x%02X\n", port, byte);
 
     return 0;
 }
 
 static int time_cmd(size_t argc, char ** argv) {
     uint32_t ms = get_ticks();
-    kprintf("System ticks: %u ~= %u s\n", ms, ms / 1000);
-    kprintf("RTC time: %u us = %u ms = %u s\n", time_us(), time_ms(), time_s());
+    printf("System ticks: %u ~= %u s\n", ms, ms / 1000);
+    printf("RTC time: %u us = %u ms = %u s\n", time_us(), time_ms(), time_s());
     return 0;
 }
 
 static int ret_cmd(size_t argc, char ** argv) {
-    kprintf("Last command exit code was %u\n", term_last_ret);
+    printf("Last command exit code was %u\n", term_last_ret);
     return 0;
 }
 
 // static int format_cmd(size_t argc, char ** argv) {
 //     if (fs) {
-//         kputs("Unmount disk before format\n");
+//         puts("Unmount disk before format\n");
 //         return 1;
 //     }
 
 //     if (!disk) {
 //         disk = disk_open(0, DISK_DRIVER_ATA);
 //         if (!disk) {
-//             kputs("Failed to open disk\n");
+//             puts("Failed to open disk\n");
 //             return 1;
 //         }
 //     }
 
-//     kputs("Formatting disk, this may take some time\n");
+//     puts("Formatting disk, this may take some time\n");
 //     // fs_format(disk);
-//     kputs("Done!\n");
+//     puts("Done!\n");
 
 //     return 0;
 // }
 
 static int mount_cmd(size_t argc, char ** argv) {
     if (tar) {
-        kputs("Filesystem already mounted\n");
+        puts("Filesystem already mounted\n");
         return 0;
     }
 
     if (!disk) {
         disk = disk_open(0, DISK_DRIVER_ATA);
         if (!disk) {
-            kputs("Failed to open disk\n");
+            puts("Failed to open disk\n");
             return 1;
         }
     }
 
     tar = tar_open(disk);
     if (!tar) {
-        kputs("Failed to mount filesystem\n");
+        puts("Failed to mount filesystem\n");
         return 1;
     }
 
@@ -201,46 +201,46 @@ static int unmount_cmd(size_t argc, char ** argv) {
 static void print_64(uint64_t v) {
     uint32_t u = v >> 32;
     uint32_t l = v & 0xffffffff;
-    kprintf("0x%08X%08X", u, l);
+    printf("0x%08X%08X", u, l);
 }
 
 static void print_upper(uint64_t start, uint64_t end, uint64_t size, enum RAM_TYPE type) {
-    kputs("| ");
+    puts("| ");
     print_64(start);
-    kputs(" | ");
+    puts(" | ");
     print_64(end);
-    kputs(" | ");
+    puts(" | ");
     print_64(size);
-    kputs(" | ");
+    puts(" | ");
     switch (type) {
         case 1:
-            kputs("Usable RAM");
+            puts("Usable RAM");
             break;
         case 2:
-            kputs("Reserved");
+            puts("Reserved");
             break;
         case 3:
-            kputs("ACPI Reclaimable");
+            puts("ACPI Reclaimable");
             break;
         case 4:
-            kputs("ACPI NVS");
+            puts("ACPI NVS");
             break;
         case 5:
-            kputs("BAD MEMORY");
+            puts("BAD MEMORY");
             break;
     }
-    kputc('\n');
+    putc('\n');
 }
 
 static int mem_cmd(size_t argc, char ** argv) {
     uint16_t low_mem = ram_lower_size();
-    kprintf("Lower memory is %u k\n", low_mem);
+    printf("Lower memory is %u k\n", low_mem);
 
     uint16_t count = ram_upper_count();
 
-    kprintf("Total of %u blocks\n", count);
+    printf("Total of %u blocks\n", count);
 
-    kputs("| Start              | End                | Size               | Type\n");
+    puts("| Start              | End                | Size               | Type\n");
     for (size_t i = 0; i < count; i++) {
         print_upper(ram_upper_start(i), ram_upper_end(i), ram_upper_size(i), ram_upper_type(i));
     }
@@ -267,40 +267,40 @@ static void ls_print_file_size(size_t size) {
         default:
             break;
     }
-    kprintf("%4u%c", size, order_c);
+    printf("%4u%c", size, order_c);
 }
 
 static void ls_print_file(tar_stat_t * stat) {
-    kputc(stat->type == TAR_TYPE_DIR ? 'd' : '-');
+    putc(stat->type == TAR_TYPE_DIR ? 'd' : '-');
 
-    kputc(stat->mode & TAR_PEM_USER_READ ? 'r' : '-');
-    kputc(stat->mode & TAR_PEM_USER_WRITE ? 'w' : '-');
-    kputc(stat->mode & TAR_PEM_USER_EXECUTE ? 'x' : '-');
+    putc(stat->mode & TAR_PEM_USER_READ ? 'r' : '-');
+    putc(stat->mode & TAR_PEM_USER_WRITE ? 'w' : '-');
+    putc(stat->mode & TAR_PEM_USER_EXECUTE ? 'x' : '-');
 
-    kputc(stat->mode & TAR_PEM_GROUP_READ ? 'r' : '-');
-    kputc(stat->mode & TAR_PEM_GROUP_WRITE ? 'w' : '-');
-    kputc(stat->mode & TAR_PEM_GROUP_EXECUTE ? 'x' : '-');
+    putc(stat->mode & TAR_PEM_GROUP_READ ? 'r' : '-');
+    putc(stat->mode & TAR_PEM_GROUP_WRITE ? 'w' : '-');
+    putc(stat->mode & TAR_PEM_GROUP_EXECUTE ? 'x' : '-');
 
-    kputc(stat->mode & TAR_PEM_OTHER_READ ? 'r' : '-');
-    kputc(stat->mode & TAR_PEM_OTHER_WRITE ? 'w' : '-');
-    kputc(stat->mode & TAR_PEM_OTHER_EXECUTE ? 'x' : '-');
+    putc(stat->mode & TAR_PEM_OTHER_READ ? 'r' : '-');
+    putc(stat->mode & TAR_PEM_OTHER_WRITE ? 'w' : '-');
+    putc(stat->mode & TAR_PEM_OTHER_EXECUTE ? 'x' : '-');
 
-    kprintf(" %4u %4u ", stat->uid, stat->gid);
+    printf(" %4u %4u ", stat->uid, stat->gid);
     ls_print_file_size(stat->size);
 
-    kprintf(" %4u ", stat->mtime);
-    kputs(stat->filename);
-    kputc('\n');
+    printf(" %4u ", stat->mtime);
+    puts(stat->filename);
+    putc('\n');
 }
 
 static int ls_cmd(size_t argc, char ** argv) {
     if (!tar) {
-        kputs("Filesystem not mounted\n");
+        puts("Filesystem not mounted\n");
         return 1;
     }
 
     size_t file_count = tar_file_count(tar);
-    kprintf("Found %u files\n", file_count);
+    printf("Found %u files\n", file_count);
 
     tar_stat_t stat;
     for (size_t i = 0; i < file_count; i++) {
@@ -309,47 +309,47 @@ static int ls_cmd(size_t argc, char ** argv) {
         ls_print_file(&stat);
     }
 
-    kputc('\n');
+    putc('\n');
     return 0;
 }
 
 static int stat_cmd(size_t argc, char ** argv) {
     if (!tar) {
-        kputs("Filesystem not mounted\n");
+        puts("Filesystem not mounted\n");
         return 1;
     }
 
     tar_stat_t stat;
     if (!tar_stat_file_i(tar, 0, &stat)) {
-        kputs("Failed to stat file\n");
+        puts("Failed to stat file\n");
         return 1;
     }
 
-    kprintf("File %s\n", stat.filename);
-    kprintf("Size %u\n", stat.size);
-    kprintf("%04x (%u : %u)\n", stat.mode, stat.uid, stat.gid);
-    kprintf("mtime %04x\n", stat.mtime);
-    kprintf("Type %02x\n", stat.type);
+    printf("File %s\n", stat.filename);
+    printf("Size %u\n", stat.size);
+    printf("%04x (%u : %u)\n", stat.mode, stat.uid, stat.gid);
+    printf("mtime %04x\n", stat.mtime);
+    printf("Type %02x\n", stat.type);
 
     return 0;
 }
 
 static int fs_read_cmd(size_t argc, char ** argv) {
     if (argc != 2) {
-        kprintf("Usage: %s <filename>\n", argv[0]);
+        printf("Usage: %s <filename>\n", argv[0]);
         return 1;
     }
 
     char * filename = argv[1];
 
     if (!tar) {
-        kputs("Filesystem not mounted\n");
+        puts("Filesystem not mounted\n");
         return 1;
     }
 
     tar_stat_t stat;
     if (!tar_stat_file(tar, filename, &stat)) {
-        kputs("Failed to find file\n");
+        puts("Failed to find file\n");
         return 1;
     }
 
@@ -369,7 +369,7 @@ static int fs_read_cmd(size_t argc, char ** argv) {
         kfree(buff);
         return 1;
     }
-    kprint_hexblock(buff, stat.size, 0);
+    print_hexblock(buff, stat.size, 0);
 
     if (!disk || !buff)
         return 0;
@@ -382,20 +382,20 @@ static int fs_read_cmd(size_t argc, char ** argv) {
 
 static int fs_cat_cmd(size_t argc, char ** argv) {
     if (argc != 2) {
-        kprintf("Usage: %s <filename>\n", argv[0]);
+        printf("Usage: %s <filename>\n", argv[0]);
         return 1;
     }
 
     char * filename = argv[1];
 
     if (!tar) {
-        kputs("Filesystem not mounted\n");
+        puts("Filesystem not mounted\n");
         return 1;
     }
 
     tar_stat_t stat;
     if (!tar_stat_file(tar, filename, &stat)) {
-        kputs("Failed to find file\n");
+        puts("Failed to find file\n");
         return 1;
     }
 
@@ -415,7 +415,7 @@ static int fs_cat_cmd(size_t argc, char ** argv) {
         return 1;
     }
     for (size_t i = 0; i < stat.size; i++) {
-        kputc(buff[i]);
+        putc(buff[i]);
     }
 
     if (!disk || !buff)
@@ -434,7 +434,7 @@ static int fs_cat_cmd(size_t argc, char ** argv) {
 
 static int disk_read_cmd(size_t argc, char ** argv) {
     if (argc != 3) {
-        kprintf("Usage: %s <pos> <count>\n", argv[0]);
+        printf("Usage: %s <pos> <count>\n", argv[0]);
         return 1;
     }
 
@@ -444,7 +444,7 @@ static int disk_read_cmd(size_t argc, char ** argv) {
     if (!disk) {
         disk = disk_open(0, DISK_DRIVER_ATA);
         if (!disk) {
-            kputs("Failed to open disk\n");
+            puts("Failed to open disk\n");
             return 1;
         }
     }
@@ -459,11 +459,11 @@ static int disk_read_cmd(size_t argc, char ** argv) {
             to_read = 512;
         size_t read = disk_read(disk, data, to_read, pos);
         data[read] = 0;
-        kprint_hexblock(data, read, 512 * i);
+        print_hexblock(data, read, 512 * i);
         count -= to_read;
         pos += to_read;
     }
-    kputc('\n');
+    putc('\n');
     return 0;
 }
 
@@ -471,7 +471,7 @@ static int disk_write_cmd(size_t argc, char ** argv) {
     if (!disk) {
         disk = disk_open(0, DISK_DRIVER_ATA);
         if (!disk) {
-            kputs("Failed to open disk\n");
+            puts("Failed to open disk\n");
             return 1;
         }
     }
@@ -496,12 +496,12 @@ static int disk_size_cmd(size_t argc, char ** argv) {
     if (!disk) {
         disk = disk_open(0, DISK_DRIVER_ATA);
         if (!disk) {
-            kputs("Failed to open disk\n");
+            puts("Failed to open disk\n");
             return 1;
         }
     }
     size_t size = disk_size(disk);
-    kprintf("Disk size %u\n", size);
+    printf("Disk size %u\n", size);
     return 0;
 }
 
@@ -509,13 +509,13 @@ static int command_lookup(size_t argc, char ** argv) {
     char * filename = argv[0];
 
     if (!tar) {
-        kputs("Filesystem not mounted\n");
+        puts("Filesystem not mounted\n");
         return 1;
     }
 
     tar_stat_t stat;
     if (!tar_stat_file(tar, filename, &stat)) {
-        kputs("Failed to find file\n");
+        puts("Failed to find file\n");
         return 1;
     }
 

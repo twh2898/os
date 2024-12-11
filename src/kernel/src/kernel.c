@@ -21,7 +21,7 @@ _Noreturn void kernel_panic(const char * msg, const char * file, unsigned int li
     vga_color(VGA_FG_WHITE | VGA_BG_RED);
     vga_print("[KERNEL PANIC]");
     if (file)
-        kprintf("[%s]:%u", file, line);
+        printf("[%s]:%u", file, line);
     if (msg) {
         vga_putc(' ');
         vga_print(msg);
@@ -49,24 +49,24 @@ void test_interrupt() {
 }
 
 int demo(size_t argc, char ** argv) {
-    kprintf("Lets demo some cool features of kprintf\n");
-    int len = kprintf("Like the percent sign %%, \na signed int %d, a signed int with width formatting %4d, \nleading zeros %04d, left align %-4d\n", 10, 10, 10, 10);
-    len += kprintf("How about negative numbers: signed %d and unsigned %u\n", -10, -10);
-    len += kprintf("Now for non decimal 0x%04x and 0x%04X or octal %o\n", 1234, 1234, 1234);
-    len += kprintf("There's booleans to %b and chars like %c and strings like %s\n", true, 'c', "this");
+    printf("Lets demo some cool features of printf\n");
+    int len = printf("Like the percent sign %%, \na signed int %d, a signed int with width formatting %4d, \nleading zeros %04d, left align %-4d\n", 10, 10, 10, 10);
+    len += printf("How about negative numbers: signed %d and unsigned %u\n", -10, -10);
+    len += printf("Now for non decimal 0x%04x and 0x%04X or octal %o\n", 1234, 1234, 1234);
+    len += printf("There's booleans to %b and chars like %c and strings like %s\n", true, 'c', "this");
     int store = 0;
-    len += kprintf("The last part is pointers %8p\n", &store);
+    len += printf("The last part is pointers %8p\n", &store);
 
     void * data = kmalloc(10);
 
-    kprintf("\nMalloc memory got pointer %p\n", data);
-    kprintf("Float number %f or shorter %3f or digits %.4f or lead %.04f\n", 3.14, 31.45, 3.14, 3.14);
-    kprintf("%f\n", 12345678.0);
+    printf("\nMalloc memory got pointer %p\n", data);
+    printf("Float number %f or shorter %3f or digits %.4f or lead %.04f\n", 3.14, 31.45, 3.14, 3.14);
+    printf("%f\n", 12345678.0);
 }
 
 void key_cb(uint8_t code, char c, keyboard_event_t event, keyboard_mod_t mod) {
     if (event != KEY_EVENT_RELEASE && c) {
-        kputc(c);
+        putc(c);
     }
 }
 
@@ -93,7 +93,7 @@ static void id_map(mmu_page_table_t * table, size_t start, size_t end) {
 static void map_virt_page_dir(mmu_page_dir_t * dir) {
     size_t ram_table_count;
     mmu_page_table_t * firstTable = init_ram(UINT2PTR(PADDR_RAM_TABLE), &ram_table_count);
-    // kprintf("First table is at 0x%x\n", PTR2UINT(firstTable));
+    // printf("First table is at 0x%x\n", PTR2UINT(firstTable));
     mmu_table_create(firstTable);
     mmu_dir_set(dir, 0, firstTable, MMU_DIR_RW);
 
@@ -117,7 +117,7 @@ static void map_virt_page_dir(mmu_page_dir_t * dir) {
 
     // create page table for the last entry of the page directory
     mmu_page_table_t * lastTable = firstTable + PAGE_SIZE;
-    // kprintf("Last table created at %p\n", lastTable);
+    // printf("Last table created at %p\n", lastTable);
     mmu_table_create(lastTable);
     mmu_dir_set(dir, PAGE_DIR_SIZE - 1, lastTable, MMU_DIR_RW);
 
@@ -139,16 +139,16 @@ static void check_malloc() {
     void * a = ram_page_alloc();
     void * b = ram_page_alloc();
 
-    kprintf("Ram page alloc gave 0x%x and 0x%X\n", PTR2UINT(a), PTR2UINT(b));
+    printf("Ram page alloc gave 0x%x and 0x%X\n", PTR2UINT(a), PTR2UINT(b));
 
     void * c = kmalloc(1);
     void * d = kmalloc(1);
 
-    kprintf("Malloc gave vaddr %p and %p\n", c, d);
+    printf("Malloc gave vaddr %p and %p\n", c, d);
 
     void * e = ram_page_alloc();
 
-    kprintf("Ram page alloc gave %p\n", e);
+    printf("Ram page alloc gave %p\n", e);
 }
 
 static void yea_callback(registers_t regs) {
@@ -191,7 +191,7 @@ static void yea_callback(registers_t regs) {
         } break;
 
         default: {
-            kprintf("Unknown interrupt 0x%X\n", int_no);
+            printf("Unknown interrupt 0x%X\n", int_no);
             print_trace(&regs);
             KERNEL_PANIC("UNKNOWN INTERRUPT");
         } break;
@@ -212,10 +212,10 @@ void kernel_main() {
 
     vga_print("Welcome to kernel v..\n");
 
-    // kprintf("Paging enabled: %b\n", mmu_paging_enabled());
+    // printf("Paging enabled: %b\n", mmu_paging_enabled());
     mmu_page_dir_t * pdir = enter_paging();
     // trigger_page_fault();
-    // kprintf("Paging enabled: %b\n", mmu_paging_enabled());
+    // printf("Paging enabled: %b\n", mmu_paging_enabled());
     init_malloc(pdir, VADDR_FREE_MEM_KERNEL >> 12);
 
     // check_malloc();
@@ -231,7 +231,7 @@ void kernel_main() {
     // run_tests();
 
     // uint32_t r = system_call(4, 1);
-    // kprintf("System call got 0x%X\n", r);
+    // printf("System call got 0x%X\n", r);
 
     // sys_call_1();
     // sys_call_1();

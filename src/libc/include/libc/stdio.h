@@ -9,16 +9,16 @@
 size_t itoa(int32_t n, char * str);
 size_t ltoa(int64_t n, char * str);
 
-size_t kputs(const char * str);
-size_t kputc(char c);
-size_t kputi(int32_t num, uint8_t base, bool upper);
-size_t kputli(int64_t num, uint8_t base, bool upper);
-size_t kputu(uint32_t num, uint8_t base, bool upper);
-size_t kputlu(uint64_t num, uint8_t base, bool upper);
+size_t puts(const char * str);
+size_t putc(char c);
+size_t puti(int32_t num, uint8_t base, bool upper);
+size_t putli(int64_t num, uint8_t base, bool upper);
+size_t putu(uint32_t num, uint8_t base, bool upper);
+size_t putlu(uint64_t num, uint8_t base, bool upper);
 
-size_t kprintf(const char * fmt, ...);
-size_t kvprintf(const char * fmt, va_list params);
+size_t printf(const char * fmt, ...);
+size_t vprintf(const char * fmt, va_list params);
 
-size_t kprint_hexblock(const uint8_t * data, size_t count, size_t addr_offset);
+size_t print_hexblock(const uint8_t * data, size_t count, size_t addr_offset);
 
 #endif // STDIO_H

@@ -51,16 +51,16 @@ static size_t split_entry(memory_table_t * table, size_t i, size_t size);
 static size_t merge_entry(memory_table_t * table, size_t i, size_t count);
 
 void init_malloc(mmu_page_dir_t * dir, size_t first_page) {
-    // kprintf("init_malloc(dir=%p page=%u)\n", dir, first_page);
+    // printf("init_malloc(dir=%p page=%u)\n", dir, first_page);
     pdir = dir;
     next_page = first_page;
 
     mtable = add_page();
-    // kprintf("First table is %p\n", mtable);
+    // printf("First table is %p\n", mtable);
     init_table(mtable, 0, 0);
-    // kprintf("init table done\n");
+    // printf("init table done\n");
     void * first_free = add_page();
-    // kprintf("First free page is %p\n", first_free);
+    // printf("First free page is %p\n", first_free);
     entry_set(entry_of(mtable, 0), PTR2UINT(first_free), PAGE_SIZE, MEMORY_ENTRY_FLAG_PRESENT | MEMORY_ENTRY_FLAG_FREE);
 }
 
@@ -142,17 +142,17 @@ static void * add_page() {
 }
 
 static void init_table(memory_table_t * table, memory_table_t * prev, memory_table_t * next) {
-    // kprintf("init_table(table=%p prev=%p next=%p)\n", table, prev, next);
+    // printf("init_table(table=%p prev=%p next=%p)\n", table, prev, next);
     table->prev = PTR2UINT(prev);
-    // kprintf("set first ");
+    // printf("set first ");
     table->next = PTR2UINT(next);
-    // kprintf("set second ");
-    kmemset(table->entries, 0, sizeof(table->entries));
-    // kprintf("done\n");
+    // printf("set second ");
+    memset(table->entries, 0, sizeof(table->entries));
+    // printf("done\n");
 }
 
 static void entry_set_addr(memory_table_entry_t * entry, uint32_t addr) {
-    // kprintf("entry_set_addr(entry=%p addr=%u)\n", entry, addr);
+    // printf("entry_set_addr(entry=%p addr=%u)\n", entry, addr);
     if (!entry || !addr)
         return;
 
@@ -162,7 +162,7 @@ static void entry_set_addr(memory_table_entry_t * entry, uint32_t addr) {
 }
 
 static void entry_set_flags(memory_table_entry_t * entry, enum MEMORY_ENTRY_FLAG flags) {
-    // kprintf("entry_set_addr(entry=%p flags=%x)\n", entry, flags);
+    // printf("entry_set_addr(entry=%p flags=%x)\n", entry, flags);
     if (!entry)
         return;
 
@@ -172,7 +172,7 @@ static void entry_set_flags(memory_table_entry_t * entry, enum MEMORY_ENTRY_FLAG
 }
 
 static void entry_set_size(memory_table_entry_t * entry, size_t size) {
-    // kprintf("entry_set_size(entry=%p size=%u)\n", entry, size);
+    // printf("entry_set_size(entry=%p size=%u)\n", entry, size);
     if (!entry)
         return;
 
@@ -180,7 +180,7 @@ static void entry_set_size(memory_table_entry_t * entry, size_t size) {
 }
 
 static void entry_set(memory_table_entry_t * entry, uint32_t addr, size_t size, enum MEMORY_ENTRY_FLAG flags) {
-    // kprintf("entry_set_size(entry=%p addr=%u size=%u flags=%x)\n", entry, addr, size, flags);
+    // printf("entry_set_size(entry=%p addr=%u size=%u flags=%x)\n", entry, addr, size, flags);
     if (!entry || !addr)
         return;
 
@@ -189,7 +189,7 @@ static void entry_set(memory_table_entry_t * entry, uint32_t addr, size_t size, 
 }
 
 static void entry_copy(memory_table_entry_t * to, memory_table_entry_t * from) {
-    // kprintf("entry_copy(to=%p from=%p)\n", to, from);
+    // printf("entry_copy(to=%p from=%p)\n", to, from);
     if (!to || !from)
         return;
 
@@ -198,13 +198,13 @@ static void entry_copy(memory_table_entry_t * to, memory_table_entry_t * from) {
 }
 
 static void entry_clear(memory_table_entry_t * entry) {
-    // kprintf("entry_clear(entry=%p)\n", entry);
+    // printf("entry_clear(entry=%p)\n", entry);
     entry->addr_flags = 0;
     entry->size = 0;
 }
 
 static memory_table_entry_t * find_entry(memory_table_t * table, void * ptr) {
-    // kprintf("find_entry(table=%p ptr=%p)\n", table, ptr);
+    // printf("find_entry(table=%p ptr=%p)\n", table, ptr);
     if (!table || !ptr)
         return 0;
 
@@ -235,7 +235,7 @@ static memory_table_entry_t * find_entry(memory_table_t * table, void * ptr) {
 }
 
 static memory_table_entry_t * find_free(memory_table_t ** table, size_t * i, size_t size) {
-    // kprintf("find_entry(table=%p *table=%p i=%u size=%u)\n", table, *table, *i, size);
+    // printf("find_entry(table=%p *table=%p i=%u size=%u)\n", table, *table, *i, size);
     if (!table || !*table || !i)
         return 0;
 
@@ -295,7 +295,7 @@ static inline bool entry_is_present_free(memory_table_entry_t * entry) {
 }
 
 static memory_table_entry_t * next_entry(memory_table_t * table, size_t i) {
-    // kprintf("next_entry(table=%p i=%u)\n", table, i);
+    // printf("next_entry(table=%p i=%u)\n", table, i);
     if (!table)
         return 0;
 
@@ -319,7 +319,7 @@ static memory_table_entry_t * next_entry(memory_table_t * table, size_t i) {
 }
 
 static size_t split_entry(memory_table_t * table, size_t i, size_t size) {
-    // kprintf("split_entry(table=%p i=%u size=%u)\n", table, i, size);
+    // printf("split_entry(table=%p i=%u size=%u)\n", table, i, size);
     if (!table)
         return 0;
 
@@ -385,7 +385,7 @@ static size_t split_entry(memory_table_t * table, size_t i, size_t size) {
 }
 
 static size_t merge_entry(memory_table_t * table, size_t i, size_t count) {
-    // kprintf("merge_entry(table=%p i=%u count=%u)\n", table, i, count);
+    // printf("merge_entry(table=%p i=%u count=%u)\n", table, i, count);
     if (!table)
         return 0;
 

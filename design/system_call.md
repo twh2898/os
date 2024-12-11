@@ -3,6 +3,8 @@
 System calls are performed through interrupt 48 (`int 0x30`). The interrupt
 takes a `uint16_t` id and some number of arguments.
 
+Each interrupt takes up to 3 arguments and returns a `uint32_t`.
+
 ## Interrupt
 
 | ID   | Family          |

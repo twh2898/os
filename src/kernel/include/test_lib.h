@@ -37,27 +37,27 @@ END_TESTS
 #define END_TESTS                                     \
     if (fail) {                                       \
         int pass = total - fail;                      \
-        kprintf("%d tests ran\n", total);             \
-        kprintf("%d passed %d failed\n", pass, fail); \
+        printf("%d tests ran\n", total);             \
+        printf("%d passed %d failed\n", pass, fail); \
     }                                                 \
     return fail;
 
 #define TEST(NAME)                 \
     {                              \
-        kprintf("%10s : ", #NAME); \
+        printf("%10s : ", #NAME); \
         int err = NAME();          \
         if (err)                   \
-            kputs(": FAIL");       \
+            puts(": FAIL");       \
         else                       \
-            kputs("PASS");         \
+            puts("PASS");         \
         fail += err;               \
         total++;                   \
-        kputc('\n');               \
+        putc('\n');               \
     }
 
 #define ASSERT(expr)                                       \
     if (!(expr)) {                                         \
-        kprintf("%s (%s:%d) ", #expr, __func__, __LINE__); \
+        printf("%s (%s:%d) ", #expr, __func__, __LINE__); \
         return 1;                                          \
     }
 #define ASSERT_EQ(a, b)     ASSERT((a) == (b))
@@ -66,6 +66,6 @@ END_TESTS
 #define ASSERT_FALSE(a)     ASSERT((a) == false)
 #define FATAL                                                \
     {                                                        \
-        kprintf("FATAL ERROR! %s:%d\n", __func__, __LINE__); \
+        printf("FATAL ERROR! %s:%d\n", __func__, __LINE__); \
         return -1;                                           \
     }

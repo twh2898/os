@@ -9,7 +9,7 @@ void * malloc(size_t size) {
 
 void * calloc(size_t size, uint8_t value) {
     void * ptr = _malloc(size);
-    kmemset(ptr, value, size);
+    memset(ptr, value, size);
     return ptr;
 }
 

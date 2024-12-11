@@ -67,9 +67,9 @@ static void keyboard_callback(registers_t regs) {
         _cb(keycode, c, event, mods);
     }
     else {
-        kprintf("Keyboard scancode: %u, ", scancode);
+        printf("Keyboard scancode: %u, ", scancode);
         print_letter(scancode);
-        kprintf("\n");
+        printf("\n");
     }
 }
 
@@ -95,187 +95,187 @@ void print_letter(uint8_t scancode) {
              * it may still be a scancode we haven't implemented yet, or
              * maybe a control/escape sequence */
             if (scancode <= 0x7f) {
-                kprintf("Unknown key down");
+                printf("Unknown key down");
             }
             else if (scancode <= 0x39 + 0x80) {
-                kprintf("key up ");
+                printf("key up ");
                 print_letter(scancode - 0x80);
             }
             else
-                kprintf("Unknown key up");
+                printf("Unknown key up");
             break;
         case 0x0:
             break;
         case 0x1:
-            kprintf("ESC");
+            printf("ESC");
             break;
         case 0x2:
-            kprintf("1");
+            printf("1");
             break;
         case 0x3:
-            kprintf("2");
+            printf("2");
             break;
         case 0x4:
-            kprintf("3");
+            printf("3");
             break;
         case 0x5:
-            kprintf("4");
+            printf("4");
             break;
         case 0x6:
-            kprintf("5");
+            printf("5");
             break;
         case 0x7:
-            kprintf("6");
+            printf("6");
             break;
         case 0x8:
-            kprintf("7");
+            printf("7");
             break;
         case 0x9:
-            kprintf("8");
+            printf("8");
             break;
         case 0x0A:
-            kprintf("9");
+            printf("9");
             break;
         case 0x0B:
-            kprintf("0");
+            printf("0");
             break;
         case 0x0C:
-            kprintf("-");
+            printf("-");
             break;
         case 0x0D:
-            kprintf("+");
+            printf("+");
             break;
         case 0x0E:
-            kprintf("Backspace");
+            printf("Backspace");
             break;
         case 0x0F:
-            kprintf("Tab");
+            printf("Tab");
             break;
         case 0x10:
-            kprintf("Q");
+            printf("Q");
             break;
         case 0x11:
-            kprintf("W");
+            printf("W");
             break;
         case 0x12:
-            kprintf("E");
+            printf("E");
             break;
         case 0x13:
-            kprintf("R");
+            printf("R");
             break;
         case 0x14:
-            kprintf("T");
+            printf("T");
             break;
         case 0x15:
-            kprintf("Y");
+            printf("Y");
             break;
         case 0x16:
-            kprintf("U");
+            printf("U");
             break;
         case 0x17:
-            kprintf("I");
+            printf("I");
             break;
         case 0x18:
-            kprintf("O");
+            printf("O");
             break;
         case 0x19:
-            kprintf("P");
+            printf("P");
             break;
         case 0x1A:
-            kprintf("[");
+            printf("[");
             break;
         case 0x1B:
-            kprintf("]");
+            printf("]");
             break;
         case 0x1C:
-            kprintf("ENTER");
+            printf("ENTER");
             break;
         case 0x1D:
-            kprintf("LCtrl");
+            printf("LCtrl");
             break;
         case 0x1E:
-            kprintf("A");
+            printf("A");
             break;
         case 0x1F:
-            kprintf("S");
+            printf("S");
             break;
         case 0x20:
-            kprintf("D");
+            printf("D");
             break;
         case 0x21:
-            kprintf("F");
+            printf("F");
             break;
         case 0x22:
-            kprintf("G");
+            printf("G");
             break;
         case 0x23:
-            kprintf("H");
+            printf("H");
             break;
         case 0x24:
-            kprintf("J");
+            printf("J");
             break;
         case 0x25:
-            kprintf("K");
+            printf("K");
             break;
         case 0x26:
-            kprintf("L");
+            printf("L");
             break;
         case 0x27:
-            kprintf(";");
+            printf(";");
             break;
         case 0x28:
-            kprintf("'");
+            printf("'");
             break;
         case 0x29:
-            kprintf("`");
+            printf("`");
             break;
         case 0x2A:
-            kprintf("LShift");
+            printf("LShift");
             break;
         case 0x2B:
-            kprintf("\\");
+            printf("\\");
             break;
         case 0x2C:
-            kprintf("Z");
+            printf("Z");
             break;
         case 0x2D:
-            kprintf("X");
+            printf("X");
             break;
         case 0x2E:
-            kprintf("C");
+            printf("C");
             break;
         case 0x2F:
-            kprintf("V");
+            printf("V");
             break;
         case 0x30:
-            kprintf("B");
+            printf("B");
             break;
         case 0x31:
-            kprintf("N");
+            printf("N");
             break;
         case 0x32:
-            kprintf("M");
+            printf("M");
             break;
         case 0x33:
-            kprintf(",");
+            printf(",");
             break;
         case 0x34:
-            kprintf(".");
+            printf(".");
             break;
         case 0x35:
-            kprintf("/");
+            printf("/");
             break;
         case 0x36:
-            kprintf("Rshift");
+            printf("Rshift");
             break;
         case 0x37:
-            kprintf("Keypad *");
+            printf("Keypad *");
             break;
         case 0x38:
-            kprintf("LAlt");
+            printf("LAlt");
             break;
         case 0x39:
-            kprintf("Spc");
+            printf("Spc");
             break;
     }
 }

@@ -6,7 +6,7 @@
 
 static char * strtok_curr = 0;
 
-int kmemcmp(const void * lhs, const void * rhs, size_t n) {
+int memcmp(const void * lhs, const void * rhs, size_t n) {
     if (!lhs || !rhs)
         return 0;
 
@@ -19,7 +19,7 @@ int kmemcmp(const void * lhs, const void * rhs, size_t n) {
     return 0;
 }
 
-void * kmemcpy(void * dest, const void * src, size_t n) {
+void * memcpy(void * dest, const void * src, size_t n) {
     if (!dest || !src)
         return 0;
 
@@ -31,7 +31,7 @@ void * kmemcpy(void * dest, const void * src, size_t n) {
     return dest;
 }
 
-void * kmemmove(void * dest, const void * src, size_t n) {
+void * memmove(void * dest, const void * src, size_t n) {
     if (!dest || !src)
         return 0;
 
@@ -52,7 +52,7 @@ void * kmemmove(void * dest, const void * src, size_t n) {
     return dest;
 }
 
-void * kmemset(void * ptr, uint8_t value, size_t n) {
+void * memset(void * ptr, uint8_t value, size_t n) {
     if (!ptr)
         return 0;
     uint8_t * buf = (uint8_t *)ptr;
@@ -62,7 +62,7 @@ void * kmemset(void * ptr, uint8_t value, size_t n) {
     return ptr;
 }
 
-int kstrlen(const char * str) {
+int strlen(const char * str) {
     if (!str)
         return -1;
     size_t count = 0;
@@ -70,7 +70,7 @@ int kstrlen(const char * str) {
     return count;
 }
 
-int knstrlen(const char * str, int max) {
+int nstrlen(const char * str, int max) {
     if (!str || max < 0)
         return -1;
     size_t count = 0;
@@ -78,20 +78,20 @@ int knstrlen(const char * str, int max) {
     return count;
 }
 
-int kstrcmp(const char * lhs, const char * rhs) {
-    size_t lhs_len = kstrlen(lhs);
-    size_t rhs_len = kstrlen(rhs);
+int strcmp(const char * lhs, const char * rhs) {
+    size_t lhs_len = strlen(lhs);
+    size_t rhs_len = strlen(rhs);
 
     if (lhs_len != rhs_len)
         return lhs_len - rhs_len;
 
-    return kmemcmp(lhs, rhs, lhs_len);
+    return memcmp(lhs, rhs, lhs_len);
 }
 
-int kstrfind(const char * str, size_t start, char c) {
+int strfind(const char * str, size_t start, char c) {
     if (!str)
         return -1;
-    size_t len = kstrlen(str);
+    size_t len = strlen(str);
     for (size_t i = start; i < len; i++) {
         if (str[i] == c)
             return (int)i;
@@ -103,8 +103,8 @@ static char * find_one(char * str, char * delim) {
     if (!str || !delim)
         return 0;
 
-    size_t len = kstrlen(str);
-    size_t d_len = kstrlen(delim);
+    size_t len = strlen(str);
+    size_t d_len = strlen(delim);
 
     for (size_t i = 0; i < len; i++) {
         for (size_t d = 0; d < d_len; d++) {
@@ -120,8 +120,8 @@ static char * find_not_one(char * str, char * delim) {
     if (!str || !delim)
         return 0;
 
-    size_t len = kstrlen(str);
-    size_t d_len = kstrlen(delim);
+    size_t len = strlen(str);
+    size_t d_len = strlen(delim);
 
     for (size_t i = 0; i < len; i++) {
         for (size_t d = 0; d < d_len; d++) {
@@ -134,7 +134,7 @@ static char * find_not_one(char * str, char * delim) {
 }
 
 // TODO Untested, idk if this actually works
-char * kstrtok(char * str, char * delim) {
+char * strtok(char * str, char * delim) {
     if (!str || !delim)
         return 0;
 
@@ -145,7 +145,7 @@ char * kstrtok(char * str, char * delim) {
         return 0;
 
     strtok_curr = find_not_one(strtok_curr, delim);
-    size_t len = kstrlen(strtok_curr);
+    size_t len = strlen(strtok_curr);
     if (len == 0)
         return 0;
 

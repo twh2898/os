@@ -47,7 +47,7 @@ static void sort_ram();
 
 void * init_ram(void * ram_table, size_t * ram_table_count) {
     region_table = (region_table_t *)ram_table;
-    kmemset(region_table, 0, sizeof(region_table_t));
+    memset(region_table, 0, sizeof(region_table_t));
 
     boot_params_t * bparams = get_boot_params();
 
@@ -248,8 +248,8 @@ static void create_bitmask(size_t region_index) {
     size_t bytes = pages / 8;
     size_t bits = pages % 8;
 
-    kmemset(bitmask, 0, PAGE_SIZE);
-    kmemset(bitmask, 0xff, bytes);
+    memset(bitmask, 0, PAGE_SIZE);
+    memset(bitmask, 0xff, bytes);
 
     for (size_t i = 0; i < bits; i++) {
         bitmask[bytes] |= 1 << i;

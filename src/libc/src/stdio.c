@@ -90,24 +90,24 @@ size_t ltoa(int64_t n, char * str) {
     return len;
 }
 
-size_t kputs(const char * str) {
+size_t puts(const char * str) {
     return _puts(str);
 }
 
-size_t kputc(char c) {
+size_t putc(char c) {
     return _putc(c);
 }
 
-size_t kputi(int32_t num, uint8_t base, bool upper) {
+size_t puti(int32_t num, uint8_t base, bool upper) {
     if (num == 0) {
-        return kputc('0');
+        return putc('0');
     }
 
     bool is_neg = num < 0;
 
     size_t o_len = 0;
     if (num < 0) {
-        o_len += kputc('-');
+        o_len += putc('-');
         num = -num;
     }
 
@@ -120,23 +120,23 @@ size_t kputi(int32_t num, uint8_t base, bool upper) {
     }
 
     for (size_t i = 0; i < len; i++) {
-        o_len += kputc(digit(rev % base, base, upper));
+        o_len += putc(digit(rev % base, base, upper));
         rev /= base;
     }
 
     return o_len;
 }
 
-size_t kputli(int64_t num, uint8_t base, bool upper) {
+size_t putli(int64_t num, uint8_t base, bool upper) {
     if (num == 0) {
-        return kputc('0');
+        return putc('0');
     }
 
     bool is_neg = num < 0;
 
     size_t o_len = 0;
     if (num < 0) {
-        o_len += kputc('-');
+        o_len += putc('-');
         num = -num;
     }
 
@@ -149,16 +149,16 @@ size_t kputli(int64_t num, uint8_t base, bool upper) {
     }
 
     for (size_t i = 0; i < len; i++) {
-        o_len += kputc(digit(rev % base, base, upper));
+        o_len += putc(digit(rev % base, base, upper));
         rev /= base;
     }
 
     return o_len;
 }
 
-size_t kputu(uint32_t num, uint8_t base, bool upper) {
+size_t putu(uint32_t num, uint8_t base, bool upper) {
     if (num == 0) {
-        return kputc('0');
+        return putc('0');
     }
 
     size_t len = 0;
@@ -171,16 +171,16 @@ size_t kputu(uint32_t num, uint8_t base, bool upper) {
 
     size_t o_len = 0;
     for (size_t i = 0; i < len; i++) {
-        o_len += kputc(digit(rev % base, base, upper));
+        o_len += putc(digit(rev % base, base, upper));
         rev /= base;
     }
 
     return o_len;
 }
 
-size_t kputlu(uint64_t num, uint8_t base, bool upper) {
+size_t putlu(uint64_t num, uint8_t base, bool upper) {
     if (num == 0) {
-        return kputc('0');
+        return putc('0');
     }
 
     size_t len = 0;
@@ -193,20 +193,20 @@ size_t kputlu(uint64_t num, uint8_t base, bool upper) {
 
     size_t o_len = 0;
     for (size_t i = 0; i < len; i++) {
-        o_len += kputc(digit(rev % base, base, upper));
+        o_len += putc(digit(rev % base, base, upper));
         rev /= base;
     }
 
     return o_len;
 }
 
-size_t kprintf(const char * fmt, ...) {
+size_t printf(const char * fmt, ...) {
     va_list params;
     va_start(params, fmt);
-    return kvprintf(fmt, params);
+    return vprintf(fmt, params);
 }
 
-size_t kvprintf(const char * fmt, va_list params) {
+size_t vprintf(const char * fmt, va_list params) {
     size_t o_len = 0;
     while (*fmt) {
         if (*fmt == '%') {
@@ -268,12 +268,12 @@ size_t kvprintf(const char * fmt, va_list params) {
                 case 'p': {
                     if (is_long) {
                         uint64_t arg = va_arg(params, unsigned int);
-                        o_len += kputs("0x");
+                        o_len += puts("0x");
                         o_len += padded_long_uint(width, left_align, arg, 16, false, true);
                     }
                     else {
                         uint32_t arg = va_arg(params, unsigned int);
-                        o_len += kputs("0x");
+                        o_len += puts("0x");
                         o_len += padded_uint(width, left_align, arg, 16, false, true);
                     }
                 } break;
@@ -300,7 +300,7 @@ size_t kvprintf(const char * fmt, va_list params) {
                 } break;
                 case 'c': {
                     char arg = va_arg(params, int);
-                    o_len += kputc(arg);
+                    o_len += putc(arg);
                 } break;
                 case 's': {
                     char * arg = va_arg(params, char *);
@@ -312,14 +312,14 @@ size_t kvprintf(const char * fmt, va_list params) {
                 } break;
                 case 'b': {
                     int arg = va_arg(params, int);
-                    o_len += kputs(arg ? "true" : "false");
+                    o_len += puts(arg ? "true" : "false");
                 } break;
                 case 'f': {
                     float arg = va_arg(params, double);
                     uint32_t lhs = (uint32_t)arg;
-                    size_t count = kputi(lhs, 10, false);
+                    size_t count = puti(lhs, 10, false);
                     o_len += count;
-                    o_len += kputc('.');
+                    o_len += putc('.');
                     float rem = arg - (float)lhs;
                     if (!fract)
                         fract = 6;
@@ -328,12 +328,12 @@ size_t kvprintf(const char * fmt, va_list params) {
                         rem *= 10;
                         // if (rem == 0)
                         //     break;
-                        kputu((int)rem, 10, false);
+                        putu((int)rem, 10, false);
                         rem -= (int)rem;
                     }
                 } break;
                 case '%': {
-                    o_len += kputc('%');
+                    o_len += putc('%');
                 } break;
                 default:
                     break;
@@ -341,42 +341,42 @@ size_t kvprintf(const char * fmt, va_list params) {
             fmt++;
         }
         else {
-            o_len += kputc(*fmt++);
+            o_len += putc(*fmt++);
         };
     }
 
     return o_len;
 }
 
-size_t kprint_hexblock(const uint8_t * data, size_t count, size_t addr_offset) {
+size_t print_hexblock(const uint8_t * data, size_t count, size_t addr_offset) {
     size_t step = 16;
     size_t o_len = 0;
     size_t line = 0;
     if (!addr_offset) {
-        o_len += kputs("       00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f\n");
-        o_len += kputs("       -----------------------------------------------\n");
+        o_len += puts("       00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f\n");
+        o_len += puts("       -----------------------------------------------\n");
     }
     while (count) {
-        o_len += kprintf("0x%04X ", line * step + addr_offset);
+        o_len += printf("0x%04X ", line * step + addr_offset);
         size_t to_write = step;
         if (count < to_write)
             to_write = count;
         for (size_t i = 0; i < to_write; i++) {
-            o_len += kprintf("%02X ", data[line * step + i]);
+            o_len += printf("%02X ", data[line * step + i]);
         }
         size_t space = step - to_write;
-        while (space--) o_len += kputs("   ");
+        while (space--) o_len += puts("   ");
 
-        o_len += kputs("| ");
+        o_len += puts("| ");
         for (size_t i = 0; i < to_write; i++) {
             char c = data[line * step + i];
             if (c < 32)
                 c = '.';
-            o_len += kputc(c);
+            o_len += putc(c);
         }
         space = step - to_write;
-        while (space--) o_len += kputc(' ');
-        o_len += kputs(" |\n");
+        while (space--) o_len += putc(' ');
+        o_len += puts(" |\n");
         if (count <= step)
             break;
         count -= step;
@@ -425,7 +425,7 @@ static char digit(uint32_t num, uint8_t base, bool upper) {
 static size_t pad(char c, size_t len) {
     size_t o_len = 0;
     while (len) {
-        o_len += kputc(c);
+        o_len += putc(c);
         len--;
     }
     return o_len;
@@ -445,18 +445,18 @@ static size_t padded_int(size_t width, bool left_align, int32_t num, uint8_t bas
     size_t o_len = 0;
     if (fill && !left_align) {
         if (lead_zero && is_neg) {
-            o_len += kputc('-');
+            o_len += putc('-');
         }
         o_len += pad((lead_zero ? '0' : ' '), width - num_len);
         if (!lead_zero && is_neg) {
-            o_len += kputc('-');
+            o_len += putc('-');
         }
     }
     else if (is_neg) {
-        o_len += kputc('-');
+        o_len += putc('-');
     }
 
-    o_len += kputi(num, base, upper);
+    o_len += puti(num, base, upper);
 
     if (fill && left_align) {
         o_len += pad(' ', width - num_len);
@@ -479,18 +479,18 @@ static size_t padded_long_int(size_t width, bool left_align, int64_t num, uint8_
     size_t o_len = 0;
     if (fill && !left_align) {
         if (lead_zero && is_neg) {
-            o_len += kputc('-');
+            o_len += putc('-');
         }
         o_len += pad((lead_zero ? '0' : ' '), width - num_len);
         if (!lead_zero && is_neg) {
-            o_len += kputc('-');
+            o_len += putc('-');
         }
     }
     else if (is_neg) {
-        o_len += kputc('-');
+        o_len += putc('-');
     }
 
-    o_len += kputli(num, base, upper);
+    o_len += putli(num, base, upper);
 
     if (fill && left_align) {
         o_len += pad(' ', width - num_len);
@@ -509,7 +509,7 @@ static size_t padded_uint(size_t width, bool left_align, uint32_t num, uint8_t b
         o_len += pad((lead_zero ? '0' : ' '), width - num_len);
     }
 
-    o_len += kputu(num, base, upper);
+    o_len += putu(num, base, upper);
 
     if (fill && left_align) {
         o_len += pad(' ', width - num_len);
@@ -528,7 +528,7 @@ static size_t padded_long_uint(size_t width, bool left_align, uint64_t num, uint
         o_len += pad((lead_zero ? '0' : ' '), width - num_len);
     }
 
-    o_len += kputu(num, base, upper);
+    o_len += putu(num, base, upper);
 
     if (fill && left_align) {
         o_len += pad(' ', width - num_len);
@@ -538,7 +538,7 @@ static size_t padded_long_uint(size_t width, bool left_align, uint64_t num, uint
 }
 
 static size_t padded_str(size_t width, bool left_align, char * str) {
-    size_t str_len = kstrlen(str);
+    size_t str_len = strlen(str);
     bool fill = width > str_len;
 
     size_t o_len = 0;
@@ -546,7 +546,7 @@ static size_t padded_str(size_t width, bool left_align, char * str) {
         o_len += pad(' ', width - str_len);
     }
 
-    size_t len = kputs(str);
+    size_t len = puts(str);
 
     if (fill && left_align) {
         o_len += pad(' ', width - str_len);

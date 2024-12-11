@@ -124,35 +124,35 @@ char * exception_messages[] = {
 };
 
 void isr_handler(registers_t r) {
-    kprintf("%s\n", exception_messages[r.int_no]);
-    kprintf("ISR %u (err 0x%X)\n", r.int_no, r.err_code);
+    printf("%s\n", exception_messages[r.int_no]);
+    printf("ISR %u (err 0x%X)\n", r.int_no, r.err_code);
     print_trace(&r);
     switch (r.int_no) {
         case 14: {
             switch (r.err_code) {
                 case 0:
-                    kputs("Supervisory process tried to read a non-present page entry\n");
+                    puts("Supervisory process tried to read a non-present page entry\n");
                     break;
                 case 1:
-                    kputs("Supervisory process tried to read a page and caused a protection fault\n");
+                    puts("Supervisory process tried to read a page and caused a protection fault\n");
                     break;
                 case 2:
-                    kputs("Supervisory process tried to write to a non-present page entry\n");
+                    puts("Supervisory process tried to write to a non-present page entry\n");
                     break;
                 case 3:
-                    kputs("Supervisory process tried to write a page and caused a protection fault\n");
+                    puts("Supervisory process tried to write a page and caused a protection fault\n");
                     break;
                 case 4:
-                    kputs("User process tried to read a non-present page entry\n");
+                    puts("User process tried to read a non-present page entry\n");
                     break;
                 case 5:
-                    kputs("User process tried to read a page and caused a protection fault\n");
+                    puts("User process tried to read a page and caused a protection fault\n");
                     break;
                 case 6:
-                    kputs("User process tried to write to a non-present page entry\n");
+                    puts("User process tried to write to a non-present page entry\n");
                     break;
                 case 7:
-                    kputs("User process tried to write a page and caused a protection fault\n");
+                    puts("User process tried to write a page and caused a protection fault\n");
                     break;
                 default:
                     break;
@@ -188,7 +188,7 @@ void irq_handler(registers_t r) {
     port_byte_out(0x20, 0x20); /* master */
 
     if (r.int_no >= 256) {
-        kprintf("BAD INTERRUPT 0x%X\n", r.int_no);
+        printf("BAD INTERRUPT 0x%X\n", r.int_no);
         print_trace(&r);
         KERNEL_PANIC("BAD INTERRUPT");
         return;
@@ -223,40 +223,40 @@ void enable_interrupts() {
 }
 
 static void print_cr0(uint32_t cr0) {
-    kputs("[ ");
+    puts("[ ");
     if (cr0 & (1 << 0))
-        kputs("PE ");
+        puts("PE ");
     if (cr0 & (1 << 1))
-        kputs("MP ");
+        puts("MP ");
     if (cr0 & (1 << 2))
-        kputs("EM ");
+        puts("EM ");
     if (cr0 & (1 << 3))
-        kputs("TS ");
+        puts("TS ");
     if (cr0 & (1 << 4))
-        kputs("ET ");
+        puts("ET ");
     if (cr0 & (1 << 5))
-        kputs("NE ");
+        puts("NE ");
     if (cr0 & (1 << 16))
-        kputs("WP ");
+        puts("WP ");
     if (cr0 & (1 << 18))
-        kputs("AM ");
+        puts("AM ");
     if (cr0 & (1 << 29))
-        kputs("NW ");
+        puts("NW ");
     if (cr0 & (1 << 30))
-        kputs("CD ");
+        puts("CD ");
     if (cr0 & (1 << 31))
-        kputs("PG ");
-    kputc(']');
+        puts("PG ");
+    putc(']');
 }
 
 void print_trace(registers_t * r) {
-    kprintf("EAX: 0x%08X EBX: 0x%08X ECX: 0x%08X EDX: 0x%08X\n", r->eax, r->ebx, r->ecx, r->edx);
-    kprintf("ESI: 0x%08X EDI: 0x%08X EBP: 0x%08X ESP: 0x%08X\n", r->esi, r->edi, r->ebp, r->esp);
-    kprintf("CR0: 0x%08X CR2: 0x%08X CR3: 0x%08X CR4: 0x%08X\n", r->cr0, r->cr2, r->cr3, r->cr4);
-    kprintf("EIP: 0x%08X  CS: 0x%08X  EF: 0x%08X USR: 0x%08X\n", r->eip, r->cs, r->eflags, r->useresp);
-    kprintf(" SS: 0x%08X  DS: 0x%08X\n", r->ss, r->ds);
+    printf("EAX: 0x%08X EBX: 0x%08X ECX: 0x%08X EDX: 0x%08X\n", r->eax, r->ebx, r->ecx, r->edx);
+    printf("ESI: 0x%08X EDI: 0x%08X EBP: 0x%08X ESP: 0x%08X\n", r->esi, r->edi, r->ebp, r->esp);
+    printf("CR0: 0x%08X CR2: 0x%08X CR3: 0x%08X CR4: 0x%08X\n", r->cr0, r->cr2, r->cr3, r->cr4);
+    printf("EIP: 0x%08X  CS: 0x%08X  EF: 0x%08X USR: 0x%08X\n", r->eip, r->cs, r->eflags, r->useresp);
+    printf(" SS: 0x%08X  DS: 0x%08X\n", r->ss, r->ds);
     print_cr0(r->cr0);
-    kputc('\n');
+    putc('\n');
 }
 /*
 Bit	Label	Description
