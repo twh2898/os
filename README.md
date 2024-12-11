@@ -49,9 +49,9 @@ achieve these goals.
 - [x] Paging
   - [x] Setup page dir and table
   - [x] Enter paging
-- [ ] Load user space application
+- [x] Load user space application
 - [ ] Ring 3
-  - [ ] Kernel Service Calls
+  - [x] Kernel Service Calls
 - [ ] Date and Time
 - [ ] Optional don't disable interrupts during interrupt (nested interrupts)
 - [ ] Better key event buffer (with mods) (maybe in addition to char buffer)

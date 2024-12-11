@@ -13,6 +13,7 @@ section once they are finished.
   - [x] Clean up goals in readme
     - [x] Remove completed section (make checked boxes in list)
     - [x] Cleanup Goals term lists
+  - [ ] System call arch
 - [ ] mmu
   - [ ] free interior pages when malloc free's entire virtual page
 - [ ] tar
@@ -35,10 +36,10 @@ section once they are finished.
 - [ ] Handle page faults
   - [ ] eg. add pages for user space stack
 - [ ] Ring 3
-  - [ ] load code
+  - [x] load code
   - [ ] add gdt
   - [ ] setup tss
-  - [ ] kernel interrupts
+  - [x] kernel interrupts
 - [ ] Document code
   - [ ] cpu/idt.h
   - [ ] cpu/isr.h
