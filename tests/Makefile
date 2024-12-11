@@ -1,6 +1,6 @@
 
 test: build
-	cd build && ctest
+	cd build && ctest -V
 
 setup:
 	cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
