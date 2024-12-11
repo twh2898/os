@@ -5,6 +5,8 @@
 #include "libc/string.h"
 #include "libk/sys_call.h"
 
+#ifndef TESTING
+
 static size_t int_width(int32_t n, uint8_t base);
 static size_t long_int_width(int64_t n, uint8_t base);
 static size_t uint_width(uint32_t n, uint8_t base);
@@ -554,3 +556,5 @@ static size_t padded_str(size_t width, bool left_align, char * str) {
 
     return o_len;
 }
+
+#endif

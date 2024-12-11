@@ -1,12 +1,16 @@
 #include "libc/circbuff.h"
 
+#ifdef TESTING
+#include <stdlib.h>
+#else
 #include "libc/memory.h"
+#endif
 
 #if SAFETY > 1
 #include "libc/stdio.h"
 #define TEST_PTR(REF)                     \
     if (!(REF)) {                         \
-        printf(                          \
+        printf(                           \
             "[ERROR] "__FILE__            \
             ":%u Null circular buffer\n", \
             __LINE__);                    \
@@ -14,7 +18,7 @@
     }
 #define TEST_EMPTY(REF)                       \
     if ((REF)->len == 0) {                    \
-        printf(                              \
+        printf(                               \
             "[ERROR] "__FILE__                \
             ":%u Circular buffer is empty\n", \
             __LINE__);                        \
@@ -22,7 +26,7 @@
     }
 #define TEST_FULL(REF)                       \
     if ((REF)->len >= (REF)->buff_size) {    \
-        printf(                             \
+        printf(                              \
             "[ERROR] "__FILE__               \
             ":%u Circular buffer is full\n", \
             __LINE__);                       \

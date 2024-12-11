@@ -4,9 +4,13 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#ifdef TESTING
+#include <string.h>
+#endif
+
 static char * strtok_curr = 0;
 
-int memcmp(const void * lhs, const void * rhs, size_t n) {
+int OS_FN(memcmp)(const void * lhs, const void * rhs, size_t n) {
     if (!lhs || !rhs)
         return 0;
 
@@ -19,7 +23,7 @@ int memcmp(const void * lhs, const void * rhs, size_t n) {
     return 0;
 }
 
-void * memcpy(void * dest, const void * src, size_t n) {
+void * OS_FN(memcpy)(void * dest, const void * src, size_t n) {
     if (!dest || !src)
         return 0;
 
@@ -31,7 +35,7 @@ void * memcpy(void * dest, const void * src, size_t n) {
     return dest;
 }
 
-void * memmove(void * dest, const void * src, size_t n) {
+void * OS_FN(memmove)(void * dest, const void * src, size_t n) {
     if (!dest || !src)
         return 0;
 
@@ -52,7 +56,7 @@ void * memmove(void * dest, const void * src, size_t n) {
     return dest;
 }
 
-void * memset(void * ptr, uint8_t value, size_t n) {
+void * OS_FN(memset)(void * ptr, uint8_t value, size_t n) {
     if (!ptr)
         return 0;
     uint8_t * buf = (uint8_t *)ptr;
@@ -62,7 +66,7 @@ void * memset(void * ptr, uint8_t value, size_t n) {
     return ptr;
 }
 
-int strlen(const char * str) {
+int OS_FN(strlen)(const char * str) {
     if (!str)
         return -1;
     size_t count = 0;
@@ -70,7 +74,7 @@ int strlen(const char * str) {
     return count;
 }
 
-int nstrlen(const char * str, int max) {
+int OS_FN(nstrlen)(const char * str, int max) {
     if (!str || max < 0)
         return -1;
     size_t count = 0;
@@ -78,7 +82,7 @@ int nstrlen(const char * str, int max) {
     return count;
 }
 
-int strcmp(const char * lhs, const char * rhs) {
+int OS_FN(strcmp)(const char * lhs, const char * rhs) {
     size_t lhs_len = strlen(lhs);
     size_t rhs_len = strlen(rhs);
 
@@ -88,7 +92,7 @@ int strcmp(const char * lhs, const char * rhs) {
     return memcmp(lhs, rhs, lhs_len);
 }
 
-int strfind(const char * str, size_t start, char c) {
+int OS_FN(strfind)(const char * str, size_t start, char c) {
     if (!str)
         return -1;
     size_t len = strlen(str);
@@ -134,7 +138,7 @@ static char * find_not_one(char * str, char * delim) {
 }
 
 // TODO Untested, idk if this actually works
-char * strtok(char * str, char * delim) {
+char * OS_FN(strtok)(char * str, char * delim) {
     if (!str || !delim)
         return 0;
 
@@ -160,7 +164,7 @@ char * strtok(char * str, char * delim) {
     return str;
 }
 
-int atoi(const char * str) {
+int OS_FN(atoi)(const char * str) {
     if (!str)
         return 0;
 
@@ -209,7 +213,7 @@ static bool char2int(char c, int base, int * i) {
     return true;
 }
 
-int atoib(const char * str, int base) {
+int OS_FN(atoib)(const char * str, int base) {
     if (!str)
         return 0;
 

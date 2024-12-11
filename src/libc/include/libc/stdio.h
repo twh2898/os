@@ -6,6 +6,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#ifndef TESTING
+
 size_t itoa(int32_t n, char * str);
 size_t ltoa(int64_t n, char * str);
 
@@ -20,5 +22,7 @@ size_t printf(const char * fmt, ...);
 size_t vprintf(const char * fmt, va_list params);
 
 size_t print_hexblock(const uint8_t * data, size_t count, size_t addr_offset);
+
+#endif
 
 #endif // STDIO_H
