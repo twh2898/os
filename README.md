@@ -8,6 +8,7 @@ For current specs see
 
 - [memory.md](design/memory.md)
 - [boot.md](design/boot.md)
+- [system_call.md](design/system_call.md)
 - ~~[filesystem.md](design/filesystem.md)~~
 
 ## Goals
