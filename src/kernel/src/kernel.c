@@ -189,11 +189,6 @@ static void yea_callback(registers_t regs) {
             char * str = UINT2PTR(regs.ebx);
             res = vga_print(str);
         } break;
-        case 0x1002: { // vprintf
-            char * fmt = UINT2PTR(regs.ebx);
-            va_list params = UINT2PTR(regs.ecx);
-            res = kvprintf(fmt, params);
-        } break;
 
         default: {
             kprintf("Unknown interrupt 0x%X\n", int_no);

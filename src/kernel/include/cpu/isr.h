@@ -90,8 +90,6 @@ void irq_install();
 typedef void (*isr_t)(registers_t);
 void register_interrupt_handler(uint8_t n, isr_t handler);
 
-uint32_t system_call(uint8_t ah, uint8_t al);
-
 void print_trace(registers_t * r);
 
 void disable_interrupts();

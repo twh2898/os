@@ -214,13 +214,6 @@ void irq_install() {
     init_rtc(RTC_RATE_1024_HZ);
 }
 
-extern uint32_t send_interrupt(uint16_t);
-
-uint32_t system_call(uint8_t ah, uint8_t al) {
-    uint32_t i = send_interrupt((ah << 4) | al);
-    return i;
-}
-
 void disable_interrupts() {
     asm("cli");
 }

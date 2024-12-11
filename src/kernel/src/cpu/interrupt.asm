@@ -12,11 +12,6 @@ pop %1
 mov %2, %1
 %endmacro
 
-global send_interrupt
-send_interrupt:
-    int 48
-    ret
-
 ; Common ISR code
 isr_common_stub:
     ; 1. Save CPU state

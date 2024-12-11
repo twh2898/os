@@ -1,6 +1,5 @@
 #include "libk/sys_call.h"
 
-#include <stdarg.h>
 #include <stdint.h>
 
 #define PTR2UINT(PTR)   ((uint32_t)(PTR))
@@ -18,9 +17,8 @@
 
 #define SYS_INT_PROC_EXIT 0x0300
 
-#define SYS_INT_STDIO_PUTC    0x1000
-#define SYS_INT_STDIO_PUTS    0x1001
-#define SYS_INT_STDIO_VPRINTF 0x1002
+#define SYS_INT_STDIO_PUTC 0x1000
+#define SYS_INT_STDIO_PUTS 0x1001
 
 extern uint32_t send_interrupt(uint32_t int_no, ...);
 
@@ -46,8 +44,4 @@ size_t _putc(char c) {
 
 size_t _puts(const char * str) {
     return send_interrupt(SYS_INT_STDIO_PUTS, str);
-}
-
-size_t _vprintf(const char * fmt, va_list params) {
-    return send_interrupt(SYS_INT_STDIO_VPRINTF, fmt, params);
 }
