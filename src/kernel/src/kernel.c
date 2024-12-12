@@ -1,6 +1,7 @@
 #include "kernel.h"
 
 #include "commands.h"
+#include "cpu/gdt.h"
 #include "cpu/isr.h"
 #include "cpu/mmu.h"
 #include "cpu/ports.h"
@@ -205,6 +206,8 @@ static void yea_callback(registers_t regs) {
 void kernel_main() {
     vga_clear();
 
+    gdt_init();
+
     isr_install();
     irq_install();
 
@@ -237,5 +240,7 @@ void kernel_main() {
     // sys_call_1();
     // sys_call_1();
 
-    term_run();
+    jump_usermode(term_run);
+
+    // term_run();
 }
