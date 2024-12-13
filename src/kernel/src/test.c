@@ -98,8 +98,8 @@ int test_circbuff_push_pop() {
 }
 
 int test_circbuff_insert() {
-    uint8_t tmp[4] = {1, 2, 3, 4};
-    circbuff_t * cbuff = NEW_BUFFER(4);
+    uint8_t      tmp[4] = {1, 2, 3, 4};
+    circbuff_t * cbuff  = NEW_BUFFER(4);
 
     // insert 0
     ASSERT_EQ(0, circbuff_insert(cbuff, tmp, 0));
@@ -147,9 +147,9 @@ int test_circbuff_insert() {
 }
 
 int test_circbuff_read() {
-    uint8_t tmp[4] = {1, 2, 3, 4};
-    uint8_t out[4] = {0};
-    circbuff_t * cbuff = NEW_BUFFER(4);
+    uint8_t      tmp[4] = {1, 2, 3, 4};
+    uint8_t      out[4] = {0};
+    circbuff_t * cbuff  = NEW_BUFFER(4);
 
     // read 0 empty
     ASSERT_EQ(0, circbuff_read(cbuff, out, 0));
@@ -191,9 +191,9 @@ int test_circbuff_read() {
 }
 
 int test_circbuff_remove() {
-    uint8_t tmp[4] = {1, 2, 3, 4};
-    uint8_t out[4] = {0};
-    circbuff_t * cbuff = NEW_BUFFER(4);
+    uint8_t      tmp[4] = {1, 2, 3, 4};
+    uint8_t      out[4] = {0};
+    circbuff_t * cbuff  = NEW_BUFFER(4);
 
     // remove 0 empty
     ASSERT_EQ(0, circbuff_remove(cbuff, 0));

@@ -9,8 +9,8 @@
 
 #define MAX_INDEX (VGA_ROWS * VGA_COLS)
 
-static int index = 0;
-static char color = RESET;
+static int    index  = 0;
+static char   color  = RESET;
 static char * screen = (char *)VGA_ADDRESS;
 
 static void update_cursor();
@@ -33,7 +33,7 @@ void vga_clear() {
 
 void vga_put(int index, char c, unsigned char attr) {
     index *= 2;
-    screen[index] = c;
+    screen[index]     = c;
     screen[index + 1] = attr;
 }
 
@@ -94,8 +94,8 @@ size_t vga_putc(char c) {
     size_t ret = 0;
     if (c == '\n') {
         int row = vga_row(index);
-        index = vga_index(row + 1, 0);
-        ret = 0;
+        index   = vga_index(row + 1, 0);
+        ret     = 0;
     }
     else if (c == '\b') {
         if (index > 0)

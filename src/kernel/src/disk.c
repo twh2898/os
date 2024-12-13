@@ -21,7 +21,7 @@ struct _disk {
         ramdisk_t * rdisk;
     } device;
 
-    size_t size;
+    size_t  size;
     disk_io fn_read;
     disk_io fn_write;
 };
@@ -38,7 +38,7 @@ disk_t * disk_open(int id, enum DISK_DRIVER driver) {
         disk->driver = driver;
 
         disk->buff_size = DISK_BUFFER_SIZE;
-        disk->buff = kmalloc(disk->buff_size);
+        disk->buff      = kmalloc(disk->buff_size);
         if (!disk->buff) {
             kfree(disk);
             return 0;
@@ -53,8 +53,8 @@ disk_t * disk_open(int id, enum DISK_DRIVER driver) {
                     return 0;
                 }
 
-                disk->size = ata_size(disk->device.ata);
-                disk->fn_read = disk_ata_read;
+                disk->size     = ata_size(disk->device.ata);
+                disk->fn_read  = disk_ata_read;
                 disk->fn_write = disk_ata_write;
             } break;
             case DISK_DRIVER_FLOPPY: {
@@ -70,8 +70,8 @@ disk_t * disk_open(int id, enum DISK_DRIVER driver) {
                     kfree(disk);
                     return 0;
                 }
-                disk->size = ramdisk_size(disk->device.rdisk);
-                disk->fn_read = disk_rdisk_read;
+                disk->size     = ramdisk_size(disk->device.rdisk);
+                disk->fn_read  = disk_rdisk_read;
                 disk->fn_write = disk_rdisk_write;
             } break;
             default: {
@@ -151,7 +151,7 @@ static size_t disk_ata_read(disk_t * disk, uint8_t * buff, size_t count, size_t 
     if (disk->size - pos < count)
         count = disk->size - pos;
 
-    size_t lba = pos / ATA_SECTOR_BYTES;
+    size_t lba          = pos / ATA_SECTOR_BYTES;
     size_t sect_to_read = count / ATA_SECTOR_BYTES;
 
     if (count % ATA_SECTOR_BYTES)
@@ -177,7 +177,7 @@ static size_t disk_ata_write(disk_t * disk, uint8_t * buff, size_t count, size_t
     if (disk->size - pos < count)
         count = disk->size - pos;
 
-    size_t lba = pos / ATA_SECTOR_BYTES;
+    size_t lba           = pos / ATA_SECTOR_BYTES;
     size_t sect_to_write = count / ATA_SECTOR_BYTES;
 
     if (count % ATA_SECTOR_BYTES) {

@@ -14,7 +14,7 @@
 #include "libc/stdio.h"
 #define TEST_PTR(REF)          \
     if (!(REF)) {              \
-        printf(               \
+        printf(                \
             "[ERROR] "__FILE__ \
             ":%u Null ptr\n",  \
             __LINE__);         \
@@ -22,7 +22,7 @@
     }
 #define TEST_PTR_RET(REF)      \
     if (!(REF)) {              \
-        printf(               \
+        printf(                \
             "[ERROR] "__FILE__ \
             ":%u Null ptr\n",  \
             __LINE__);         \
@@ -36,20 +36,20 @@
 #define MAX_RETRY     5000
 #define TIMEOUT_MS    1000
 #define START_TIMEOUT uint32_t __timeout = time_ms() + TIMEOUT_MS;
-#define TEST_TIMEOUT                                           \
-    if (time_ms() > __timeout) {                               \
+#define TEST_TIMEOUT                                          \
+    if (time_ms() > __timeout) {                              \
         puts("TIMEOUT\n");                                    \
-        return 0;                                              \
-    }                                                          \
-    else if (debug) {                                          \
+        return 0;                                             \
+    }                                                         \
+    else if (debug) {                                         \
         printf("no timeout %u < %u\n", time_ms(), __timeout); \
     }
-#define TEST_TIMEOUT_VOID                                      \
-    if (time_ms() > __timeout) {                               \
+#define TEST_TIMEOUT_VOID                                     \
+    if (time_ms() > __timeout) {                              \
         puts("TIMEOUT\n");                                    \
-        return;                                                \
-    }                                                          \
-    else if (debug) {                                          \
+        return;                                               \
+    }                                                         \
+    else if (debug) {                                         \
         printf("no timeout %u < %u\n", time_ms(), __timeout); \
     }
 
@@ -57,61 +57,60 @@
 #define ATA_BUS_0_CTL_BASE 0x3F6
 
 enum ATA_IO {
-    ATA_IO_DATA = 0, // R/W
-    ATA_IO_ERROR = 1, // R
-    ATA_IO_FEATURE = 1, // W
-    ATA_IO_SECTOR_COUNT = 2, // R/W
-    ATA_IO_SECTOR_NUMBER = 3, // R/W
-    ATA_IO_LBA_LOW = ATA_IO_SECTOR_NUMBER, // R/W
-    ATA_IO_CYLINDER_LOW = 4, // R/W
-    ATA_IO_LBA_MID = ATA_IO_CYLINDER_LOW, // R/W
-    ATA_IO_CYLINDER_HIGH = 5, // R/W
-    ATA_IO_LBA_HIGH = ATA_IO_CYLINDER_HIGH, // R/W
-    ATA_IO_DRIVE_HEAD = 6, // R/W
-    ATA_IO_STATUS = 7, // R
-    ATA_IO_COMMAND = 7, // W
+    ATA_IO_DATA          = 0,                    // R/W
+    ATA_IO_ERROR         = 1,                    // R
+    ATA_IO_FEATURE       = 1,                    // W
+    ATA_IO_SECTOR_COUNT  = 2,                    // R/W
+    ATA_IO_SECTOR_NUMBER = 3,                    // R/W
+    ATA_IO_LBA_LOW       = ATA_IO_SECTOR_NUMBER, // R/W
+    ATA_IO_CYLINDER_LOW  = 4,                    // R/W
+    ATA_IO_LBA_MID       = ATA_IO_CYLINDER_LOW,  // R/W
+    ATA_IO_CYLINDER_HIGH = 5,                    // R/W
+    ATA_IO_LBA_HIGH      = ATA_IO_CYLINDER_HIGH, // R/W
+    ATA_IO_DRIVE_HEAD    = 6,                    // R/W
+    ATA_IO_STATUS        = 7,                    // R
+    ATA_IO_COMMAND       = 7,                    // W
 };
 
 enum ATA_CTL {
     ATA_CTL_ALT_STATUS = 0, // R
-    ATA_CTL_CONTROL = 0, // W
-    ATA_CTL_ADDRESS = 1, // R
+    ATA_CTL_CONTROL    = 0, // W
+    ATA_CTL_ADDRESS    = 1, // R
 };
 
 enum ATA_ERROR_FLAG {
-    ATA_ERROR_FLAG_AMNF = 0x1, // Address mark not found
-    ATA_ERROR_FLAG_TKZNK = 0x2, // Track zero not found
-    ATA_ERROR_FLAG_ABRT = 0x4, // Aborted command
-    ATA_ERROR_FLAG_MCR = 0x8, // Media change request
-    ATA_ERROR_FLAG_IDNF = 0x10, // ID not found
-    ATA_ERROR_FLAG_MC = 0x20, // Media changed
-    ATA_ERROR_FLAG_UNC = 0x40, // Uncorrectable data error
-    ATA_ERROR_FLAG_BBK = 0x80, // Bad block detected
+    ATA_ERROR_FLAG_AMNF  = 0x1,  // Address mark not found
+    ATA_ERROR_FLAG_TKZNK = 0x2,  // Track zero not found
+    ATA_ERROR_FLAG_ABRT  = 0x4,  // Aborted command
+    ATA_ERROR_FLAG_MCR   = 0x8,  // Media change request
+    ATA_ERROR_FLAG_IDNF  = 0x10, // ID not found
+    ATA_ERROR_FLAG_MC    = 0x20, // Media changed
+    ATA_ERROR_FLAG_UNC   = 0x40, // Uncorrectable data error
+    ATA_ERROR_FLAG_BBK   = 0x80, // Bad block detected
 };
 
 enum ATA_STATUS_FLAG {
     ATA_STATUS_FLAG_ERR = 0x1, // Error occurred
-    // ATA_STATUS_FLAG_IDX = 0x2, // Index, always zero
-    // ATA_STATUS_FLAG_CORR = 0x4, // Corrected data, always zero
-    ATA_STATUS_FLAG_DRQ = 0x8, // Drive has PIO data to transfer / ready to
-                               // accept PIO data
+    // ATA_STATUS_FLAG_IDX  = 0x2,  // Index, always zero
+    // ATA_STATUS_FLAG_CORR = 0x4,  // Corrected data, always zero
+    ATA_STATUS_FLAG_DRQ = 0x8,  // Drive has PIO data to transfer / ready to accept PIO data
     ATA_STATUS_FLAG_SRV = 0x10, // Overlapped mode service request
-    ATA_STATUS_FLAG_DF = 0x20, // Drive fault (does not set ERR)
+    ATA_STATUS_FLAG_DF  = 0x20, // Drive fault (does not set ERR)
     ATA_STATUS_FLAG_RDY = 0x40, // Drive is ready (spun up + no errors)
     ATA_STATUS_FLAG_BSY = 0x80, // Drive is preparing to send/receive data
 };
 
 enum ATA_CONTROL_FLAG {
-    ATA_CONTROL_FLAG_NIEN = 0x2, // Stop interrupts from the current device
-    ATA_CONTROL_FLAG_SRST = 0x4, // Software reset, set then clear after 5 us
-    ATA_CONTROL_FLAG_HOB = 0x80, // Red high order byte of last LBA48 sent to io
-                                 // port
+    ATA_CONTROL_FLAG_NIEN = 0x2,  // Stop interrupts from the current device
+    ATA_CONTROL_FLAG_SRST = 0x4,  // Software reset, set then clear after 5 us
+    ATA_CONTROL_FLAG_HOB  = 0x80, // Red high order byte of last LBA48 sent to io
+                                  // port
 };
 
 enum ATA_ADDRESS_FLAG {
-    ATA_ADDRESS_FLAG_DS0 = 0x1, // Select drive 0
-    ATA_ADDRESS_FLAG_DS1 = 0x2, // Select drive 1
-    ATA_ADDRESS_FLAG_HS = 0x3C, // 1's complement selected head
+    ATA_ADDRESS_FLAG_DS0 = 0x1,  // Select drive 0
+    ATA_ADDRESS_FLAG_DS1 = 0x2,  // Select drive 1
+    ATA_ADDRESS_FLAG_HS  = 0x3C, // 1's complement selected head
     ATA_ADDRESS_FLAG_WTG = 0x40, // Low when drive write is in progress
 };
 
@@ -265,7 +264,7 @@ size_t ata_sect_read(ata_t * disk, uint8_t * buff, size_t sect_count, uint32_t l
             // read drive data
             uint16_t word = port_word_in(disk->io_base + ATA_IO_DATA);
 
-            buff[i * 2] = word & 0xFF;
+            buff[i * 2]     = word & 0xFF;
             buff[i * 2 + 1] = (word >> 8) & 0xFF;
         }
         buff += ATA_SECTOR_BYTES;
@@ -292,7 +291,7 @@ size_t ata_sect_write(ata_t * disk, uint8_t * buff, size_t sect_count, uint32_t 
     software_reset(disk);
     START_TIMEOUT
     uint32_t start = time_ms();
-    size_t retry = 0;
+    size_t   retry = 0;
     while (port_byte_in(disk->ct_base + ATA_CTL_ALT_STATUS) & (ATA_STATUS_FLAG_DRQ | ATA_STATUS_FLAG_BSY)) {
         TEST_TIMEOUT
         if (retry++ > MAX_RETRY) {
@@ -426,16 +425,16 @@ static bool ata_identify(ata_t * disk) {
     }
 
     uint32_t size28 = data[61];
-    size28 = size28 << 16;
+    size28          = size28 << 16;
     size28 |= data[60];
 
     if (debug)
         printf("LDA28 has %u sectors\n", size28);
 
     uint64_t size48 = data[100];
-    size48 = (size48 << 16) | data[101];
-    size48 = (size48 << 16) | data[102];
-    size48 = (size48 << 16) | data[103];
+    size48          = (size48 << 16) | data[101];
+    size48          = (size48 << 16) | data[102];
+    size48          = (size48 << 16) | data[103];
 
     if (debug)
         printf("LDA48 has %u sectors\n", size48);

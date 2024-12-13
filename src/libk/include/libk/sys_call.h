@@ -7,7 +7,7 @@
 
 void * _malloc(size_t size);
 void * _realloc(void * ptr, size_t size);
-void _free(void * ptr);
+void   _free(void * ptr);
 
 void _exit(uint8_t code);
 

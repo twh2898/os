@@ -13,11 +13,11 @@ typedef struct _ata ata_t;
 void init_ata();
 
 ata_t * ata_open(uint8_t id);
-void ata_close(ata_t * disk);
+void    ata_close(ata_t * disk);
 
 size_t ata_size(ata_t * disk);
 size_t ata_sector_count(ata_t * disk);
-bool ata_status(ata_t * disk);
+bool   ata_status(ata_t * disk);
 
 // Read / write whole sector block (read / write bytes in file system driver)
 // buff must be of size sect_count * ATA_SECTOR_BYTES

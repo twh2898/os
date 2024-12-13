@@ -27,20 +27,20 @@ region_table_t * region_table;
 
 // THIS IS IN PHYSICAL ADDRESS SPACE NOT VIRTUAL
 static size_t build_table();
-static void create_bitmask(size_t region_index);
-static void set_bitmask_early(size_t region_index, uint16_t bit, bool free);
+static void   create_bitmask(size_t region_index);
+static void   set_bitmask_early(size_t region_index, uint16_t bit, bool free);
 // END THIS IS IN PHYSICAL ADDRESS SPACE NOT VIRTUAL
 
 static void set_bitmask(size_t region_index, uint16_t bit, bool free);
 static bool get_bitmask(size_t region_index, uint16_t bit);
 // Returns 0 for error, 0 is always invalid
 static uint16_t find_free_bit(size_t region_index);
-static size_t find_addr_entry(uint32_t addr);
+static size_t   find_addr_entry(uint32_t addr);
 // Returns 0 for error, 0 is always invalid
 static size_t find_addr_bit(size_t region_index, uint32_t addr);
 
-static uint16_t lower_ram;
-static uint16_t upper_ram_count;
+static uint16_t      lower_ram;
+static uint16_t      upper_ram_count;
 static upper_ram_t * upper_ram;
 
 static void sort_ram();
@@ -51,9 +51,9 @@ void * init_ram(void * ram_table, size_t * ram_table_count) {
 
     boot_params_t * bparams = get_boot_params();
 
-    lower_ram = bparams->low_mem_size;
+    lower_ram       = bparams->low_mem_size;
     upper_ram_count = bparams->mem_entries_count;
-    upper_ram = bparams->mem_entries;
+    upper_ram       = bparams->mem_entries;
     sort_ram();
 
     *ram_table_count = build_table();
@@ -129,8 +129,8 @@ void * ram_page_alloc() {
 }
 
 void ram_page_free(void * addr) {
-    size_t region_index = find_addr_entry((uint32_t)addr);
-    region_table_entry_t * region = &region_table->entries[region_index];
+    size_t                 region_index = find_addr_entry((uint32_t)addr);
+    region_table_entry_t * region       = &region_table->entries[region_index];
     if (!region)
         return;
 
@@ -149,19 +149,19 @@ static void sort_ram() {
     for (size_t i = 0; i < upper_ram_count - 1; i++) {
         uint64_t curr_start = upper_ram[i].base_addr;
 
-        size_t next_i = i;
+        size_t   next_i     = i;
         uint64_t next_start = curr_start;
 
         for (size_t i = i; i < upper_ram_count; i++) {
             if (upper_ram[i].base_addr > next_start) {
-                next_i = i;
+                next_i     = i;
                 next_start = upper_ram[i].base_addr;
             }
         }
 
         if (next_i != i) {
-            swap = upper_ram[i];
-            upper_ram[i] = upper_ram[next_i];
+            swap              = upper_ram[i];
+            upper_ram[i]      = upper_ram[next_i];
             upper_ram[next_i] = upper_ram[i];
         }
     }
@@ -170,7 +170,7 @@ static void sort_ram() {
 // THIS IS IN PHYSICAL ADDRESS SPACE NOT VIRTUAL
 static size_t build_table() {
     size_t first_area = 0;
-    bool found_free = false;
+    bool   found_free = false;
 
     for (size_t i = 0; i < ram_upper_count(); i++) {
         uint32_t addr = (uint32_t)ram_upper_start(i);
@@ -200,8 +200,8 @@ static size_t build_table() {
             continue;
 
         uint32_t start = (uint32_t)ram_upper_start(i);
-        uint32_t end = (uint32_t)ram_upper_end(i) & MASK_ADDR;
-        uint32_t len = end - start;
+        uint32_t end   = (uint32_t)ram_upper_end(i) & MASK_ADDR;
+        uint32_t len   = end - start;
 
         start &= MASK_ADDR;
 
@@ -220,10 +220,10 @@ static size_t build_table() {
             size_t region_end = (start + region_len);
 
             region_table_entry_t * region = &region_table->entries[table_index];
+
             region->addr_flags = start | REGION_TABLE_FLAG_PRESENT;
             region->page_count = region_len / PAGE_SIZE;
-            // -1 for bitmask page
-            region->free_count = region->page_count - 1;
+            region->free_count = region->page_count - 1; // -1 for bitmask page
 
             create_bitmask(table_index);
 
@@ -242,11 +242,12 @@ static void create_bitmask(size_t region_index) {
         return;
 
     region_table_entry_t * region = &region_table->entries[region_index];
+
     uint8_t * bitmask = (uint8_t *)(region->addr_flags & MASK_ADDR);
 
     size_t pages = region->page_count;
     size_t bytes = pages / 8;
-    size_t bits = pages % 8;
+    size_t bits  = pages % 8;
 
     memset(bitmask, 0, PAGE_SIZE);
     memset(bitmask, 0xff, bytes);
@@ -264,7 +265,7 @@ static void set_bitmask_early(size_t region_index, uint16_t bit, bool free) {
         return;
 
     size_t byte = bit / 8;
-    bit = bit % 8;
+    bit         = bit % 8;
 
     uint8_t * bitmask = UINT2PTR(ram_bitmask_paddr(region_index));
 
@@ -282,8 +283,8 @@ static void set_bitmask(size_t region_index, uint16_t bit, bool free) {
         return;
 
     uint8_t * bitmask = UINT2PTR(ram_bitmask_vaddr(region_index));
-    size_t byte = bit / 8;
-    bit = bit % 8;
+    size_t    byte    = bit / 8;
+    bit               = bit % 8;
 
     if (free) {
         bitmask[byte] |= 1 << bit;
@@ -298,8 +299,8 @@ static bool get_bitmask(size_t region_index, uint16_t bit) {
         return false;
 
     uint8_t * bitmask = UINT2PTR(ram_bitmask_vaddr(region_index));
-    size_t byte = bit / 8;
-    bit = bit % 8;
+    size_t    byte    = bit / 8;
+    bit               = bit % 8;
 
     // Clamp true to 1
     return (bitmask[byte] & (1 << bit)) >> bit;
@@ -329,7 +330,7 @@ static size_t find_addr_entry(uint32_t addr) {
     for (size_t i = 0; i < REGION_TABLE_SIZE; i++) {
         if (region_table->entries[i].addr_flags & REGION_TABLE_FLAG_PRESENT) {
             uint32_t region_start = ram_bitmask_paddr(i);
-            uint32_t region_end = region_start + region_table->entries[i].page_count * PAGE_SIZE;
+            uint32_t region_end   = region_start + region_table->entries[i].page_count * PAGE_SIZE;
 
             if (addr >= region_start && addr <= region_end)
                 &region_table->entries[i];
@@ -349,7 +350,7 @@ static size_t find_addr_bit(size_t region_index, uint32_t addr) {
         return 0;
 
     uint32_t region_start = region->addr_flags & MASK_ADDR;
-    uint32_t region_end = region_start + region->page_count * PAGE_SIZE;
+    uint32_t region_end   = region_start + region->page_count * PAGE_SIZE;
 
     if (addr <= region_start || addr >= region_end)
         return 0;

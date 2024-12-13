@@ -27,8 +27,8 @@ void * OS_FN(memcpy)(void * dest, const void * src, size_t n) {
     if (!dest || !src)
         return 0;
 
-    uint8_t * dest_buff = (uint8_t *)dest;
-    const uint8_t * src_buff = (const uint8_t *)src;
+    uint8_t *       dest_buff = (uint8_t *)dest;
+    const uint8_t * src_buff  = (const uint8_t *)src;
     for (size_t i = 0; i < n; i++) {
         *dest_buff++ = *src_buff++;
     }
@@ -39,8 +39,8 @@ void * OS_FN(memmove)(void * dest, const void * src, size_t n) {
     if (!dest || !src)
         return 0;
 
-    uint8_t * dest_buff = (uint8_t *)dest;
-    const uint8_t * src_buff = (const uint8_t *)src;
+    uint8_t *       dest_buff = (uint8_t *)dest;
+    const uint8_t * src_buff  = (const uint8_t *)src;
     if (dest_buff < src_buff) {
         for (size_t i = 0; i < n; i++) {
             *dest_buff++ = *src_buff++;
@@ -48,7 +48,7 @@ void * OS_FN(memmove)(void * dest, const void * src, size_t n) {
     }
     else {
         dest_buff = dest_buff + n;
-        src = src + n;
+        src       = src + n;
         for (size_t i = 0; i < n; i++) {
             *dest_buff-- = *src_buff--;
         }
@@ -107,7 +107,7 @@ static char * find_one(char * str, char * delim) {
     if (!str || !delim)
         return 0;
 
-    size_t len = strlen(str);
+    size_t len   = strlen(str);
     size_t d_len = strlen(delim);
 
     for (size_t i = 0; i < len; i++) {
@@ -124,7 +124,7 @@ static char * find_not_one(char * str, char * delim) {
     if (!str || !delim)
         return 0;
 
-    size_t len = strlen(str);
+    size_t len   = strlen(str);
     size_t d_len = strlen(delim);
 
     for (size_t i = 0; i < len; i++) {
@@ -149,7 +149,7 @@ char * OS_FN(strtok)(char * str, char * delim) {
         return 0;
 
     strtok_curr = find_not_one(strtok_curr, delim);
-    size_t len = strlen(strtok_curr);
+    size_t len  = strlen(strtok_curr);
     if (len == 0)
         return 0;
 
@@ -228,7 +228,7 @@ int OS_FN(atoib)(const char * str, int base) {
     int res = 0;
     while (*str) {
         char c = *str++;
-        int i;
+        int  i;
         if (!char2int(c, base, &i))
             return 0;
 

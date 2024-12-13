@@ -9,7 +9,7 @@
 
 enum MEMORY_ENTRY_FLAG {
     MEMORY_ENTRY_FLAG_PRESENT = 0x1,
-    MEMORY_ENTRY_FLAG_FREE = 0x2,
+    MEMORY_ENTRY_FLAG_FREE    = 0x2,
 };
 
 typedef struct {
@@ -20,15 +20,16 @@ typedef struct {
 typedef struct {
     uint32_t next;
     uint32_t prev;
+
     memory_table_entry_t entries[MEMORY_TABLE_ENTRY_COUNT];
 } memory_table_t;
 
 mmu_page_dir_t * pdir;
-size_t next_page;
+size_t           next_page;
 memory_table_t * mtable;
 
 static void * add_page();
-static void init_table(memory_table_t * table, memory_table_t * prev, memory_table_t * next);
+static void   init_table(memory_table_t * table, memory_table_t * prev, memory_table_t * next);
 
 static void entry_set_addr(memory_table_entry_t * entry, uint32_t addr);
 static void entry_set_flags(memory_table_entry_t * entry, enum MEMORY_ENTRY_FLAG flags);
@@ -41,6 +42,7 @@ static memory_table_entry_t * find_entry(memory_table_t * table, void * ptr);
 static memory_table_entry_t * find_free(memory_table_t ** table, size_t * i, size_t size);
 
 static inline memory_table_entry_t * entry_of(memory_table_t * table, size_t i);
+
 static inline bool entry_is_free(memory_table_entry_t * entry);
 static inline bool entry_is_present(memory_table_entry_t * entry);
 static inline bool entry_is_present_free(memory_table_entry_t * entry);
@@ -52,7 +54,7 @@ static size_t merge_entry(memory_table_t * table, size_t i, size_t count);
 
 void init_malloc(mmu_page_dir_t * dir, size_t first_page) {
     // printf("init_malloc(dir=%p page=%u)\n", dir, first_page);
-    pdir = dir;
+    pdir      = dir;
     next_page = first_page;
 
     mtable = add_page();
@@ -71,6 +73,7 @@ void * kmalloc(size_t size) {
     size = PAGE_ALIGNED(size);
 
     memory_table_t * table = mtable;
+
     size_t i = 0;
 
     // Remember in find_free to merge adjacent free if they add up to size
@@ -82,11 +85,11 @@ void * kmalloc(size_t size) {
             void * next_table = add_page();
             init_table(next_table, table, 0);
             table = next_table;
-            i = 0;
+            i     = 0;
         }
 
         void * next_free = add_page();
-        size_t new_size = PAGE_SIZE;
+        size_t new_size  = PAGE_SIZE;
         while (new_size < size) {
             add_page();
             new_size += PAGE_SIZE;
@@ -119,7 +122,7 @@ static void * add_page() {
     void * ram_page_paddr = ram_page_alloc();
 
     size_t table = next_page / 1024;
-    size_t cell = next_page % 1024;
+    size_t cell  = next_page % 1024;
 
     void * page_vaddr = UINT2PTR(PAGE2ADDR(next_page));
 
@@ -157,8 +160,8 @@ static void entry_set_addr(memory_table_entry_t * entry, uint32_t addr) {
         return;
 
     uint32_t addr_flags = entry->addr_flags;
-    uint32_t flags = addr_flags & MASK_FLAGS;
-    entry->addr_flags = (addr & MASK_ADDR) | flags;
+    uint32_t flags      = addr_flags & MASK_FLAGS;
+    entry->addr_flags   = (addr & MASK_ADDR) | flags;
 }
 
 static void entry_set_flags(memory_table_entry_t * entry, enum MEMORY_ENTRY_FLAG flags) {
@@ -167,8 +170,8 @@ static void entry_set_flags(memory_table_entry_t * entry, enum MEMORY_ENTRY_FLAG
         return;
 
     uint32_t addr_flags = entry->addr_flags;
-    uint32_t addr = addr_flags & MASK_ADDR;
-    entry->addr_flags = addr | (flags & MASK_FLAGS);
+    uint32_t addr       = addr_flags & MASK_ADDR;
+    entry->addr_flags   = addr | (flags & MASK_FLAGS);
 }
 
 static void entry_set_size(memory_table_entry_t * entry, size_t size) {
@@ -185,7 +188,7 @@ static void entry_set(memory_table_entry_t * entry, uint32_t addr, size_t size, 
         return;
 
     entry->addr_flags = (addr & MASK_ADDR) | (flags & MASK_FLAGS);
-    entry->size = size;
+    entry->size       = size;
 }
 
 static void entry_copy(memory_table_entry_t * to, memory_table_entry_t * from) {
@@ -194,13 +197,13 @@ static void entry_copy(memory_table_entry_t * to, memory_table_entry_t * from) {
         return;
 
     to->addr_flags = from->addr_flags;
-    to->size = from->size;
+    to->size       = from->size;
 }
 
 static void entry_clear(memory_table_entry_t * entry) {
     // printf("entry_clear(entry=%p)\n", entry);
     entry->addr_flags = 0;
-    entry->size = 0;
+    entry->size       = 0;
 }
 
 static memory_table_entry_t * find_entry(memory_table_t * table, void * ptr) {
@@ -211,6 +214,7 @@ static memory_table_entry_t * find_entry(memory_table_t * table, void * ptr) {
     while (table->prev) table = UINT2PTR(table->prev);
 
     size_t i = 0;
+
     memory_table_entry_t * entry = entry_of(table, i);
 
     while (entry) {
@@ -221,6 +225,7 @@ static memory_table_entry_t * find_entry(memory_table_t * table, void * ptr) {
         if (i >= MEMORY_TABLE_ENTRY_COUNT) {
             if (table->next) {
                 table = UINT2PTR(table->next);
+
                 i = 0;
             }
             else {
@@ -257,8 +262,10 @@ static memory_table_entry_t * find_free(memory_table_t ** table, size_t * i, siz
                     return entry;
 
                 memory_table_entry_t * next = next_entry(*table, *i);
+
                 size_t total = entry->size;
                 size_t count = 0;
+
                 while (next && total < size && next->addr_flags & MEMORY_ENTRY_FLAG_FREE) {
                     count++;
                 }
@@ -326,16 +333,18 @@ static size_t split_entry(memory_table_t * table, size_t i, size_t size) {
     kassert(i < MEMORY_TABLE_ENTRY_COUNT);
 
     memory_table_entry_t * entry = &table->entries[i];
+
     size = PAGE_ALIGNED(size);
 
     memory_table_t * currTable = table;
+
     size_t currI = i;
 
     while (next_entry(currTable, currI)) {
         if (currI >= MEMORY_TABLE_ENTRY_COUNT) {
             if (currTable->next) {
                 currTable = UINT2PTR(currTable->next);
-                currI = 0;
+                currI     = 0;
             }
         }
         else {
@@ -344,13 +353,13 @@ static size_t split_entry(memory_table_t * table, size_t i, size_t size) {
     }
 
     memory_table_t * lastTable = currTable;
-    size_t lastI = currI++;
+    size_t           lastI     = currI++;
 
     if (lastI >= MEMORY_TABLE_ENTRY_COUNT) {
         void * next_table = add_page();
         init_table(next_table, lastTable, 0);
         lastTable = next_table;
-        lastI = 0;
+        lastI     = 0;
     }
 
     // memory_table_entry_t * curr = &currTable->entries[currI];
@@ -365,11 +374,11 @@ static size_t split_entry(memory_table_t * table, size_t i, size_t size) {
         entry_copy(last, curr);
 
         lastTable = currTable;
-        lastI = currI;
+        lastI     = currI;
 
         if (currI == 0) {
             currTable = UINT2PTR(currTable->prev);
-            currI = MEMORY_TABLE_ENTRY_COUNT;
+            currI     = MEMORY_TABLE_ENTRY_COUNT;
         }
 
         currI--;
@@ -396,7 +405,7 @@ static size_t merge_entry(memory_table_t * table, size_t i, size_t count) {
         return 0;
 
     memory_table_t * nextTable = table;
-    size_t nextI = i;
+    size_t           nextI     = i;
 
     size_t j;
     for (j = 0; j < count; j++) {
@@ -408,7 +417,7 @@ static size_t merge_entry(memory_table_t * table, size_t i, size_t count) {
 
         if (nextI >= MEMORY_TABLE_ENTRY_COUNT - 1) {
             nextTable = UINT2PTR(nextTable->next);
-            nextI = 0;
+            nextI     = 0;
         }
         else {
             nextI++;
@@ -430,7 +439,7 @@ static size_t merge_entry(memory_table_t * table, size_t i, size_t count) {
             if (nextI >= MEMORY_TABLE_ENTRY_COUNT) {
                 if (nextTable->next) {
                     nextTable = UINT2PTR(nextTable->next);
-                    nextI = 0;
+                    nextI     = 0;
 
                     next = &nextTable->entries[nextI];
                 }
@@ -454,6 +463,7 @@ static size_t merge_entry(memory_table_t * table, size_t i, size_t count) {
         if (i > MEMORY_TABLE_ENTRY_COUNT) {
             if (table->next) {
                 table = UINT2PTR(table->next);
+
                 i = 0;
 
                 entry = &table->entries[i];

@@ -9,9 +9,9 @@
 #include "libc/stdio.h"
 #include "libc/string.h"
 
-#define ERROR(MSG)                                 \
-    {                                              \
-        vga_color(VGA_RED_ON_WHITE);               \
+#define ERROR(MSG)                                \
+    {                                             \
+        vga_color(VGA_RED_ON_WHITE);              \
         printf(__FILE__ ":%u %s", __LINE__, MSG); \
     }
 
@@ -27,18 +27,18 @@ typedef struct {
 } command_t;
 
 #define MAX_CHARS 4095
-static circbuff_t * keybuff;
-static char command_buff[MAX_CHARS + 1];
+static circbuff_t *    keybuff;
+static char            command_buff[MAX_CHARS + 1];
 static volatile size_t command_ready = 0;
 
 #define MAX_COMMANDS 4096
 static command_t commands[MAX_COMMANDS] = {0};
-static size_t n_commands = 0;
+static size_t    n_commands             = 0;
 
 int term_last_ret = 0;
 
-static bool is_ws(char c);
-static void exec_buff();
+static bool    is_ws(char c);
+static void    exec_buff();
 static char ** parse_args(const char * line, size_t * out_len);
 
 static command_cb_t command_lookup;
@@ -94,7 +94,7 @@ void term_init() {
 
     term_command_add("help", help_cmd);
 
-    keybuff = circbuff_new(MAX_CHARS);
+    keybuff       = circbuff_new(MAX_CHARS);
     command_ready = false;
     vga_print("> ");
 
@@ -108,13 +108,13 @@ void term_update() {
 
     command_ready--;
 
-    size_t cmd_len = 0;
-    bool found_nl = false;
+    size_t cmd_len  = 0;
+    bool   found_nl = false;
     // puts("Ready\n");
     // dump_buff();
     for (size_t i = 0; i < circbuff_len(keybuff); i++) {
         if (circbuff_at(keybuff, i) == '\n') {
-            cmd_len = i;
+            cmd_len  = i;
             found_nl = true;
             break;
         }
@@ -170,7 +170,7 @@ bool term_command_add(const char * command, command_cb_t cb) {
     }
 
     commands[n_commands].command = command;
-    commands[n_commands++].cb = cb;
+    commands[n_commands++].cb    = cb;
     return true;
 }
 
@@ -180,7 +180,7 @@ void set_command_lookup(command_cb_t lookup) {
 
 static void exec_buff() {
     // Skip any leading whitespace
-    char * line = command_buff;
+    char * line     = command_buff;
     size_t line_len = strlen(command_buff);
     while (line_len > 0 && is_ws(*line)) {
         line++;
@@ -203,7 +203,7 @@ static void exec_buff() {
     while (first_len < line_len && !is_ws(line[first_len])) first_len++;
 
     // Prepare command and args
-    size_t argc;
+    size_t  argc;
     char ** argv = parse_args(line, &argc);
     if (!argc || !argv) {
         FATAL("SYNTAX ERROR!\n");
@@ -211,7 +211,7 @@ static void exec_buff() {
         return;
     }
 
-    bool found = false;
+    bool         found   = false;
     command_cb_t command = 0;
 
     // Check against all commands
@@ -240,7 +240,7 @@ static void exec_buff() {
         }
 
         // Command is a match, parse arguments
-        found = true;
+        found   = true;
         command = commands[i].cb;
     }
 
@@ -323,9 +323,9 @@ static char ** parse_args(const char * line, size_t * out_len) {
         return 0;
     }
 
-    *out_len = len;
-    char ** args = kmalloc(sizeof(char *) * len);
-    size_t arg_i = 0;
+    *out_len      = len;
+    char ** args  = kmalloc(sizeof(char *) * len);
+    size_t  arg_i = 0;
 
     while (*line) {
         if (arg_i > len) {
@@ -365,7 +365,7 @@ static char ** parse_args(const char * line, size_t * out_len) {
         while (*line && !is_ws(*line)) line++;
 
         size_t word_len = line - start;
-        args[arg_i] = kmalloc(sizeof(char) * word_len + 1);
+        args[arg_i]     = kmalloc(sizeof(char) * word_len + 1);
         memcpy(args[arg_i], start, word_len);
         args[arg_i][word_len] = 0;
         arg_i++;

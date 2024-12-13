@@ -77,7 +77,7 @@ static int test_cmd(size_t argc, char ** argv) {
 
 static void trigger_page_fault() {
     uint8_t * v = (uint8_t *)0;
-    *v = 0;
+    *v          = 0;
 }
 
 static void id_map(mmu_page_table_t * table, size_t start, size_t end) {
@@ -92,7 +92,7 @@ static void id_map(mmu_page_table_t * table, size_t start, size_t end) {
 }
 
 static void map_virt_page_dir(mmu_page_dir_t * dir) {
-    size_t ram_table_count;
+    size_t             ram_table_count;
     mmu_page_table_t * firstTable = init_ram(UINT2PTR(PADDR_RAM_TABLE), &ram_table_count);
     // printf("First table is at 0x%x\n", PTR2UINT(firstTable));
     mmu_table_create(firstTable);
@@ -154,15 +154,15 @@ static void check_malloc() {
 
 static void yea_callback(registers_t regs) {
     uint32_t int_no = regs.eax;
-    uint32_t res = 0;
+    uint32_t res    = 0;
 
     switch (int_no) {
         case 0x0200: { // malloc
             size_t size = regs.ebx;
-            res = PTR2UINT(kmalloc(size));
+            res         = PTR2UINT(kmalloc(size));
         } break;
         case 0x0201: { // realloc
-            void * ptr = UINT2PTR(regs.ebx);
+            void * ptr  = UINT2PTR(regs.ebx);
             size_t size = regs.ecx;
             // res = PTR2UINT(krealloc(ptr, size));
         } break;
@@ -176,19 +176,19 @@ static void yea_callback(registers_t regs) {
             KERNEL_PANIC("Exit program!");
         } break;
         case 0x0301: { // exit with message
-            uint8_t code = regs.ebx;
-            const char * msg = UINT2PTR(regs.ecx);
+            uint8_t      code = regs.ebx;
+            const char * msg  = UINT2PTR(regs.ecx);
             vga_print(msg);
             KERNEL_PANIC("Exit program!");
         } break;
 
         case 0x1000: { // putc
             char c = regs.ebx;
-            res = vga_putc(c);
+            res    = vga_putc(c);
         } break;
         case 0x1001: { // puts
             char * str = UINT2PTR(regs.ebx);
-            res = vga_print(str);
+            res        = vga_print(str);
         } break;
 
         default: {
@@ -200,7 +200,7 @@ static void yea_callback(registers_t regs) {
 
     // Get access to stack push of eax
     uint32_t * ret = UINT2PTR(regs.esp - 4);
-    *ret = res;
+    *ret           = res;
 }
 
 void kernel_main() {

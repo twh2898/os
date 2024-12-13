@@ -19,8 +19,9 @@
 #include "term.h"
 
 bool debug = false;
-static disk_t * disk = 0;
-static tar_fs_t * tar = 0;
+
+static disk_t *   disk = 0;
+static tar_fs_t * tar  = 0;
 
 static int clear_cmd(size_t argc, char ** argv) {
     vga_clear();
@@ -438,7 +439,7 @@ static int disk_read_cmd(size_t argc, char ** argv) {
         return 1;
     }
 
-    size_t pos = atoi(argv[1]);
+    size_t pos   = atoi(argv[1]);
     size_t count = atoi(argv[2]);
 
     if (!disk) {
@@ -449,7 +450,7 @@ static int disk_read_cmd(size_t argc, char ** argv) {
         }
     }
 
-    char data[513];
+    char   data[513];
     size_t steps = count / 512;
     if (count % 512)
         steps++;
@@ -458,7 +459,7 @@ static int disk_read_cmd(size_t argc, char ** argv) {
         if (to_read > 512)
             to_read = 512;
         size_t read = disk_read(disk, data, to_read, pos);
-        data[read] = 0;
+        data[read]  = 0;
         print_hexblock(data, read, 512 * i);
         count -= to_read;
         pos += to_read;

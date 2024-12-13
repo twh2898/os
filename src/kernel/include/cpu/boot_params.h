@@ -11,9 +11,9 @@ typedef struct {
 } __attribute__((packed)) upper_ram_t;
 
 typedef struct {
-    uint32_t gdt_addr;
-    uint16_t low_mem_size;
-    uint16_t mem_entries_count;
+    uint32_t    gdt_addr;
+    uint16_t    low_mem_size;
+    uint16_t    mem_entries_count;
     upper_ram_t mem_entries[];
 } __attribute__((packed)) boot_params_t;
 

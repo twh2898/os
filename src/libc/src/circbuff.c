@@ -40,9 +40,9 @@
 
 struct _circbuff {
     uint8_t * buff;
-    size_t buff_size;
-    size_t start;
-    size_t len;
+    size_t    buff_size;
+    size_t    start;
+    size_t    len;
 };
 
 static size_t _wrap_index(const circbuff_t * cbuff, size_t i) {
@@ -63,8 +63,8 @@ circbuff_t * circbuff_new(size_t size) {
             return 0;
         }
         cbuff->buff_size = size;
-        cbuff->start = 0;
-        cbuff->len = 0;
+        cbuff->start     = 0;
+        cbuff->len       = 0;
     }
     return cbuff;
 }
@@ -98,7 +98,7 @@ uint8_t circbuff_at(const circbuff_t * cbuff, size_t index) {
 size_t circbuff_push(circbuff_t * cbuff, uint8_t data) {
     if (!cbuff || cbuff->len >= cbuff->buff_size)
         return 0;
-    size_t next = _wrap_index(cbuff, cbuff->start + cbuff->len++);
+    size_t next       = _wrap_index(cbuff, cbuff->start + cbuff->len++);
     cbuff->buff[next] = data;
     return 1;
 }
@@ -106,7 +106,7 @@ size_t circbuff_push(circbuff_t * cbuff, uint8_t data) {
 uint8_t circbuff_pop(circbuff_t * cbuff) {
     if (!cbuff || cbuff->len == 0)
         return 0;
-    uint8_t val = circbuff_at(cbuff, 0);
+    uint8_t val  = circbuff_at(cbuff, 0);
     cbuff->start = _wrap_index(cbuff, cbuff->start + 1);
     cbuff->len--;
     return val;
@@ -162,6 +162,6 @@ size_t circbuff_clear(circbuff_t * cbuff) {
         return 0;
     size_t o_len = cbuff->len;
     cbuff->start = 0;
-    cbuff->len = 0;
+    cbuff->len   = 0;
     return o_len;
 }

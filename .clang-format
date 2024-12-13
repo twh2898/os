@@ -1,8 +1,11 @@
 BasedOnStyle: Google
 AccessModifierOffset: '-4'
-AlignConsecutiveMacros: true
-AlignEscapedNewlines: Left
-AlignTrailingComments: 'false'
+AlignConsecutiveAssignments: Consecutive
+AlignConsecutiveBitFields: AcrossEmptyLines
+AlignConsecutiveDeclarations: Consecutive
+AlignConsecutiveMacros: 'true'
+AlignTrailingComments:
+  Kind: Always
 AllowAllArgumentsOnNextLine: 'true'
 AllowShortBlocksOnASingleLine: 'false'
 AllowShortFunctionsOnASingleLine: Empty

@@ -14,11 +14,11 @@
 #define RTC_REG_C            0xc
 
 static uint32_t ticks = 0;
-uint32_t frequency;
+uint32_t        frequency;
 
 static rtc_time_t time;
 
-static bool read_in_progress();
+static bool    read_in_progress();
 static uint8_t read_rtc(uint8_t reg);
 
 uint32_t time_us() {
@@ -63,10 +63,10 @@ rtc_time_t * rtc_time() {
 
     time.second = read_rtc(0x00);
     time.minute = read_rtc(0x02);
-    time.hour = read_rtc(0x04);
-    time.day = read_rtc(0x07);
-    time.month = read_rtc(0x08);
-    time.year = read_rtc(0x09);
+    time.hour   = read_rtc(0x04);
+    time.day    = read_rtc(0x07);
+    time.month  = read_rtc(0x08);
+    time.year   = read_rtc(0x09);
 
     // TODO there's a lot more
 

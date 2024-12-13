@@ -31,41 +31,41 @@ END_TESTS
 #include "libc/stdio.h"
 
 #define BEGIN_TESTS \
-    int fail = 0;   \
+    int fail  = 0;  \
     int total = 0;
 
-#define END_TESTS                                     \
-    if (fail) {                                       \
-        int pass = total - fail;                      \
+#define END_TESTS                                    \
+    if (fail) {                                      \
+        int pass = total - fail;                     \
         printf("%d tests ran\n", total);             \
         printf("%d passed %d failed\n", pass, fail); \
-    }                                                 \
+    }                                                \
     return fail;
 
-#define TEST(NAME)                 \
-    {                              \
+#define TEST(NAME)                \
+    {                             \
         printf("%10s : ", #NAME); \
-        int err = NAME();          \
-        if (err)                   \
+        int err = NAME();         \
+        if (err)                  \
             puts(": FAIL");       \
-        else                       \
+        else                      \
             puts("PASS");         \
-        fail += err;               \
-        total++;                   \
+        fail += err;              \
+        total++;                  \
         putc('\n');               \
     }
 
-#define ASSERT(expr)                                       \
-    if (!(expr)) {                                         \
+#define ASSERT(expr)                                      \
+    if (!(expr)) {                                        \
         printf("%s (%s:%d) ", #expr, __func__, __LINE__); \
-        return 1;                                          \
+        return 1;                                         \
     }
 #define ASSERT_EQ(a, b)     ASSERT((a) == (b))
 #define ASSERT_NOT_EQ(a, b) ASSERT((a) != (b))
 #define ASSERT_TRUE(a)      ASSERT((a) == true)
 #define ASSERT_FALSE(a)     ASSERT((a) == false)
-#define FATAL                                                \
-    {                                                        \
+#define FATAL                                               \
+    {                                                       \
         printf("FATAL ERROR! %s:%d\n", __func__, __LINE__); \
-        return -1;                                           \
+        return -1;                                          \
     }

@@ -185,7 +185,7 @@ void irq_handler(registers_t r) {
      * or they will not send another interrupt again */
     if (r.int_no >= 40)
         port_byte_out(0xA0, 0x20); /* slave */
-    port_byte_out(0x20, 0x20); /* master */
+    port_byte_out(0x20, 0x20);     /* master */
 
     if (r.int_no >= 256) {
         printf("BAD INTERRUPT 0x%X\n", r.int_no);

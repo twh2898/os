@@ -5,13 +5,13 @@
 #include "libc/string.h"
 
 struct _ramdisk {
-    int id;
+    int    id;
     size_t size;
     void * data;
 };
 
 static ramdisk_t devices[RAMDISK_MAX];
-static int device_count = 0;
+static int       device_count = 0;
 
 int ramdisk_create(size_t size) {
     if (device_count < 0)
@@ -23,7 +23,7 @@ int ramdisk_create(size_t size) {
     if (!data)
         KERNEL_PANIC("RAMDISK OUT OF MEMORY");
 
-    devices[device_count].id = device_count;
+    devices[device_count].id   = device_count;
     devices[device_count].size = size;
     devices[device_count].data = data;
 

@@ -90,6 +90,7 @@ void mmu_dir_set(mmu_page_dir_t * dir, size_t i, mmu_page_table_t * table, enum 
         return;
 
     mmu_page_entry_t entry = (PTR2UINT(table) & MASK_ADDR) | (flags & MASK_FLAGS);
+
     dir->entries[i] = entry;
 }
 
@@ -141,6 +142,7 @@ void mmu_table_set(mmu_page_table_t * table, size_t i, uint32_t page_addr, enum 
         return;
 
     mmu_page_entry_t entry = (page_addr & MASK_ADDR) | (flags & MASK_FLAGS);
+
     table->entries[i] = entry;
 }
 

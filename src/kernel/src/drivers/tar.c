@@ -22,7 +22,7 @@ typedef struct {
 } __attribute__((packed)) raw_header_t;
 
 typedef struct {
-    char filename[101];
+    char   filename[101];
     size_t size;
     size_t index;
     size_t disk_pos;
@@ -31,21 +31,21 @@ typedef struct {
 } tar_file_t;
 
 struct tar_fs {
-    disk_t * disk;
-    size_t file_count;
+    disk_t *     disk;
+    size_t       file_count;
     tar_file_t * files;
 } __attribute__((packed));
 
 struct tar_fs_file {
-    tar_fs_t * tar;
+    tar_fs_t *   tar;
     tar_file_t * file;
-    int pos;
-    size_t size;
+    int          pos;
+    size_t       size;
 };
 
-static size_t parse_octal(const char * str);
-static size_t count_files(tar_fs_t * tar);
-static bool load_headers(tar_fs_t * tar);
+static size_t       parse_octal(const char * str);
+static size_t       count_files(tar_fs_t * tar);
+static bool         load_headers(tar_fs_t * tar);
 static tar_file_t * find_filename(tar_fs_t * tar, const char * filename);
 
 tar_fs_t * tar_open(disk_t * disk) {
@@ -54,9 +54,9 @@ tar_fs_t * tar_open(disk_t * disk) {
 
     tar_fs_t * tar = kmalloc(sizeof(tar_fs_t));
     if (tar) {
-        tar->disk = disk;
+        tar->disk       = disk;
         tar->file_count = count_files(tar);
-        tar->files = kmalloc(sizeof(tar_file_t) * tar->file_count);
+        tar->files      = kmalloc(sizeof(tar_file_t) * tar->file_count);
         load_headers(tar);
     }
     return tar;
@@ -93,12 +93,12 @@ tar_stat_t * tar_stat_file_i(tar_fs_t * tar, size_t i, tar_stat_t * stat) {
 
     tar_file_t * file = &tar->files[i];
     memcpy(stat->filename, file->filename, 101);
-    stat->size = file->size;
-    stat->mode = parse_octal(file->header.mode);
-    stat->uid = parse_octal(file->header.uid);
-    stat->gid = parse_octal(file->header.gid);
+    stat->size  = file->size;
+    stat->mode  = parse_octal(file->header.mode);
+    stat->uid   = parse_octal(file->header.uid);
+    stat->gid   = parse_octal(file->header.gid);
     stat->mtime = parse_octal(file->header.mtime);
-    stat->type = parse_octal(file->header.type);
+    stat->type  = parse_octal(file->header.type);
 
     return stat;
 }
@@ -112,12 +112,12 @@ tar_stat_t * tar_stat_file(tar_fs_t * tar, const char * filename, tar_stat_t * s
         return 0;
 
     memcpy(stat->filename, file->filename, 101);
-    stat->size = file->size;
-    stat->mode = parse_octal(file->header.mode);
-    stat->uid = parse_octal(file->header.uid);
-    stat->gid = parse_octal(file->header.gid);
+    stat->size  = file->size;
+    stat->mode  = parse_octal(file->header.mode);
+    stat->uid   = parse_octal(file->header.uid);
+    stat->gid   = parse_octal(file->header.gid);
     stat->mtime = parse_octal(file->header.mtime);
-    stat->type = parse_octal(file->header.type);
+    stat->type  = parse_octal(file->header.type);
 
     return stat;
 }
@@ -128,9 +128,9 @@ tar_fs_file_t * tar_file_open(tar_fs_t * tar, const char * filename) {
 
     tar_fs_file_t * file = kmalloc(sizeof(tar_fs_file_t));
     if (file) {
-        file->tar = tar;
+        file->tar  = tar;
         file->file = find_filename(tar, filename);
-        file->pos = 0;
+        file->pos  = 0;
         file->size = file->file->size;
 
         if (!file->file) {
@@ -199,7 +199,7 @@ static size_t parse_octal(const char * str) {
     if (!str)
         return 0;
 
-    size_t size = 0;
+    size_t size  = 0;
     size_t count = 1;
 
     for (size_t j = strlen(str); j > 0; j--, count *= 8) {
@@ -216,7 +216,7 @@ static size_t count_files(tar_fs_t * tar) {
     raw_header_t header;
 
     size_t disk_pos = 0;
-    size_t count = 0;
+    size_t count    = 0;
     for (;;) {
         size_t n_read = disk_read(tar->disk, (uint8_t *)&header, sizeof(raw_header_t), disk_pos);
 
@@ -270,7 +270,7 @@ static bool load_headers(tar_fs_t * tar) {
         memcpy(file->filename, file->header.filename, name_len);
         file->filename[name_len] = 0;
 
-        file->index = i;
+        file->index    = i;
         file->disk_pos = disk_pos + 512;
 
         // add 512 for header size
@@ -290,7 +290,7 @@ static tar_file_t * find_filename(tar_fs_t * tar, const char * filename) {
         filename++;
 
     for (size_t i = 0; i < tar->file_count; i++) {
-        size_t size = nstrlen(filename, 100);
+        size_t size          = nstrlen(filename, 100);
         size_t filename_size = nstrlen(tar->files[i].filename, 100);
         if (filename_size != size)
             continue;

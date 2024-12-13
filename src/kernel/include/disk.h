@@ -13,7 +13,7 @@ enum DISK_DRIVER {
 };
 
 disk_t * disk_open(int id, enum DISK_DRIVER driver);
-void disk_close(disk_t * disk);
+void     disk_close(disk_t * disk);
 
 size_t disk_size(disk_t * disk);
 

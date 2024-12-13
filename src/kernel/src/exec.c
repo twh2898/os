@@ -25,7 +25,7 @@ int command_exec(uint8_t * buff, size_t size, size_t argc, char ** argv) {
 }
 
 static void setup_user_space(size_t size) {
-    mmu_page_dir_t * dir = UINT2PTR(VADDR_PAGE_DIR);
+    mmu_page_dir_t *   dir        = UINT2PTR(VADDR_PAGE_DIR);
     mmu_page_table_t * last_table = UINT2PTR(VADDR_LAST_PAGE_TABLE);
 
     void * page = ram_page_alloc();
@@ -42,7 +42,7 @@ static void setup_user_space(size_t size) {
 }
 
 static void free_user_space() {
-    mmu_page_dir_t * dir = UINT2PTR(VADDR_PAGE_DIR);
+    mmu_page_dir_t *   dir        = UINT2PTR(VADDR_PAGE_DIR);
     mmu_page_table_t * last_table = UINT2PTR(VADDR_LAST_PAGE_TABLE);
 
     mmu_page_table_t * user_table = UINT2PTR(mmu_dir_get_vaddr(dir, 1));

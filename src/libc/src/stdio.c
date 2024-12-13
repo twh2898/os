@@ -29,10 +29,11 @@ size_t itoa(int32_t n, char * str) {
 
     if (is_neg) {
         *str++ = '-';
+
         n = -n;
     }
 
-    size_t len = 0;
+    size_t   len = 0;
     uint32_t rev = 0;
     while (n > 0) {
         rev = (rev * 10) + (n % 10);
@@ -63,10 +64,11 @@ size_t ltoa(int64_t n, char * str) {
 
     if (is_neg) {
         *str++ = '-';
+
         n = -n;
     }
 
-    size_t len = 0;
+    size_t   len = 0;
     uint64_t rev = 0;
     while (n > 0) {
         rev = (rev * 10) + (n % 10);
@@ -113,7 +115,7 @@ size_t puti(int32_t num, uint8_t base, bool upper) {
         num = -num;
     }
 
-    size_t len = 0;
+    size_t   len = 0;
     uint32_t rev = 0;
     while (num > 0) {
         rev = (rev * base) + (num % base);
@@ -142,7 +144,7 @@ size_t putli(int64_t num, uint8_t base, bool upper) {
         num = -num;
     }
 
-    size_t len = 0;
+    size_t   len = 0;
     uint64_t rev = 0;
     while (num > 0) {
         rev = (rev * base) + (num % base);
@@ -163,7 +165,7 @@ size_t putu(uint32_t num, uint8_t base, bool upper) {
         return putc('0');
     }
 
-    size_t len = 0;
+    size_t   len = 0;
     uint32_t rev = 0;
     while (num > 0) {
         rev = (rev * base) + (num % base);
@@ -185,7 +187,7 @@ size_t putlu(uint64_t num, uint8_t base, bool upper) {
         return putc('0');
     }
 
-    size_t len = 0;
+    size_t   len = 0;
     uint64_t rev = 0;
     while (num > 0) {
         rev = (rev * base) + (num % base);
@@ -212,12 +214,12 @@ size_t vprintf(const char * fmt, va_list params) {
     size_t o_len = 0;
     while (*fmt) {
         if (*fmt == '%') {
-            size_t width = 0;
-            size_t fract = 0;
-            bool fill_fract = false;
-            bool left_align = fmt[1] == '-';
-            bool lead_zero = !left_align && fmt[1] == '0';
-            bool is_long = false;
+            size_t width      = 0;
+            size_t fract      = 0;
+            bool   fill_fract = false;
+            bool   left_align = fmt[1] == '-';
+            bool   lead_zero  = !left_align && fmt[1] == '0';
+            bool   is_long    = false;
 
             if (left_align || lead_zero)
                 fmt++;
@@ -310,16 +312,16 @@ size_t vprintf(const char * fmt, va_list params) {
                 } break;
                 case 'n': {
                     int * arg = va_arg(params, int *);
-                    *arg = width;
+                    *arg      = width;
                 } break;
                 case 'b': {
                     int arg = va_arg(params, int);
                     o_len += puts(arg ? "true" : "false");
                 } break;
                 case 'f': {
-                    float arg = va_arg(params, double);
-                    uint32_t lhs = (uint32_t)arg;
-                    size_t count = puti(lhs, 10, false);
+                    float    arg   = va_arg(params, double);
+                    uint32_t lhs   = (uint32_t)arg;
+                    size_t   count = puti(lhs, 10, false);
                     o_len += count;
                     o_len += putc('.');
                     float rem = arg - (float)lhs;
@@ -351,9 +353,9 @@ size_t vprintf(const char * fmt, va_list params) {
 }
 
 size_t print_hexblock(const uint8_t * data, size_t count, size_t addr_offset) {
-    size_t step = 16;
+    size_t step  = 16;
     size_t o_len = 0;
-    size_t line = 0;
+    size_t line  = 0;
     if (!addr_offset) {
         o_len += puts("       00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f\n");
         o_len += puts("       -----------------------------------------------\n");
@@ -435,7 +437,7 @@ static size_t pad(char c, size_t len) {
 
 static size_t padded_int(size_t width, bool left_align, int32_t num, uint8_t base, bool upper, bool lead_zero) {
     size_t num_len = int_width(num, base);
-    bool is_neg = num < 0;
+    bool   is_neg  = num < 0;
 
     if (is_neg) {
         num_len++;
@@ -469,7 +471,7 @@ static size_t padded_int(size_t width, bool left_align, int32_t num, uint8_t bas
 
 static size_t padded_long_int(size_t width, bool left_align, int64_t num, uint8_t base, bool upper, bool lead_zero) {
     size_t num_len = long_int_width(num, base);
-    bool is_neg = num < 0;
+    bool   is_neg  = num < 0;
 
     if (is_neg) {
         num_len++;
@@ -541,7 +543,7 @@ static size_t padded_long_uint(size_t width, bool left_align, uint64_t num, uint
 
 static size_t padded_str(size_t width, bool left_align, char * str) {
     size_t str_len = strlen(str);
-    bool fill = width > str_len;
+    bool   fill    = width > str_len;
 
     size_t o_len = 0;
     if (fill && !left_align) {
