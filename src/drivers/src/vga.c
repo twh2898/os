@@ -128,6 +128,49 @@ size_t vga_print(const char * str) {
     return len;
 }
 
+static char digit(uint32_t num, uint8_t base) {
+    if (num < 10)
+        return num + '0';
+    else
+        return (num - 10) + 'A';
+}
+
+static size_t _print_uint(uint32_t num, uint8_t base) {
+    size_t   len = 0;
+    uint32_t rev = 0;
+    while (num > 0) {
+        rev = (rev * base) + (num % base);
+        num /= base;
+        len++;
+    }
+
+    size_t o_len = 0;
+    for (size_t i = 0; i < len; i++) {
+        o_len += vga_putc(digit(rev % base, base));
+        rev /= base;
+    }
+
+    return o_len;
+}
+
+size_t vga_puti(int num) {
+    size_t o_len = 0;
+    if (num < 0) {
+        o_len += vga_putc('-');
+    }
+    o_len += _print_uint(num, 10);
+    return o_len;
+}
+
+size_t vga_putu(unsigned int num) {
+    _print_uint(num, 10);
+}
+
+size_t vga_putx(unsigned int num) {
+    return _print_uint(num, 16);
+}
+
+
 /*
  * HELPER FUNCTIONS
  */

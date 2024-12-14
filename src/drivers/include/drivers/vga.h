@@ -64,4 +64,8 @@ void   vga_color(unsigned char color);
 size_t vga_putc(char c);
 size_t vga_print(const char * str);
 
+size_t vga_puti(int num);
+size_t vga_putu(unsigned int num);
+size_t vga_putx(unsigned int num);
+
 #endif // VGA_H
