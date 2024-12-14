@@ -25,22 +25,6 @@ gdt_kernel_data:
     db 11001111b ; flags (4 bits) + segment length, bits 16-19
     db 0x00      ; segment base, bits 24-31
 
-gdt_user_code:
-    dw 0xffff    ; segment length, bits 0-15
-    dw 0x0000    ; segment base, bits 0-15
-    db 0x00      ; segment base, bits 16-23
-    db 11111010b ; access byte / flags (8 bits)
-    db 11001111b ; flags (4 bits) + segment length, bits 16-19
-    db 0x00      ; segment base, bits 24-31
-
-gdt_user_data:
-    dw 0xffff    ; segment length, bits 0-15
-    dw 0x0000    ; segment base, bits 0-15
-    db 0x00      ; segment base, bits 16-23
-    db 11110010b ; access byte / flags (8 bits)
-    db 11001111b ; flags (4 bits) + segment length, bits 16-19
-    db 0x00      ; segment base, bits 24-31
-
 gdt_end:
 
 ; GDT descriptor

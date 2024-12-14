@@ -240,7 +240,7 @@ void kernel_main() {
     // sys_call_1();
     // sys_call_1();
 
-    jump_usermode(term_run);
+    // jump_usermode(term_run);
 
-    // term_run();
+    term_run();
 }
