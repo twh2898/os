@@ -80,7 +80,7 @@ extern void flush_tss();
 gdt_entry_t gdt[GDT_N];
 
 void gdt_init() {
-    memset(gdt, GDT_N * sizeof(gdt_entry_t), 0);
+    memset(gdt, 0, GDT_N * sizeof(gdt_entry_t));
 
     gdt_set(&gdt[GDT_ENTRY_INDEX_KERNEL_CODE], 0, 0xfffff, GDT_PRESET_KERNEL_CODE_ACCESS, GDT_PRESET_KERNEL_CODE_FLAGS);
     gdt_set(&gdt[GDT_ENTRY_INDEX_KERNEL_DATA], 0, 0xfffff, GDT_PRESET_KERNEL_DATA_ACCESS, GDT_PRESET_KERNEL_DATA_FLAGS);
