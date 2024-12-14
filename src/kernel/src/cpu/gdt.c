@@ -91,7 +91,7 @@ void gdt_init() {
 
     load_gdt(GDT_N * 64 - 1, PTR2UINT(gdt));
 
-    flush_tss();
+    // flush_tss();
 }
 
 void gdt_set(gdt_entry_t * gdt_entry, uint64_t base, uint64_t limit, uint8_t access, uint8_t flags) {
