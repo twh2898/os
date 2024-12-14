@@ -12,9 +12,11 @@
 #include "drivers/keyboard.h"
 #include "drivers/ramdisk.h"
 #include "drivers/vga.h"
+#include "interrupts.h"
 #include "libc/memory.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
+#include "libk/defs.h"
 #include "term.h"
 #include "test.h"
 
@@ -156,55 +158,66 @@ static void check_malloc() {
     printf("Ram page alloc gave %p\n", e);
 }
 
-static void yea_callback(registers_t regs) {
-    uint32_t int_no = regs.eax;
-    uint32_t res    = 0;
+static uint32_t int_mem_cb(uint16_t int_no, registers_t * regs) {
+    uint32_t res = 0;
 
     switch (int_no) {
-        case 0x0200: { // malloc
-            size_t size = regs.ebx;
+        case SYS_INT_MEM_MALLOC: {
+            size_t size = regs->ebx;
             res         = PTR2UINT(kmalloc(size));
         } break;
-        case 0x0201: { // realloc
-            void * ptr  = UINT2PTR(regs.ebx);
-            size_t size = regs.ecx;
+
+        case SYS_INT_MEM_REALLOC: {
+            void * ptr  = UINT2PTR(regs->ebx);
+            size_t size = regs->ecx;
             // res = PTR2UINT(krealloc(ptr, size));
         } break;
-        case 0x0202: { // free
-            void * ptr = UINT2PTR(regs.ebx);
+
+        case SYS_INT_MEM_FREE: {
+            void * ptr = UINT2PTR(regs->ebx);
             kfree(ptr);
-        } break;
-
-        case 0x0300: { // exit
-            uint8_t code = regs.ebx;
-            KERNEL_PANIC("Exit program!");
-        } break;
-        case 0x0301: { // exit with message
-            uint8_t      code = regs.ebx;
-            const char * msg  = UINT2PTR(regs.ecx);
-            vga_print(msg);
-            KERNEL_PANIC("Exit program!");
-        } break;
-
-        case 0x1000: { // putc
-            char c = regs.ebx;
-            res    = vga_putc(c);
-        } break;
-        case 0x1001: { // puts
-            char * str = UINT2PTR(regs.ebx);
-            res        = vga_print(str);
-        } break;
-
-        default: {
-            printf("Unknown interrupt 0x%X\n", int_no);
-            print_trace(&regs);
-            KERNEL_PANIC("UNKNOWN INTERRUPT");
         } break;
     }
 
-    // Get access to stack push of eax
-    uint32_t * ret = UINT2PTR(regs.esp - 4);
-    *ret           = res;
+    return res;
+}
+
+static uint32_t int_proc_cb(uint16_t int_no, registers_t * regs) {
+    uint32_t res = 0;
+
+    switch (int_no) {
+        case SYS_INT_PROC_EXIT: {
+            uint8_t code = regs->ebx;
+            KERNEL_PANIC("Exit program!");
+        } break;
+
+        case SYS_INT_PROC_EXIT_ERROR: {
+            uint8_t      code = regs->ebx;
+            const char * msg  = UINT2PTR(regs->ecx);
+            vga_print(msg);
+            KERNEL_PANIC("Exit program!");
+        } break;
+    }
+
+    return 0;
+}
+
+static uint32_t int_tmp_stdio_cb(uint16_t int_no, registers_t * regs) {
+    uint32_t res = 0;
+
+    switch (int_no) {
+        case SYS_INT_STDIO_PUTC: {
+            char c = regs->ebx;
+            res    = vga_putc(c);
+        } break;
+
+        case SYS_INT_STDIO_PUTS: {
+            char * str = UINT2PTR(regs->ebx);
+            res        = vga_print(str);
+        } break;
+    }
+
+    return 0;
 }
 
 void kernel_main() {
@@ -215,7 +228,10 @@ void kernel_main() {
     isr_install();
     irq_install();
 
-    register_interrupt_handler(IRQ16, yea_callback);
+    init_system_interrupts(IRQ16);
+    system_interrupt_register(SYS_INT_FAMILY_MEM, int_mem_cb);
+    system_interrupt_register(SYS_INT_FAMILY_PROC, int_proc_cb);
+    system_interrupt_register(SYS_INT_FAMILY_STDIO, int_tmp_stdio_cb);
 
     vga_print("Welcome to kernel v..\n");
 
