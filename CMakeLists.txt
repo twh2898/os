@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.15..3.20)
 
+set(CPU_ARCH i386)
+
 set(CROSS_PREFIX "$ENV{HOME}/.local/opt/cross")
 set(CMAKE_TOOLCHAIN_FILE cmake/toolchain.cmake)
 
@@ -40,15 +42,3 @@ add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/os-image.bin
 )
 
 add_custom_target(os_image ALL DEPENDS ${CMAKE_BINARY_DIR}/os-image.bin)
-
-add_custom_command(TARGET os_image POST_BUILD COMMAND ${CMAKE_COMMAND} -E
-    copy ${CMAKE_CURRENT_BINARY_DIR}/os-image.bin ${CMAKE_CURRENT_SOURCE_DIR}
-)
-
-# ------------------------------------------------------------------------------
-# TESTS
-
-# include(CTest)
-# enable_testing()
-
-# add_subdirectory(tests)

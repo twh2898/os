@@ -3,7 +3,7 @@ execute_process(COMMAND mkdir -p ${APPS_BASE_DIR})
 
 macro(add_app target)
     cross_target(${target})
-    target_link_libraries(${target} libc libk)
+    target_link_libraries(${target} libc)
     cross_target_binary(${target})
 
     add_custom_command(OUTPUT ${APPS_BASE_DIR}/${target}
@@ -12,12 +12,14 @@ macro(add_app target)
 
     add_custom_target(${target}_app
         DEPENDS ${APPS_BASE_DIR}/${target})
+
+    list(APPEND APPS_TARGETS ${target})
+    set(APPS_TARGETS ${APPS_TARGETS} PARENT_SCOPE)
 endmacro()
 
 add_subdirectory(foo)
 add_subdirectory(bar)
 
-set(APPS_TARGETS foo bar)
 list(TRANSFORM APPS_TARGETS APPEND _app)
 
 add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/apps.tar
