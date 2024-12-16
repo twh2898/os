@@ -1,6 +1,7 @@
 #ifndef TSS_H
 #define TSS_H
 
+#include <stddef.h>
 #include <stdint.h>
 
 typedef struct {
@@ -67,5 +68,9 @@ typedef struct {
 
     uint32_t ssp;
 } __attribute__((packed)) tss_entry_t;
+
+void init_tss();
+
+tss_entry_t * tss_get_entry(size_t i);
 
 #endif // TSS_H

@@ -7,6 +7,7 @@
 #include "cpu/ports.h"
 #include "cpu/ram.h"
 #include "cpu/timer.h"
+#include "cpu/tss.h"
 #include "defs.h"
 #include "drivers/ata.h"
 #include "drivers/keyboard.h"
@@ -223,7 +224,8 @@ static uint32_t int_tmp_stdio_cb(uint16_t int_no, registers_t * regs) {
 void kernel_main() {
     vga_clear();
 
-    gdt_init();
+    init_gdt();
+    init_tss();
 
     isr_install();
     irq_install();

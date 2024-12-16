@@ -83,10 +83,15 @@ typedef struct {
     uint8_t  base_high  : 8;
 } __attribute__((packed)) gdt_entry_t;
 
-void gdt_init();
+void init_gdt();
 
-void gdt_set(gdt_entry_t * gdt_entry, uint64_t base, uint64_t limit, uint8_t access, uint8_t flags);
+size_t        gdt_entry_count();
+gdt_entry_t * gdt_get_entry(size_t i);
 
-extern void jump_usermode(void * fn);
+void gdt_set(size_t i, uint64_t base, uint64_t limit, uint8_t access, uint8_t flags);
+void gdt_set_base(size_t i, uint64_t base);
+void gdt_set_limit(size_t i, uint64_t limit);
+void gdt_set_access(size_t i, uint8_t access);
+void gdt_set_flags(size_t i, uint8_t flags);
 
 #endif // GDT_H
