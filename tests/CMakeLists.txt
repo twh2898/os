@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.15..3.20)
 project(os VERSION 0.1.0 LANGUAGES C CXX)
 
-# set(CMAKE_VERBOSE_MAKEFILE on)
+set(TEST_TARGET_ROOT ${CMAKE_SOURCE_DIR}/..)
 
-find_package(GTest REQUIRED)
+add_subdirectory(external)
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 file(GLOB_RECURSE MOCK_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/mock/*.c ${CMAKE_CURRENT_SOURCE_DIR}/mock/*.h)
-
-add_compile_definitions(TESTING)
 
 function(mock_package target root_path)
     file(GLOB_RECURSE SOURCE_LIST ${root_path}/src/*.c)
@@ -23,16 +23,18 @@ function(mock_package target root_path)
         get_filename_component(test_target ${test_src} NAME_WLE)
 
         add_executable(${test_target} ${test_src})
-        target_link_libraries(${test_target} ${target} GTest::GTest GTest::Main)
+        target_link_libraries(${test_target} ${target} gtest gtest_main)
 
         add_test(NAME ${test_target} COMMAND ${test_target})
     endforeach()
 endfunction()
 
-mock_package(libc ${CMAKE_SOURCE_DIR}/../src/libc)
+# mock_package(libc ${CMAKE_SOURCE_DIR}/../src/libc)
 
 # ------------------------------------------------------------------------------
 # TESTS
 
 include(CTest)
 enable_testing()
+
+add_subdirectory(src)
