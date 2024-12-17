@@ -22,7 +22,7 @@ void _free(void * ptr) {
     send_interrupt(SYS_INT_MEM_FREE, ptr);
 }
 
-void _exit(uint8_t code) {
+void _proc_exit(uint8_t code) {
     send_interrupt(SYS_INT_PROC_EXIT, code);
 }
 

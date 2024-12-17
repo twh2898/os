@@ -48,6 +48,13 @@ TEST_F(LibK, free) {
     EXPECT_EQ(send_interrupt_fake.arg1_val, 5);
 }
 
+TEST_F(LibK, exit) {
+    _proc_exit(200);
+    EXPECT_EQ(send_interrupt_fake.call_count, 1);
+    EXPECT_EQ(send_interrupt_fake.arg0_val, 0x300);
+    EXPECT_EQ(send_interrupt_fake.arg1_val, 200);
+}
+
 TEST_F(LibK, putc) {
     send_interrupt_fake.return_val = 1;
     size_t olen = _putc('A');
