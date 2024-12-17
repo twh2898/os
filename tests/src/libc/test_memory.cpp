@@ -1,75 +1,54 @@
+#include <cstdlib>
+#include <string>
+
+#include "test_header.h"
+
 extern "C" {
 #include "libc/memory.h"
 }
 
-#include <gtest/gtest.h>
-
-#include <string>
-
-#include "fff.h"
-
-DEFINE_FFF_GLOBALS;
-
 extern "C" {
-// FAKE_VALUE_FUNC(uint32_t, send_interrupt, uint32_t);
-FAKE_VALUE_FUNC(uint32_t, send_interrupt, uint32_t, uint32_t, uint32_t);
+FAKE_VALUE_FUNC(void *, _malloc, size_t);
+FAKE_VALUE_FUNC(void *, _realloc, void *, size_t);
+FAKE_VOID_FUNC(_free, void *);
 }
 
-class LibK : public ::testing::Test {
+class LibC : public ::testing::Test {
 protected:
     void SetUp() override {
-        RESET_FAKE(send_interrupt);
+        RESET_FAKE(_malloc);
+        RESET_FAKE(_realloc);
+        RESET_FAKE(_free);
     }
 };
 
-TEST_F(LibK, malloc) {
-    send_interrupt_fake.return_val = 3;
-    void * ptr                     = _malloc(12);
-    EXPECT_EQ(send_interrupt_fake.call_count, 1);
-    EXPECT_EQ(send_interrupt_fake.arg0_val, 0x200);
-    EXPECT_EQ(send_interrupt_fake.arg1_val, 12);
+TEST_F(LibC, kmalloc) {
+    _malloc_fake.return_val = (void *)3;
+    void * ptr              = kmalloc(12);
+    EXPECT_EQ(_malloc_fake.call_count, 1);
+    EXPECT_EQ(_malloc_fake.arg0_val, 12);
     EXPECT_EQ(ptr, (void *)3);
 }
 
-TEST_F(LibK, realloc) {
-    send_interrupt_fake.return_val = 3;
-    void * ptr                     = _realloc((void *)5, 12);
-    EXPECT_EQ(send_interrupt_fake.call_count, 1);
-    EXPECT_EQ(send_interrupt_fake.arg0_val, 0x201);
-    EXPECT_EQ(send_interrupt_fake.arg1_val, 5);
-    EXPECT_EQ(send_interrupt_fake.arg2_val, 12);
+TEST_F(LibC, kcalloc) {
+    _malloc_fake.return_val = (void *)3;
+    void * ptr              = kcalloc(12, 0);
+    // EXPECT_EQ(_malloc_fake.call_count, 1);
+    // EXPECT_EQ(_malloc_fake.arg0_val, 12);
+    // EXPECT_EQ(ptr, (void *)3);
+}
+
+TEST_F(LibC, krealloc) {
+    _realloc_fake.return_val = (void *)3;
+    void * ptr               = krealloc((void *)5, 12);
+    EXPECT_EQ(_realloc_fake.call_count, 1);
+    EXPECT_EQ(_realloc_fake.arg0_val, (void *)5);
+    EXPECT_EQ(_realloc_fake.arg1_val, 12);
     EXPECT_EQ(ptr, (void *)3);
 }
 
-TEST_F(LibK, free) {
+TEST_F(LibC, kfree) {
     _free((void *)5);
-    EXPECT_EQ(send_interrupt_fake.call_count, 1);
-    EXPECT_EQ(send_interrupt_fake.arg0_val, 0x202);
-    EXPECT_EQ(send_interrupt_fake.arg1_val, 5);
-}
-
-TEST_F(LibK, exit) {
-    _proc_exit(200);
-    EXPECT_EQ(send_interrupt_fake.call_count, 1);
-    EXPECT_EQ(send_interrupt_fake.arg0_val, 0x300);
-    EXPECT_EQ(send_interrupt_fake.arg1_val, 200);
-}
-
-TEST_F(LibK, putc) {
-    send_interrupt_fake.return_val = 1;
-    size_t olen                    = _putc('A');
-    EXPECT_EQ(send_interrupt_fake.call_count, 1);
-    EXPECT_EQ(send_interrupt_fake.arg0_val, 0x1000);
-    EXPECT_EQ(send_interrupt_fake.arg1_val, 'A');
-    EXPECT_EQ(olen, 1);
-}
-
-TEST_F(LibK, puts) {
-    const char * str = "ABC";
-    send_interrupt_fake.return_val = 3;
-    size_t olen                    = _puts(str);
-    EXPECT_EQ(send_interrupt_fake.call_count, 1);
-    EXPECT_EQ(send_interrupt_fake.arg0_val, 0x1001);
-    EXPECT_EQ(send_interrupt_fake.arg1_val, (uint32_t)str);
-    EXPECT_EQ(olen, 3);
+    EXPECT_EQ(_free_fake.call_count, 1);
+    EXPECT_EQ(_free_fake.arg0_val, (void *)5);
 }

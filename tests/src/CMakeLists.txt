@@ -4,8 +4,6 @@ function(unit_test)
     set(multiValueArgs TEST_FILES TARGET_FILES INCLUDE_DIRS)
     cmake_parse_arguments(PARSE_ARGV 0 arg "" "${oneValueArgs}" "${multiValueArgs}")
 
-    message("Args are arg_TARGET = ${arg_TARGET} arg_TEST_FILES = ${arg_TEST_FILES} arg_TARGET_FILES = ${arg_TARGET_FILES} arg_INCLUDE_DIRS = ${arg_INCLUDE_DIRS}")
-
     set(target ${arg_TARGET})
 
     set(test_files ${arg_TEST_FILES})

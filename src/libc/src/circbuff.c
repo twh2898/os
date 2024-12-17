@@ -85,7 +85,7 @@ size_t circbuff_len(const circbuff_t * cbuff) {
 }
 
 uint8_t circbuff_at(const circbuff_t * cbuff, size_t index) {
-    if (!cbuff || cbuff->len == 0)
+    if (!cbuff || cbuff->len == 0 || index >= cbuff->len)
         return 0;
     size_t i = _wrap_index(cbuff, cbuff->start + index);
     return cbuff->buff[i];
@@ -123,10 +123,11 @@ size_t circbuff_insert(circbuff_t * cbuff, uint8_t * data, size_t count) {
     size_t remainder = cbuff->buff_size - cbuff->len;
     if (count > remainder)
         count = remainder;
+    size_t olen = 0;
     for (size_t i = 0; i < count; i++) {
-        circbuff_push(cbuff, data[i]);
+        olen += circbuff_push(cbuff, data[i]);
     }
-    return count;
+    return olen;
 }
 
 size_t circbuff_read(const circbuff_t * cbuff, uint8_t * data, size_t count) {
