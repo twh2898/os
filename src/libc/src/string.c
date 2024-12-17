@@ -188,7 +188,7 @@ int katoi(const char * str) {
     return res;
 }
 
-static bool char2int(char c, int base, int * i) {
+bool char2int(char c, int base, int * i) {
     if (!i)
         return false;
 
