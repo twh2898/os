@@ -181,7 +181,7 @@ void set_command_lookup(command_cb_t lookup) {
 static void exec_buff() {
     // Skip any leading whitespace
     char * line     = command_buff;
-    size_t line_len = strlen(command_buff);
+    size_t line_len = kstrlen(command_buff);
     while (line_len > 0 && is_ws(*line)) {
         line++;
         line_len--;
@@ -216,7 +216,7 @@ static void exec_buff() {
 
     // Check against all commands
     for (size_t i = 0; i < n_commands && !found; i++) {
-        size_t command_len = strlen(commands[i].command);
+        size_t command_len = kstrlen(commands[i].command);
 
         // Check length of command vs first word
         if (first_len < command_len) {
@@ -232,7 +232,7 @@ static void exec_buff() {
         }
 
         // Check command string
-        int match = memcmp(argv[0], commands[i].command, command_len);
+        int match = kmemcmp(argv[0], commands[i].command, command_len);
         if (match != 0) {
             if (debug)
                 printf("Command does not match %s\n", commands[i].command);
@@ -275,7 +275,7 @@ static int take_quote(const char * str) {
     if (!str || *str != '"')
         return -1;
 
-    size_t len = strlen(str);
+    size_t len = kstrlen(str);
     for (size_t i = 1; i < len; i++) {
         if (str[i] == '"' && str[i - 1] != '\\')
             return i;
@@ -352,7 +352,7 @@ static char ** parse_args(const char * line, size_t * out_len) {
             line++;
 
             args[arg_i] = kmalloc(sizeof(char) * next);
-            memcpy(args[arg_i], line, next - 1);
+            kmemcpy(args[arg_i], line, next - 1);
             args[arg_i][next - 1] = 0;
             arg_i++;
 
@@ -366,7 +366,7 @@ static char ** parse_args(const char * line, size_t * out_len) {
 
         size_t word_len = line - start;
         args[arg_i]     = kmalloc(sizeof(char) * word_len + 1);
-        memcpy(args[arg_i], start, word_len);
+        kmemcpy(args[arg_i], start, word_len);
         args[arg_i][word_len] = 0;
         arg_i++;
     }

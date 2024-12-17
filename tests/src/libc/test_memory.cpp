@@ -1,13 +1,16 @@
 #include <cstdlib>
+#include <cstring>
 #include <string>
 
 #include "test_header.h"
 
 extern "C" {
 #include "libc/memory.h"
+
+void * kmemset(void * ptr, uint8_t value, size_t n) {
+    return memset(ptr, value, n);
 }
 
-extern "C" {
 FAKE_VALUE_FUNC(void *, _malloc, size_t);
 FAKE_VALUE_FUNC(void *, _realloc, void *, size_t);
 FAKE_VOID_FUNC(_free, void *);

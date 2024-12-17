@@ -150,7 +150,7 @@ static void init_table(memory_table_t * table, memory_table_t * prev, memory_tab
     // printf("set first ");
     table->next = PTR2UINT(next);
     // printf("set second ");
-    memset(table->entries, 0, sizeof(table->entries));
+    kmemset(table->entries, 0, sizeof(table->entries));
     // printf("done\n");
 }
 

@@ -163,7 +163,7 @@ static size_t disk_ata_read(disk_t * disk, uint8_t * buff, size_t count, size_t 
     }
 
     size_t pos_in_buff = pos % ATA_SECTOR_BYTES;
-    memcpy(buff, disk->buff + pos_in_buff, count);
+    kmemcpy(buff, disk->buff + pos_in_buff, count);
     return count;
 }
 
@@ -186,7 +186,7 @@ static size_t disk_ata_write(disk_t * disk, uint8_t * buff, size_t count, size_t
         sect_to_write++;
     }
 
-    memcpy(disk->buff, buff, count);
+    kmemcpy(disk->buff, buff, count);
 
     if (ata_sect_write(disk->device.ata, disk->buff, sect_to_write, lba)
         != sect_to_write) {

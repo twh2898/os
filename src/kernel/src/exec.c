@@ -13,7 +13,7 @@ static void free_user_space();
 int command_exec(uint8_t * buff, size_t size, size_t argc, char ** argv) {
     setup_user_space(size);
 
-    memcpy(UINT2PTR(VADDR_FREE_MEM_USER), buff, size);
+    kmemcpy(UINT2PTR(VADDR_FREE_MEM_USER), buff, size);
 
     ff_t call = UINT2PTR(VADDR_FREE_MEM_USER);
 

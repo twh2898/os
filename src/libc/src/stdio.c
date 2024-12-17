@@ -542,7 +542,7 @@ static size_t padded_long_uint(size_t width, bool left_align, uint64_t num, uint
 }
 
 static size_t padded_str(size_t width, bool left_align, char * str) {
-    size_t str_len = strlen(str);
+    size_t str_len = kstrlen(str);
     bool   fill    = width > str_len;
 
     size_t o_len = 0;

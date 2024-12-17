@@ -62,7 +62,7 @@ extern void load_gdt(uint32_t limit, uint32_t base);
 //     g->base_high              = (base & (0xff << 24)) >> 24; // isolate top byte
 
 //     // Ensure the TSS is initially zero'd.
-//     memset(&tss_entry, 0, sizeof tss_entry);
+//     kmemset(&tss_entry, 0, sizeof tss_entry);
 
 //     tss_entry.ss0  = PADDR_STACK; // Set the kernel stack segment.
 //     tss_entry.esp0 = PADDR_STACK; // Set the kernel stack pointer.
@@ -78,7 +78,7 @@ extern void load_gdt(uint32_t limit, uint32_t base);
 gdt_entry_t gdt[GDT_N];
 
 void init_gdt() {
-    memset(gdt, 0, GDT_N * sizeof(gdt_entry_t));
+    kmemset(gdt, 0, GDT_N * sizeof(gdt_entry_t));
 
     gdt_set(GDT_ENTRY_INDEX_KERNEL_CODE, 0, 0xfffff, GDT_PRESET_KERNEL_CODE_ACCESS, GDT_PRESET_KERNEL_CODE_FLAGS);
     gdt_set(GDT_ENTRY_INDEX_KERNEL_DATA, 0, 0xfffff, GDT_PRESET_KERNEL_DATA_ACCESS, GDT_PRESET_KERNEL_DATA_FLAGS);

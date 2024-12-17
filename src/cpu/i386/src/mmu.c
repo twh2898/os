@@ -7,7 +7,7 @@
 mmu_page_dir_t * mmu_dir_create(void * addr) {
     mmu_page_dir_t * dir = addr;
     if (dir) {
-        memset(dir, 0, sizeof(mmu_page_dir_t));
+        kmemset(dir, 0, sizeof(mmu_page_dir_t));
     }
     return dir;
 }
@@ -32,7 +32,7 @@ void mmu_dir_free(mmu_page_dir_t * dir) {
 mmu_page_table_t * mmu_table_create(void * addr) {
     mmu_page_table_t * table = addr;
     if (table) {
-        memset(table, 0, sizeof(mmu_page_table_t));
+        kmemset(table, 0, sizeof(mmu_page_table_t));
     }
     return table;
 }

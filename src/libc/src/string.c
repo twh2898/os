@@ -4,9 +4,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-static char * strtok_curr = 0;
+static char * kstrtok_curr = 0;
 
-int memcmp(const void * lhs, const void * rhs, size_t n) {
+int kmemcmp(const void * lhs, const void * rhs, size_t n) {
     if (!lhs || !rhs)
         return 0;
 
@@ -19,7 +19,7 @@ int memcmp(const void * lhs, const void * rhs, size_t n) {
     return 0;
 }
 
-void * memcpy(void * dest, const void * src, size_t n) {
+void * kmemcpy(void * dest, const void * src, size_t n) {
     if (!dest || !src)
         return 0;
 
@@ -31,7 +31,7 @@ void * memcpy(void * dest, const void * src, size_t n) {
     return dest;
 }
 
-void * memmove(void * dest, const void * src, size_t n) {
+void * kmemmove(void * dest, const void * src, size_t n) {
     if (!dest || !src)
         return 0;
 
@@ -52,7 +52,7 @@ void * memmove(void * dest, const void * src, size_t n) {
     return dest;
 }
 
-void * memset(void * ptr, uint8_t value, size_t n) {
+void * kmemset(void * ptr, uint8_t value, size_t n) {
     if (!ptr)
         return 0;
     uint8_t * buf = (uint8_t *)ptr;
@@ -62,7 +62,7 @@ void * memset(void * ptr, uint8_t value, size_t n) {
     return ptr;
 }
 
-int strlen(const char * str) {
+int kstrlen(const char * str) {
     if (!str)
         return -1;
     size_t count = 0;
@@ -70,7 +70,7 @@ int strlen(const char * str) {
     return count;
 }
 
-int nstrlen(const char * str, int max) {
+int knstrlen(const char * str, int max) {
     if (!str || max < 0)
         return -1;
     size_t count = 0;
@@ -78,20 +78,20 @@ int nstrlen(const char * str, int max) {
     return count;
 }
 
-int strcmp(const char * lhs, const char * rhs) {
-    size_t lhs_len = strlen(lhs);
-    size_t rhs_len = strlen(rhs);
+int kstrcmp(const char * lhs, const char * rhs) {
+    size_t lhs_len = kstrlen(lhs);
+    size_t rhs_len = kstrlen(rhs);
 
     if (lhs_len != rhs_len)
         return lhs_len - rhs_len;
 
-    return memcmp(lhs, rhs, lhs_len);
+    return kmemcmp(lhs, rhs, lhs_len);
 }
 
-int strfind(const char * str, size_t start, char c) {
+int kstrfind(const char * str, size_t start, char c) {
     if (!str)
         return -1;
-    size_t len = strlen(str);
+    size_t len = kstrlen(str);
     for (size_t i = start; i < len; i++) {
         if (str[i] == c)
             return (int)i;
@@ -103,8 +103,8 @@ static char * find_one(char * str, char * delim) {
     if (!str || !delim)
         return 0;
 
-    size_t len   = strlen(str);
-    size_t d_len = strlen(delim);
+    size_t len   = kstrlen(str);
+    size_t d_len = kstrlen(delim);
 
     for (size_t i = 0; i < len; i++) {
         for (size_t d = 0; d < d_len; d++) {
@@ -120,8 +120,8 @@ static char * find_not_one(char * str, char * delim) {
     if (!str || !delim)
         return 0;
 
-    size_t len   = strlen(str);
-    size_t d_len = strlen(delim);
+    size_t len   = kstrlen(str);
+    size_t d_len = kstrlen(delim);
 
     for (size_t i = 0; i < len; i++) {
         for (size_t d = 0; d < d_len; d++) {
@@ -134,33 +134,33 @@ static char * find_not_one(char * str, char * delim) {
 }
 
 // TODO Untested, idk if this actually works
-char * strtok(char * str, char * delim) {
+char * kstrtok(char * str, char * delim) {
     if (!str || !delim)
         return 0;
 
     if (str)
-        strtok_curr = str;
+        kstrtok_curr = str;
 
-    if (strtok_curr == 0)
+    if (kstrtok_curr == 0)
         return 0;
 
-    strtok_curr = find_not_one(strtok_curr, delim);
-    size_t len  = strlen(strtok_curr);
+    kstrtok_curr = find_not_one(kstrtok_curr, delim);
+    size_t len  = kstrlen(kstrtok_curr);
     if (len == 0)
         return 0;
 
-    str = strtok_curr;
+    str = kstrtok_curr;
 
-    strtok_curr = find_one(strtok_curr, delim);
-    if (strtok_curr == str) {
-        strtok_curr += len;
+    kstrtok_curr = find_one(kstrtok_curr, delim);
+    if (kstrtok_curr == str) {
+        kstrtok_curr += len;
     }
 
-    *strtok_curr = 0;
+    *kstrtok_curr = 0;
     return str;
 }
 
-int atoi(const char * str) {
+int katoi(const char * str) {
     if (!str)
         return 0;
 
@@ -209,7 +209,7 @@ static bool char2int(char c, int base, int * i) {
     return true;
 }
 
-int atoib(const char * str, int base) {
+int katoib(const char * str, int base) {
     if (!str)
         return 0;
 

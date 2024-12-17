@@ -30,7 +30,7 @@ static int clear_cmd(size_t argc, char ** argv) {
 
 static int echo_cmd(size_t argc, char ** argv) {
     bool next_line = true;
-    if (argc > 1 && memcmp(argv[1], "-n", 2) == 0)
+    if (argc > 1 && kmemcmp(argv[1], "-n", 2) == 0)
         next_line = false;
 
     size_t i = 1;
@@ -63,7 +63,7 @@ static int atoi_cmd(size_t argc, char ** argv) {
         return 1;
     }
 
-    int i = atoi(argv[1]);
+    int i = katoi(argv[1]);
     printf("%d\n", i);
     return 0;
 }
@@ -80,7 +80,7 @@ static uint8_t hex_digit(char c) {
 }
 
 static uint16_t parse_byte(const char * str) {
-    size_t len = strlen(str);
+    size_t len = kstrlen(str);
     if (len < 1 || len > 4)
         return 1;
 
@@ -97,13 +97,13 @@ static int port_out_cmd(size_t argc, char ** argv) {
         return 1;
     }
 
-    if (strlen(argv[1]) > 4) {
+    if (kstrlen(argv[1]) > 4) {
         puts("port has max 4 hex digits\n");
         return 1;
     }
     uint16_t port = parse_byte(argv[1]);
 
-    if (strlen(argv[2]) > 2) {
+    if (kstrlen(argv[2]) > 2) {
         puts("byte has max 2 hex digits\n");
         return 1;
     }
@@ -119,7 +119,7 @@ static int port_in_cmd(size_t argc, char ** argv) {
         return 1;
     }
 
-    if (strlen(argv[1]) > 4) {
+    if (kstrlen(argv[1]) > 4) {
         puts("port has max 4 hex digits\n");
         return 1;
     }
@@ -439,8 +439,8 @@ static int disk_read_cmd(size_t argc, char ** argv) {
         return 1;
     }
 
-    size_t pos   = atoi(argv[1]);
-    size_t count = atoi(argv[2]);
+    size_t pos   = katoi(argv[1]);
+    size_t count = katoi(argv[2]);
 
     if (!disk) {
         disk = disk_open(0, DISK_DRIVER_ATA);

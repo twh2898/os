@@ -10,7 +10,7 @@ extern void flush_tss();
 extern void jump_usermode(void * fn);
 
 void init_tss() {
-    memset(tss_stack, 0, sizeof(tss_stack));
+    kmemset(tss_stack, 0, sizeof(tss_stack));
 
     gdt_set_base(GDT_ENTRY_INDEX_KERNEL_TSS, PTR2UINT(&tss_stack[0]));
     gdt_set_base(GDT_ENTRY_INDEX_USER_TSS, PTR2UINT(&tss_stack[1]));

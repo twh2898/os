@@ -14,7 +14,7 @@ sys_interrupt_handler_t callbacks[MAX_CALLBACKS];
 static void callback(registers_t regs);
 
 void init_system_interrupts(uint8_t isr_interrupt_no) {
-    memset(callbacks, 0, sizeof(callbacks));
+    kmemset(callbacks, 0, sizeof(callbacks));
     register_interrupt_handler(isr_interrupt_no, callback);
 }
 

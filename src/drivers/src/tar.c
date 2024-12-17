@@ -92,7 +92,7 @@ tar_stat_t * tar_stat_file_i(tar_fs_t * tar, size_t i, tar_stat_t * stat) {
         return 0;
 
     tar_file_t * file = &tar->files[i];
-    memcpy(stat->filename, file->filename, 101);
+    kmemcpy(stat->filename, file->filename, 101);
     stat->size  = file->size;
     stat->mode  = parse_octal(file->header.mode);
     stat->uid   = parse_octal(file->header.uid);
@@ -111,7 +111,7 @@ tar_stat_t * tar_stat_file(tar_fs_t * tar, const char * filename, tar_stat_t * s
     if (!file)
         return 0;
 
-    memcpy(stat->filename, file->filename, 101);
+    kmemcpy(stat->filename, file->filename, 101);
     stat->size  = file->size;
     stat->mode  = parse_octal(file->header.mode);
     stat->uid   = parse_octal(file->header.uid);
@@ -202,7 +202,7 @@ static size_t parse_octal(const char * str) {
     size_t size  = 0;
     size_t count = 1;
 
-    for (size_t j = strlen(str); j > 0; j--, count *= 8) {
+    for (size_t j = kstrlen(str); j > 0; j--, count *= 8) {
         size += ((str[j - 1] - '0') * count);
     }
 
@@ -266,8 +266,8 @@ static bool load_headers(tar_fs_t * tar) {
 
         size_t file_size = file->size = parse_octal(file->header.size);
 
-        size_t name_len = nstrlen(file->header.filename, 100);
-        memcpy(file->filename, file->header.filename, name_len);
+        size_t name_len = knstrlen(file->header.filename, 100);
+        kmemcpy(file->filename, file->header.filename, name_len);
         file->filename[name_len] = 0;
 
         file->index    = i;
@@ -283,18 +283,18 @@ static bool load_headers(tar_fs_t * tar) {
 }
 
 static tar_file_t * find_filename(tar_fs_t * tar, const char * filename) {
-    if (!tar || !filename || !strlen(filename))
+    if (!tar || !filename || !kstrlen(filename))
         return 0;
 
     if (filename[0] == '/')
         filename++;
 
     for (size_t i = 0; i < tar->file_count; i++) {
-        size_t size          = nstrlen(filename, 100);
-        size_t filename_size = nstrlen(tar->files[i].filename, 100);
+        size_t size          = knstrlen(filename, 100);
+        size_t filename_size = knstrlen(tar->files[i].filename, 100);
         if (filename_size != size)
             continue;
-        if (memcmp(filename, tar->files[i].filename, size) == 0) {
+        if (kmemcmp(filename, tar->files[i].filename, size) == 0) {
             return &tar->files[i];
         }
     }
