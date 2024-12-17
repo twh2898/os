@@ -183,7 +183,7 @@ int katoi(const char * str) {
     }
 
     if (neg)
-        res *= -1;
+        res = -res;
 
     return res;
 }
@@ -233,7 +233,7 @@ int katoib(const char * str, int base) {
     }
 
     if (neg)
-        res *= -1;
+        res = -res;
 
     return res;
 }
