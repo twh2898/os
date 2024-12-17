@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.15..3.20)
 project(os VERSION 0.1.0 LANGUAGES C CXX)
 
 set(TEST_TARGET_ROOT ${CMAKE_SOURCE_DIR}/..)
+set(CMAKE_C_FLAGS -m32)
+set(CMAKE_CXX_FLAGS -m32)
 
 add_subdirectory(external)
 
