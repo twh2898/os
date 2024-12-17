@@ -57,7 +57,7 @@ TEST_F(LibK, exit) {
 
 TEST_F(LibK, putc) {
     send_interrupt_fake.return_val = 1;
-    size_t olen = _putc('A');
+    size_t olen                    = _putc('A');
     EXPECT_EQ(send_interrupt_fake.call_count, 1);
     EXPECT_EQ(send_interrupt_fake.arg0_val, 0x1000);
     EXPECT_EQ(send_interrupt_fake.arg1_val, 'A');
@@ -65,10 +65,11 @@ TEST_F(LibK, putc) {
 }
 
 TEST_F(LibK, puts) {
+    const char * str = "ABC";
     send_interrupt_fake.return_val = 3;
-    size_t olen = _puts("ABC");
+    size_t olen                    = _puts(str);
     EXPECT_EQ(send_interrupt_fake.call_count, 1);
     EXPECT_EQ(send_interrupt_fake.arg0_val, 0x1001);
-    EXPECT_NE(send_interrupt_fake.arg1_val, 0);
+    EXPECT_EQ(send_interrupt_fake.arg1_val, (uint32_t)str);
     EXPECT_EQ(olen, 3);
 }
