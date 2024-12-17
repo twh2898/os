@@ -72,6 +72,6 @@ extern bool             mmu_paging_enabled();
 extern void             mmu_change_dir(mmu_page_dir_t * dir);
 extern mmu_page_dir_t * mmu_get_curr_dir();
 
-// TODO way in the future, free interior pages when malloc free's entire virtual page
+// TODO way in the future, free interior pages when kmalloc free's entire virtual page
 
 #endif // MMU_H

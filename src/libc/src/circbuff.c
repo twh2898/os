@@ -1,10 +1,6 @@
 #include "libc/circbuff.h"
 
-#ifdef TESTING
-#include <stdlib.h>
-#else
 #include "libc/memory.h"
-#endif
 
 #if SAFETY > 1
 #include "libc/stdio.h"
@@ -55,11 +51,11 @@ circbuff_t * circbuff_new(size_t size) {
     if (size == 0)
         return 0;
 
-    circbuff_t * cbuff = malloc(sizeof(circbuff_t));
+    circbuff_t * cbuff = kmalloc(sizeof(circbuff_t));
     if (cbuff) {
-        cbuff->buff = malloc(size);
+        cbuff->buff = kmalloc(size);
         if (!cbuff->buff) {
-            free(cbuff);
+            kfree(cbuff);
             return 0;
         }
         cbuff->buff_size = size;
@@ -71,8 +67,8 @@ circbuff_t * circbuff_new(size_t size) {
 
 void circbuff_free(circbuff_t * cbuff) {
     if (cbuff) {
-        free(cbuff->buff);
-        free(cbuff);
+        kfree(cbuff->buff);
+        kfree(cbuff);
     }
 }
 
