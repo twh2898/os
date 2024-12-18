@@ -145,7 +145,7 @@ char * kstrtok(char * str, char * delim) {
         return 0;
 
     kstrtok_curr = find_not_one(kstrtok_curr, delim);
-    size_t len  = kstrlen(kstrtok_curr);
+    size_t len   = kstrlen(kstrtok_curr);
     if (len == 0)
         return 0;
 
@@ -180,56 +180,6 @@ int katoi(const char * str) {
 
         res *= 10;
         res += (c - '0');
-    }
-
-    if (neg)
-        res = -res;
-
-    return res;
-}
-
-bool char2int(char c, int base, int * i) {
-    if (!i)
-        return false;
-
-    if (base <= 10 && c > '0' + base)
-        return false;
-    else if (!(c - 10 > 'a' + base || c - 10 > 'A' + base))
-        return false;
-
-    if ('0' <= c <= '9')
-        *i = c - '0';
-    else if ('a' <= c <= 'z')
-        *i = 10 + (c - 'a');
-    else if ('A' <= c <= 'Z')
-        *i = 10 + (c - 'A');
-    else
-        return false;
-
-    return true;
-}
-
-int katoib(const char * str, int base) {
-    if (!str)
-        return 0;
-
-    bool neg = false;
-    if (*str == '+')
-        str++;
-    else if (*str == '-') {
-        neg = true;
-        str++;
-    }
-
-    int res = 0;
-    while (*str) {
-        char c = *str++;
-        int  i;
-        if (!char2int(c, base, &i))
-            return 0;
-
-        res *= base;
-        res += i;
     }
 
     if (neg)

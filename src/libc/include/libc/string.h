@@ -16,9 +16,6 @@ int    kstrcmp(const char * lhs, const char * rhs);
 int    kstrfind(const char * str, size_t start, char c);
 char * kstrtok(char * str, char * delim);
 
-bool char2int(char c, int base, int * i);
-
 int katoi(const char * str);
-int katoib(const char * str, int base);
 
 #endif // STRING_H
