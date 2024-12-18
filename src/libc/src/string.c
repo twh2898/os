@@ -43,8 +43,8 @@ void * kmemmove(void * dest, const void * src, size_t n) {
         }
     }
     else {
-        dest_buff = dest_buff + n;
-        src       = src + n;
+        dest_buff = dest_buff + n - 1;
+        src_buff  = src_buff + n - 1;
         for (size_t i = 0; i < n; i++) {
             *dest_buff-- = *src_buff--;
         }
