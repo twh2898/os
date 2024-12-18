@@ -217,6 +217,7 @@ static uint32_t int_tmp_stdio_cb(uint16_t int_no, registers_t * regs) {
 }
 
 void kernel_main() {
+    init_vga(UINT2PTR(PADDR_VGA));
     vga_clear();
 
     isr_install();

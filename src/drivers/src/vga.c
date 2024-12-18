@@ -9,12 +9,18 @@
 
 #define MAX_INDEX (VGA_ROWS * VGA_COLS)
 
-static int    index  = 0;
-static char   color  = RESET;
-static char * screen = (char *)VGA_ADDRESS;
+static int    index;
+static char   color;
+static char * screen;
 
 static void update_cursor();
 static void shift_lines();
+
+void init_vga(void * vga_addr) {
+    index  = 0;
+    color  = RESET;
+    screen = vga_addr;
+}
 
 /*
  * DIRECT ACCESS

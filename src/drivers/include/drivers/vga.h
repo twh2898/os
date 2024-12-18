@@ -48,6 +48,8 @@ enum VGA_BG {
     VGA_BG_WHITE         = 0xF0,
 };
 
+void init_vga(void * vga_addr);
+
 void vga_clear();
 void vga_put(int index, char c, unsigned char attr);
 int  vga_row(int index);
