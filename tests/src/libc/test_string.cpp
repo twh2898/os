@@ -45,7 +45,7 @@ protected:
     }
 };
 
-TEST_F(String, test_atoi) {
+TEST_F(String, test_katoi) {
     EXPECT_EQ(0, katoi(0));
     EXPECT_EQ(0, katoi("0"));
     EXPECT_EQ(0, katoi(""));
