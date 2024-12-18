@@ -65,6 +65,32 @@ section once they are finished.
   - [ ] disk.h
   - [ ] kernel.h
   - [ ] term.h
+- [ ] Test code
+  - [ ] cpu/idt.h
+  - [ ] cpu/isr.h
+  - [ ] cpu/mmu.h
+  - [ ] cpu/ports.h
+  - [ ] cpu/ram.h
+  - [ ] cpu/timer.h
+  - [ ] drivers/ata.h
+  - [ ] drivers/keyboard.h
+  - [ ] drivers/ramdisk.h
+  - [ ] drivers/rtc.h
+  - [ ] drivers/tar.h
+  - [ ] drivers/vga.h
+  - [x] libc/circbuff.h
+  - [ ] libc/dir.h
+  - [ ] libc/file.h
+  - [x] libc/memory.h
+  - [ ] libc/stdio.h
+  - [x] libc/string.h
+  - [ ] commands.h
+  - [ ] debug.h
+  - [ ] defs.h
+  - [ ] disk.h
+  - [ ] kernel.h
+  - [ ] term.h
+  - [x] sys_call.h
 - [ ] Move drivers and other os level code out of kernel (only keep essentials)
 
 ## _Template Task_
