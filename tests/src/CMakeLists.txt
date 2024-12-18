@@ -27,5 +27,6 @@ function(unit_test)
     )
 endfunction()
 
+add_subdirectory(drivers)
 add_subdirectory(libc)
 add_subdirectory(libk)
