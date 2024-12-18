@@ -19,7 +19,6 @@
 #include "libc/string.h"
 #include "libk/defs.h"
 #include "term.h"
-#include "test.h"
 
 _Noreturn void kernel_panic(const char * msg, const char * file, unsigned int line) {
     vga_color(VGA_FG_WHITE | VGA_BG_RED);
@@ -76,10 +75,6 @@ void key_cb(uint8_t code, char c, keyboard_event_t event, keyboard_mod_t mod) {
     if (event != KEY_EVENT_RELEASE && c) {
         putc(c);
     }
-}
-
-static int test_cmd(size_t argc, char ** argv) {
-    return run_tests();
 }
 
 static void trigger_page_fault() {
@@ -224,9 +219,6 @@ static uint32_t int_tmp_stdio_cb(uint16_t int_no, registers_t * regs) {
 void kernel_main() {
     vga_clear();
 
-    init_gdt();
-    init_tss();
-
     isr_install();
     irq_install();
 
@@ -243,17 +235,17 @@ void kernel_main() {
     // printf("Paging enabled: %b\n", mmu_paging_enabled());
     init_malloc(pdir, VADDR_FREE_MEM_KERNEL >> 12);
 
+    init_gdt();
+    init_tss();
+
     // check_malloc();
 
     term_init();
     commands_init();
 
     term_command_add("demo", demo);
-    term_command_add("test", test_cmd);
 
     ramdisk_create(4096);
-
-    // run_tests();
 
     // uint32_t r = system_call(4, 1);
     // printf("System call got 0x%X\n", r);
