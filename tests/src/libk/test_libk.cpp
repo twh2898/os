@@ -65,7 +65,7 @@ TEST_F(LibK, putc) {
 }
 
 TEST_F(LibK, puts) {
-    const char * str = "ABC";
+    const char * str               = "ABC";
     send_interrupt_fake.return_val = 3;
     size_t olen                    = _puts(str);
     EXPECT_EQ(send_interrupt_fake.call_count, 1);

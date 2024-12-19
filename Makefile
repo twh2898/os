@@ -45,6 +45,9 @@ dump-kernel:
 test:
 	make -C tests
 
+lint:
+	@find src tests/src -name '*.c' -or -name '*.h' -or -name '*.cpp' -or -name '*.hpp' | xargs clang-format --dry-run --Werror --sort-includes
+
 clean:
 	rm -rf *.bin qemu_log.txt drive.img build/
 
