@@ -1,0 +1,25 @@
+name: CI Tests
+
+on:
+  push:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup
+      working-directory: tests
+      run: make setup
+
+    - name: Build
+      working-directory: tests
+      run: make build
+
+    - name: Test
+      working-directory: tests
+      run: make test
