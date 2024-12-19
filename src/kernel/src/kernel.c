@@ -237,7 +237,7 @@ void kernel_main() {
     init_malloc(pdir, VADDR_FREE_MEM_KERNEL >> 12);
 
     init_gdt();
-    init_tss();
+    // init_tss();
 
     // check_malloc();
 
