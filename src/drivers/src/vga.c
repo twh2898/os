@@ -142,6 +142,10 @@ static char digit(uint32_t num, uint8_t base) {
 }
 
 static size_t _print_uint(uint32_t num, uint8_t base) {
+    if (num == 0) {
+        return vga_putc('0');
+    }
+
     size_t   len = 0;
     uint32_t rev = 0;
     while (num > 0) {
@@ -163,6 +167,7 @@ size_t vga_puti(int num) {
     size_t o_len = 0;
     if (num < 0) {
         o_len += vga_putc('-');
+        num = -num;
     }
     o_len += _print_uint(num, 10);
     return o_len;
@@ -175,7 +180,6 @@ size_t vga_putu(unsigned int num) {
 size_t vga_putx(unsigned int num) {
     return _print_uint(num, 16);
 }
-
 
 /*
  * HELPER FUNCTIONS
