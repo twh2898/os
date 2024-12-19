@@ -1,6 +1,6 @@
 
 test: build
-	cd build && ctest -V
+	cd build && GTEST_COLOR=1 ctest -V
 
 setup:
 	cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
