@@ -12,7 +12,10 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Setup
+    - name: Install dependencies
+      run: apt-get install build-essential
+
+    - name: Setup project
       working-directory: tests
       run: make setup
 
