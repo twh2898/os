@@ -15,6 +15,7 @@ typedef enum DRIVER_FS_STATE {
 typedef struct _driver_fs_stat {
     uint32_t             size;
     enum DRIVER_FS_STATE state;
+    const char *         format;
 } driver_fs_stat_t;
 
 typedef struct _driver_fs {
