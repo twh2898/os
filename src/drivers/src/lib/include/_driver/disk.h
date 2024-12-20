@@ -34,5 +34,4 @@ struct _driver_device_disk {
     driver_disk_fn_write fn_write;
 };
 
-
 #endif // DRIVER_DISK_H
