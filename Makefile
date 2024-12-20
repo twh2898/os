@@ -20,15 +20,17 @@ build:
 	cmake --build build
 
 run:
-	qemu-system-i386 $(QEMUFLAGS)
+	$(QEMU) $(QEMUFLAGS)
 
-run_tty:
-	qemu-system-i386 -display curses $(QEMUFLAGS)
+run-tty:
+	$(QEMU) -display curses $(QEMUFLAGS)
+
+run-debug:
+	$(QEMU) -s -S $(QEMUFLAGS)
 
 debug:
-	$(QEMU) -s -S $(QEMUFLAGS)
-#	$(GDB) -ex "target remote localhost:1234" -ex "symbol-file build/kernel.elf" -ex "b *0x7c00" -ex "b *0x7e00" -ex "b __start" -ex "b kernel_main" -ex "b kernel/src/cpu/isr.c:124"
-#	$(GDB) -ex "target remote localhost:1234" -ex "symbol-file build/kernel.elf" -ex "b kernel_main" -ex "b kernel/src/cpu/isr.c:124"
+	$(QEMU) -s -S $(QEMUFLAGS) &
+	$(GDB) -ex "target remote localhost:1234" -ex "symbol-file build/src/kernel/kernel.elf" -ex "b kernel_main" -ex "b isr_handler"
 
 boot-debug:
 	$(QEMU) -s -S $(QEMUFLAGS) &
