@@ -198,6 +198,7 @@ static uint32_t int_proc_cb(uint16_t int_no, registers_t * regs) {
     switch (int_no) {
         case SYS_INT_PROC_EXIT: {
             uint8_t code = regs->ebx;
+            printf("Proc exit with code %u\n", code);
             kernel_exit();
         } break;
 

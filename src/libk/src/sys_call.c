@@ -1,5 +1,4 @@
 #include "libk/sys_call.h"
-
 #include <stdint.h>
 
 #include "libk/defs.h"
@@ -23,6 +22,7 @@ void _free(void * ptr) {
 }
 
 void _proc_exit(uint8_t code) {
+    _puts("Proc exit\n");
     send_interrupt(SYS_INT_PROC_EXIT, code);
 }
 
