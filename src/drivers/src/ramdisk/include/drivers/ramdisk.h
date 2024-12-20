@@ -4,6 +4,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "driver.h"
+
 #define RAMDISK_MAX 8
 
 typedef struct _ramdisk ramdisk_t;
