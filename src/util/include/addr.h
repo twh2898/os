@@ -1,25 +1,12 @@
-#ifndef DEFS_H
-#define DEFS_H
+#ifndef ADDR_H
+#define ADDR_H
 
-#include <stdbool.h>
-#include <stddef.h>
 #include <stdint.h>
 
-#define MASK_ADDR  0xfffff000
-#define MASK_FLAGS 0xfff
+typedef uint32_t p_addr_t;
+typedef uint32_t v_addr_t;
 
-#define PAGE_SIZE              4096
-#define PAGE_ALIGNED_DOWN(PTR) ((PTR) & MASK_ADDR)
-#define PAGE_ALIGNED_UP(PTR)   ((PAGE_ALIGNED_DOWN(PTR)) + PAGE_SIZE)
-#define PAGE_ALIGNED(PTR)      (((PTR) & MASK_FLAGS) ? PAGE_ALIGNED_UP(PTR) : (PTR))
-
-#define PAGE2ADDR(PAGE) ((PAGE) << 12)
-#define ADDR2PAGE(ADDR) ((ADDR) >> 12)
-
-#define PTR2UINT(PTR)   ((uint32_t)(PTR))
-#define UINT2PTR(UINT)  ((void *)(UINT))
-#define LUINT2PTR(UINT) UINT2PTR((uint32_t)(UINT))
-
+// Physical addresses (mostly for boot and kernel)
 #define PADDR_BOOT_PARAMS 0x500
 #define PADDR_PAGE_DIR    0x1000
 #define PADDR_RAM_TABLE   0x2000
@@ -45,4 +32,4 @@
 #define VADDR_SECOND_PAGE_TABLE 0xffc01000
 #define VADDR_LAST_PAGE_TABLE   0xfffff000
 
-#endif // DEFS_H
+#endif // ADDR_H
