@@ -31,7 +31,7 @@ function(cross_target_binary target)
         -nostdlib
         "-L${CROSS_PREFIX}/lib/gcc/i386-elf/12.2.0"
         -lgcc
-        DEPENDS ${target})
+        DEPENDS ${target} ${TARGET_LINK_FILES})
 
     add_custom_target(${target}_image ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${target}.bin)
 
@@ -46,7 +46,7 @@ function(cross_target_binary target)
         -nostdlib
         "-L${CROSS_PREFIX}/lib/gcc/i386-elf/12.2.0"
         -lgcc
-        DEPENDS ${target})
+        DEPENDS ${target} ${TARGET_LINK_FILES})
 
     add_custom_target(${target}_image_debug ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${target}.elf)
 endfunction()
