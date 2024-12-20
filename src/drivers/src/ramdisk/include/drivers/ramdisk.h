@@ -1,23 +1,20 @@
-#ifndef RAMDISK_H
-#define RAMDISK_H
+#ifndef DRIVER_RAMDISK_H
+#define DRIVER_RAMDISK_H
 
 #include <stddef.h>
-#include <stdint.h>
 
 #include "driver.h"
 
-#define RAMDISK_MAX 8
+#define DRV_RAMDISK_MAX_DEVICES 8
 
-typedef struct _ramdisk ramdisk_t;
+int drv_ramdisk_init();
 
-int ramdisk_create(size_t size);
+int drv_ramdisk_create_device(size_t size);
 
-ramdisk_t * ramdisk_open(int id);
-void        ramdisk_close(ramdisk_t * rdisk);
+driver_disk_t * drv_ramdisk_open(int id);
+int             drv_ramdisk_close(driver_disk_t *);
+int             drv_ramdisk_stat(driver_disk_t *, disk_stat_t *);
+int             drv_ramdisk_read(driver_disk_t *, char * buff, size_t count, size_t addr);
+int             drv_ramdisk_write(driver_disk_t *, const char * buff, size_t count, size_t addr);
 
-size_t ramdisk_size(ramdisk_t * rdisk);
-
-size_t ramdisk_read(ramdisk_t * rdisk, uint8_t * buff, size_t count, size_t pos);
-size_t ramdisk_write(ramdisk_t * rdisk, uint8_t * buff, size_t count, size_t pos);
-
-#endif // RAMDISK_H
+#endif // DRIVER_RAMDISK_H
