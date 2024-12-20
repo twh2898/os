@@ -1,4 +1,4 @@
-#include "disk.h"
+#include "drivers/disk.h"
 
 #include "drivers/ata.h"
 #include "drivers/ramdisk.h"

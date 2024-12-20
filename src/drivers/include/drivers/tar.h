@@ -5,7 +5,6 @@
 #include <stddef.h>
 
 #include "disk.h"
-#include "libc/file.h"
 
 typedef struct tar_fs      tar_fs_t;
 typedef struct tar_fs_file tar_fs_file_t;
@@ -43,6 +42,12 @@ enum TAR_TYPE {
     TAR_TYPE_FIFO,
 };
 
+enum TAR_SEEK_ORIGIN {
+    TAR_SEEK_ORIGIN_START,
+    TAR_SEEK_ORIGIN_CURRENT,
+    TAR_SEEK_ORIGIN_END,
+};
+
 typedef struct {
     char     filename[101];
     uint16_t mode;
@@ -69,7 +74,7 @@ tar_stat_t * tar_stat_file(tar_fs_t * tar, const char * filename, tar_stat_t * s
 tar_fs_file_t * tar_file_open(tar_fs_t * tar, const char * filename);
 void            tar_file_close(tar_fs_file_t * file);
 
-bool tar_file_seek(tar_fs_file_t * file, int offset, enum FILE_SEEK_ORIGIN origin);
+bool tar_file_seek(tar_fs_file_t * file, int offset, enum TAR_SEEK_ORIGIN origin);
 int  tar_file_tell(tar_fs_file_t * file);
 
 size_t tar_file_read(tar_fs_file_t * file, char * buff, size_t count);

@@ -145,13 +145,13 @@ void tar_file_close(tar_fs_file_t * file) {
     kfree(file);
 }
 
-bool tar_file_seek(tar_fs_file_t * file, int offset, enum FILE_SEEK_ORIGIN origin) {
+bool tar_file_seek(tar_fs_file_t * file, int offset, enum TAR_SEEK_ORIGIN origin) {
     if (!file)
         return false;
 
     switch (origin) {
         default:
-        case FILE_SEEK_ORIGIN_START: {
+        case TAR_SEEK_ORIGIN_START: {
             if (offset < 0)
                 file->pos = 0;
             else if (offset > file->size)
@@ -159,7 +159,7 @@ bool tar_file_seek(tar_fs_file_t * file, int offset, enum FILE_SEEK_ORIGIN origi
             else
                 file->pos = offset;
         } break;
-        case FILE_SEEK_ORIGIN_END: {
+        case TAR_SEEK_ORIGIN_END: {
             if (offset > 0)
                 file->pos = file->size;
             else if (offset < file->size)
@@ -167,7 +167,7 @@ bool tar_file_seek(tar_fs_file_t * file, int offset, enum FILE_SEEK_ORIGIN origi
             else
                 file->pos = file->size - offset;
         } break;
-        case FILE_SEEK_ORIGIN_CURRENT: {
+        case TAR_SEEK_ORIGIN_CURRENT: {
             if (offset > file->size - file->pos)
                 file->pos = file->size;
             else if (offset < -file->pos)

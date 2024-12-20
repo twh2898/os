@@ -7,7 +7,7 @@
 #include "cpu/ports.h"
 #include "cpu/ram.h"
 #include "debug.h"
-#include "disk.h"
+#include "drivers/disk.h"
 #include "drivers/rtc.h"
 #include "drivers/tar.h"
 #include "drivers/timer.h"
