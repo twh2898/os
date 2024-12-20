@@ -46,7 +46,7 @@ section once they are finished.
   - [ ] cpu/mmu.h
   - [ ] cpu/ports.h
   - [ ] cpu/ram.h
-  - [ ] cpu/timer.h
+  - [ ] drivers/timer.h
   - [ ] drivers/ata.h
   - [ ] drivers/keyboard.h
   - [ ] drivers/ramdisk.h
@@ -71,7 +71,7 @@ section once they are finished.
   - [ ] cpu/mmu.h
   - [ ] cpu/ports.h
   - [ ] cpu/ram.h
-  - [ ] cpu/timer.h
+  - [ ] drivers/timer.h
   - [ ] drivers/ata.h
   - [ ] drivers/keyboard.h
   - [ ] drivers/ramdisk.h

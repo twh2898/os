@@ -1,4 +1,4 @@
-#include "cpu/timer.h"
+#include "drivers/timer.h"
 
 #include "cpu/isr.h"
 #include "cpu/ports.h"

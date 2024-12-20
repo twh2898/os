@@ -6,7 +6,7 @@
 #include "cpu/mmu.h"
 #include "cpu/ports.h"
 #include "cpu/ram.h"
-#include "cpu/timer.h"
+#include "drivers/timer.h"
 #include "cpu/tss.h"
 #include "defs.h"
 #include "drivers/ata.h"
