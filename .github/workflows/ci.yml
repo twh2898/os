@@ -11,7 +11,7 @@ env:
   TEST_DIR: "${{ github.workspace }}/tests"
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
 
     steps:
