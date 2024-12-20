@@ -198,7 +198,7 @@ static uint32_t int_proc_cb(uint16_t int_no, registers_t * regs) {
     switch (int_no) {
         case SYS_INT_PROC_EXIT: {
             uint8_t code = regs->ebx;
-            KERNEL_PANIC("Exit program!");
+            kernel_exit();
         } break;
 
         case SYS_INT_PROC_EXIT_ERROR: {
@@ -253,10 +253,7 @@ void kernel_main() {
 
     vga_print("Welcome to kernel v..\n");
 
-    // printf("Paging enabled: %b\n", mmu_paging_enabled());
     mmu_page_dir_t * pdir = enter_paging();
-    // trigger_page_fault();
-    // printf("Paging enabled: %b\n", mmu_paging_enabled());
     init_malloc(pdir, VADDR_FREE_MEM_KERNEL >> 12);
 
     init_gdt();
@@ -268,16 +265,9 @@ void kernel_main() {
     commands_init();
 
     term_command_add("demo", demo);
-    term_command_add("kill", kill);
+    term_command_add("exit", kill);
 
     ramdisk_create(4096);
-
-    // uint32_t r = system_call(4, 1);
-    // printf("System call got 0x%X\n", r);
-
-    // sys_call_1();
-    // sys_call_1();
-    // sys_call_1();
 
     // jump_usermode(term_run);
     jump_kernel_mode(term_run);
