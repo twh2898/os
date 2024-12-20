@@ -2,10 +2,6 @@
 
 #include "cpu/idt.h"
 #include "cpu/ports.h"
-#include "cpu/timer.h"
-#include "drivers/ata.h"
-#include "drivers/keyboard.h"
-#include "drivers/rtc.h"
 #include "kernel.h"
 #include "libc/stdio.h"
 
@@ -199,19 +195,6 @@ void irq_handler(registers_t r) {
         isr_t handler = interrupt_handlers[r.int_no];
         handler(r);
     }
-}
-
-void irq_install() {
-    /* Enable interruptions */
-    asm volatile("sti");
-    /* IRQ0: timer */
-    init_timer(1000); // milliseconds
-    /* IRQ1: keyboard */
-    init_keyboard();
-    /* IRQ14: ata disk */
-    init_ata();
-    /* IRQ8: real time clock */
-    init_rtc(RTC_RATE_1024_HZ);
 }
 
 void disable_interrupts() {

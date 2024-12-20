@@ -12,6 +12,7 @@
 #include "drivers/ata.h"
 #include "drivers/keyboard.h"
 #include "drivers/ramdisk.h"
+#include "drivers/rtc.h"
 #include "drivers/vga.h"
 #include "interrupts.h"
 #include "libc/memory.h"
@@ -80,6 +81,19 @@ void key_cb(uint8_t code, char c, keyboard_event_t event, keyboard_mod_t mod) {
 static void trigger_page_fault() {
     uint8_t * v = (uint8_t *)0;
     *v          = 0;
+}
+
+static void irq_install() {
+    /* Enable interruptions */
+    asm volatile("sti");
+    /* IRQ0: timer */
+    init_timer(1000); // milliseconds
+    /* IRQ1: keyboard */
+    init_keyboard();
+    /* IRQ14: ata disk */
+    init_ata();
+    /* IRQ8: real time clock */
+    init_rtc(RTC_RATE_1024_HZ);
 }
 
 static void id_map(mmu_page_table_t * table, size_t start, size_t end) {
