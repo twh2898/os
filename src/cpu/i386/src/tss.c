@@ -6,16 +6,13 @@
 #define TSS_N 2
 tss_entry_t tss_stack[TSS_N];
 
-extern void flush_tss();
-extern void jump_usermode(void * fn);
-
 void init_tss() {
     kmemset(tss_stack, 0, sizeof(tss_stack));
 
     gdt_set_base(GDT_ENTRY_INDEX_KERNEL_TSS, PTR2UINT(&tss_stack[0]));
     gdt_set_base(GDT_ENTRY_INDEX_USER_TSS, PTR2UINT(&tss_stack[1]));
 
-    flush_tss();
+    // flush_tss();
 }
 
 tss_entry_t * tss_get_entry(size_t i) {
@@ -24,4 +21,8 @@ tss_entry_t * tss_get_entry(size_t i) {
     }
 
     return &tss_stack[i];
+}
+
+void set_kernel_stack(uint32_t stack) { // Used when an interrupt occurs
+    tss_stack[0].esp0 = stack;
 }

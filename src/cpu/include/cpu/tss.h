@@ -44,8 +44,13 @@ typedef struct {
     uint32_t ssp;
 } __attribute__((packed)) tss_entry_t;
 
+extern void flush_tss();
+extern void jump_usermode(void * fn);
+
 void init_tss();
 
 tss_entry_t * tss_get_entry(size_t i);
+
+void set_kernel_stack(uint32_t stack);
 
 #endif // TSS_H
