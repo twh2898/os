@@ -16,17 +16,18 @@ Each interrupt takes up to 3 arguments and returns a `uint32_t`.
 
 An interrupt id is an 8 bit family + an 8 bit id.
 
-| Family          | ID     | Name                                               |
-| --------------- | ------ | -------------------------------------------------- |
-| I/O             | 0x0100 | open                                               |
-|                 | 0x0101 | close                                              |
-|                 | 0x0102 | read                                               |
-|                 | 0x0103 | write                                              |
-| Memory          | 0x0200 | `void * malloc(size_t size)`                       |
-|                 | 0x0201 | `void * realloc(void * ptr, size_t size)`          |
-|                 | 0x0202 | `void free(void * ptr)`                            |
-| Process Control | 0x0300 | `void exit(uint8_t code)`                          |
-|                 | 0x0301 | `void exit(uint8_t code, const char * msg)`        |
-| Tmp Std I/O     | 0x1000 | `size_t putc(char c)`                              |
-|                 | 0x1001 | `size_t puts(const char * str)`                    |
-|                 | 0x1002 | `size_t vprintf(const char * fmt, va_list params)` |
+| Family          | ID     | Name                                                                 |
+| --------------- | ------ | -------------------------------------------------------------------- |
+| I/O             | 0x0100 | open                                                                 |
+|                 | 0x0101 | close                                                                |
+|                 | 0x0102 | read                                                                 |
+|                 | 0x0103 | write                                                                |
+| Memory          | 0x0200 | `void * malloc(size_t size)`                                         |
+|                 | 0x0201 | `void * realloc(void * ptr, size_t size)`                            |
+|                 | 0x0202 | `void free(void * ptr)`                                              |
+| Process Control | 0x0300 | `void exit(uint8_t code)`                                            |
+|                 | 0x0301 | `void abort(uint8_t code, const char * msg)`                         |
+|                 | 0x0302 | `void panic(const char * msg, const char * file, unsigned int line)` |
+| Tmp Std I/O     | 0x1000 | `size_t putc(char c)`                                                |
+|                 | 0x1001 | `size_t puts(const char * str)`                                      |
+|                 | 0x1002 | `size_t vprintf(const char * fmt, va_list params)`                   |

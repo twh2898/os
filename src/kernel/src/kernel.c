@@ -1,4 +1,4 @@
-#include "kernel.h"
+#include "libc/process.h"
 
 #include "commands.h"
 #include "cpu/gdt.h"
@@ -20,26 +20,6 @@
 #include "libc/string.h"
 #include "libk/defs.h"
 #include "term.h"
-
-_Noreturn void kernel_panic(const char * msg, const char * file, unsigned int line) {
-    vga_color(VGA_FG_WHITE | VGA_BG_RED);
-    vga_print("[KERNEL PANIC]");
-    if (file) {
-        vga_putc('[');
-        vga_print(file);
-        vga_print("]:");
-        vga_putu(line);
-    }
-    if (msg) {
-        vga_putc(' ');
-        vga_print(msg);
-    }
-    vga_cursor_hide();
-    asm("cli");
-    for (;;) {
-        asm("hlt");
-    }
-}
 
 void cursor() {
     vga_cursor(3, 3);
@@ -98,7 +78,7 @@ static void irq_install() {
 
 static void id_map(mmu_page_table_t * table, size_t start, size_t end) {
     if (end > 1023) {
-        KERNEL_PANIC("End is past table limits");
+        PANIC("End is past table limits");
         end = 1023;
     }
     while (start <= end) {
@@ -202,11 +182,35 @@ static uint32_t int_proc_cb(uint16_t int_no, registers_t * regs) {
             kernel_exit();
         } break;
 
-        case SYS_INT_PROC_EXIT_ERROR: {
+        case SYS_INT_PROC_ABORT: {
             uint8_t      code = regs->ebx;
             const char * msg  = UINT2PTR(regs->ecx);
-            vga_print(msg);
-            KERNEL_PANIC("Exit program!");
+            printf("Proc exit with code %u\n", code);
+            puts(msg);
+            kernel_exit();
+        } break;
+
+        case SYS_INT_PROC_PANIC: {
+            const char * msg  = UINT2PTR(regs->ebx);
+            const char * file = UINT2PTR(regs->ecx);
+            unsigned int line = regs->edx;
+            vga_color(VGA_FG_WHITE | VGA_BG_RED);
+            vga_print("[PANIC]");
+            if (file) {
+                vga_putc('[');
+                vga_print(file);
+                vga_print("]:");
+                vga_putu(line);
+            }
+            if (msg) {
+                vga_putc(' ');
+                vga_print(msg);
+            }
+            vga_cursor_hide();
+            asm("cli");
+            for (;;) {
+                asm("hlt");
+            }
         } break;
     }
 
@@ -234,7 +238,7 @@ static uint32_t int_tmp_stdio_cb(uint16_t int_no, registers_t * regs) {
 static int kill(size_t argc, char ** argv) {
     printf("Leaving process now\n");
     kernel_exit();
-    KERNEL_PANIC("Never return!");
+    PANIC("Never return!");
     return 0;
 }
 
@@ -273,5 +277,5 @@ void kernel_main() {
     // jump_usermode(term_run);
     jump_kernel_mode(term_run);
 
-    KERNEL_PANIC("You shouldn't be here!");
+    PANIC("You shouldn't be here!");
 }

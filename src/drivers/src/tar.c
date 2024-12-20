@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-#include "kernel.h"
+#include "libc/process.h"
 #include "libc/memory.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
@@ -226,7 +226,7 @@ static size_t count_files(tar_fs_t * tar) {
         if (n_read != sizeof(raw_header_t)) {
             if (debug)
                 printf("Read only got %u bytes\n", n_read);
-            KERNEL_PANIC("Failed to read full tar header from disk");
+            PANIC("Failed to read full tar header from disk");
         }
 
         if (header.filename[0] == 0)
@@ -261,7 +261,7 @@ static bool load_headers(tar_fs_t * tar) {
         if (n_read != sizeof(raw_header_t)) {
             if (debug)
                 printf("Read only got %u bytes\n", n_read);
-            KERNEL_PANIC("Failed to read full tar header from disk");
+            PANIC("Failed to read full tar header from disk");
         }
 
         size_t file_size = file->size = parse_octal(file->header.size);

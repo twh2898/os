@@ -3,7 +3,7 @@
 #include "debug.h"
 #include "drivers/keyboard.h"
 #include "drivers/vga.h"
-#include "kernel.h"
+#include "libc/process.h"
 #include "libc/circbuff.h"
 #include "libc/memory.h"
 #include "libc/stdio.h"
@@ -54,7 +54,7 @@ static void key_cb(uint8_t code, char c, keyboard_event_t event, keyboard_mod_t 
         if (circbuff_len(keybuff) >= MAX_CHARS) {
             ERROR("key buffer overflow");
             printf("(%u out of %u)", circbuff_len(keybuff), MAX_CHARS);
-            KERNEL_PANIC("key buffer overflow");
+            PANIC("key buffer overflow");
             return;
         }
 

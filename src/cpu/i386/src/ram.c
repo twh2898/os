@@ -2,7 +2,7 @@
 
 #include "cpu/boot_params.h"
 #include "defs.h"
-#include "kernel.h"
+#include "libc/process.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
 
@@ -116,7 +116,7 @@ void * ram_page_alloc() {
         if (flag & REGION_TABLE_FLAG_PRESENT && region_table->entries[i].free_count) {
             uint16_t bit = find_free_bit(i);
             if (!bit)
-                KERNEL_PANIC("Could not find free bit in page with free count");
+                PANIC("Could not find free bit in page with free count");
 
             set_bitmask(i, bit, false);
             region_table->entries[i].free_count--;
@@ -184,14 +184,14 @@ static size_t build_table() {
     }
 
     if (!found_free) {
-        KERNEL_PANIC("FAILED TO FIND FREE RAM");
+        PANIC("FAILED TO FIND FREE RAM");
     }
 
     uint32_t first_free_size = ram_upper_end(first_area) - ram_upper_start(first_area);
 
     // First 2 pages (first page table, last page table)
     if (first_free_size < PAGE_SIZE * 4) {
-        KERNEL_PANIC("FAILED TO FIND FREE RAM");
+        PANIC("FAILED TO FIND FREE RAM");
     }
 
     size_t table_index = 0;
@@ -211,7 +211,7 @@ static size_t build_table() {
 
         for (size_t r = 0; r < region_count; r++) {
             if (table_index >= REGION_TABLE_SIZE)
-                KERNEL_PANIC("Region table overflow");
+                PANIC("Region table overflow");
 
             size_t region_len = len;
             if (region_len > REGION_MAX_SIZE)

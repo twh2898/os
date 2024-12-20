@@ -4,8 +4,8 @@
 #include "cpu/ports.h"
 #include "debug.h"
 #include "drivers/rtc.h"
-#include "kernel.h"
 #include "libc/memory.h"
+#include "libc/process.h"
 #include "libc/stdio.h"
 
 // https://wiki.osdev.org/ATA_PIO_Mode

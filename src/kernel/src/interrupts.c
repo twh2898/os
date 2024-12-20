@@ -2,7 +2,7 @@
 
 #include "cpu/isr.h"
 #include "drivers/vga.h"
-#include "kernel.h"
+#include "libc/process.h"
 #include "libc/memory.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
@@ -20,7 +20,7 @@ void init_system_interrupts(uint8_t isr_interrupt_no) {
 
 void system_interrupt_register(uint8_t family, sys_interrupt_handler_t handler) {
     if (family > MAX_CALLBACKS) {
-        KERNEL_PANIC("Out of range interrupt family");
+        PANIC("Out of range interrupt family");
     }
     callbacks[family] = handler;
 }
@@ -40,7 +40,7 @@ static void callback(registers_t regs) {
         vga_print("Unknown interrupt: 0x");
         vga_putx(int_no);
         // print_trace(&regs);
-        KERNEL_PANIC("UNKNOWN INTERRUPT");
+        PANIC("UNKNOWN INTERRUPT");
     }
 
     // Get access to stack push of eax

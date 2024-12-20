@@ -1,6 +1,6 @@
 #include "drivers/ramdisk.h"
 
-#include "kernel.h"
+#include "libc/process.h"
 #include "libc/memory.h"
 #include "libc/string.h"
 
@@ -15,13 +15,13 @@ static int       device_count = 0;
 
 int ramdisk_create(size_t size) {
     if (device_count < 0)
-        KERNEL_PANIC("NEGATIVE DEVICE COUNT");
+        PANIC("NEGATIVE DEVICE COUNT");
     if (device_count == RAMDISK_MAX)
-        KERNEL_PANIC("TOO MANY RAM DISK DEVICES");
+        PANIC("TOO MANY RAM DISK DEVICES");
 
     void * data = kmalloc(size);
     if (!data)
-        KERNEL_PANIC("RAMDISK OUT OF MEMORY");
+        PANIC("RAMDISK OUT OF MEMORY");
 
     devices[device_count].id   = device_count;
     devices[device_count].size = size;

@@ -1,7 +1,7 @@
 #include "libc/memory.h"
 
 #include "cpu/ram.h"
-#include "kernel.h"
+#include "libc/process.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
 

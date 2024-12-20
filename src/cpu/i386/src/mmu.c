@@ -1,7 +1,7 @@
 #include "cpu/mmu.h"
 
 #include "cpu/ram.h"
-#include "kernel.h"
+#include "libc/process.h"
 #include "libc/string.h"
 
 mmu_page_dir_t * mmu_dir_create(void * addr) {

@@ -2,7 +2,7 @@
 
 #include "cpu/idt.h"
 #include "cpu/ports.h"
-#include "kernel.h"
+#include "libc/process.h"
 #include "libc/stdio.h"
 
 // static void print_trace(registers_t *);
@@ -157,7 +157,7 @@ void isr_handler(registers_t r) {
         default:
             break;
     }
-    KERNEL_PANIC("STOP HERE");
+    PANIC("STOP HERE");
 }
 
 /*
@@ -186,7 +186,7 @@ void irq_handler(registers_t r) {
     if (r.int_no >= 256) {
         printf("BAD INTERRUPT 0x%X\n", r.int_no);
         print_trace(&r);
-        KERNEL_PANIC("BAD INTERRUPT");
+        PANIC("BAD INTERRUPT");
         return;
     }
 
