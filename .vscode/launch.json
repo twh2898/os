@@ -12,6 +12,9 @@
             "target": ":1234",
             "remote": true,
             "cwd": "${workspaceRoot}",
+            "debugger_args": [
+                "-nx"
+            ],
             "valuesFormatting": "parseText",
             "preLaunchTask": "Run QEMU",
             "postDebugTask": "Stop QEMU"
