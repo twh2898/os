@@ -6,17 +6,10 @@
 process_t * proc_new(uint32_t pid, const char * command, uint16_t flags) {
     process_t * proc = kmalloc(sizeof(process_t));
     if (proc) {
-        proc->pid            = pid;
-        proc->flags          = PROCESS_FLAGS_ACTIVE;
-        proc->page_dir_paddr = 0;
-        kmemset(&proc->tss, 0, sizeof(tss_entry_t));
-
-        size_t len = kstrlen(command);
-        if (len > 256)
-            len = 256;
-
-        kmemcpy(proc->command, command, len);
-        proc->command[len] = 0;
+        proc->esp  = 0;
+        proc->cr3  = 0;
+        proc->esp0 = 0;
+        proc->pid  = pid;
     }
     return proc;
 }
