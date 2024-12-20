@@ -6,6 +6,12 @@
 typedef uint32_t p_addr_t;
 typedef uint32_t v_addr_t;
 
+typedef void * p_ptr_t;
+typedef void * v_ptr_t;
+
+#define PTR2ADDR(PTR)  ((uint32_t)(PTR))
+#define ADDR2PTR(ADDR) ((void *)(ADDR))
+
 // Physical addresses (mostly for boot and kernel)
 #define PADDR_BOOT_PARAMS 0x500
 #define PADDR_PAGE_DIR    0x1000
