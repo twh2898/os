@@ -96,7 +96,6 @@ void term_init() {
 
     keybuff       = circbuff_new(MAX_CHARS);
     command_ready = false;
-    vga_print("> ");
 
     // do last
     keyboard_set_cb(&key_cb);
@@ -154,9 +153,12 @@ void term_update() {
 }
 
 void term_run() {
+    vga_color(RESET);
+    vga_print("> ");
+
     for (;;) {
-        asm("hlt");
         term_update();
+        asm("hlt");
     }
 }
 

@@ -9,3 +9,30 @@ halt:
     cli
     hlt
     jmp halt
+
+[extern register_kernel_exit]
+
+; void jump_kernel_mode(void * fn);
+global jump_kernel_mode
+jump_kernel_mode:
+    mov eax, [esp+4]
+    mov [exit.cb], eax
+
+    mov eax, exit
+    push eax
+
+    mov eax, cr3
+    push eax
+
+    push ebp
+
+    push esp
+
+    call register_kernel_exit
+
+exit:
+    call [.cb]
+
+    ret
+
+.cb: dd 0

@@ -6,13 +6,13 @@
 #include "cpu/mmu.h"
 #include "cpu/ports.h"
 #include "cpu/ram.h"
-#include "drivers/timer.h"
 #include "cpu/tss.h"
 #include "defs.h"
 #include "drivers/ata.h"
 #include "drivers/keyboard.h"
 #include "drivers/ramdisk.h"
 #include "drivers/rtc.h"
+#include "drivers/timer.h"
 #include "drivers/vga.h"
 #include "interrupts.h"
 #include "libc/memory.h"
@@ -230,6 +230,15 @@ static uint32_t int_tmp_stdio_cb(uint16_t int_no, registers_t * regs) {
     return 0;
 }
 
+static int kill(size_t argc, char ** argv) {
+    printf("Leaving process now\n");
+    kernel_exit();
+    KERNEL_PANIC("Never return!");
+    return 0;
+}
+
+extern void jump_kernel_mode(void * fn);
+
 void kernel_main() {
     init_vga(UINT2PTR(PADDR_VGA));
     vga_clear();
@@ -259,6 +268,7 @@ void kernel_main() {
     commands_init();
 
     term_command_add("demo", demo);
+    term_command_add("kill", kill);
 
     ramdisk_create(4096);
 
@@ -270,6 +280,7 @@ void kernel_main() {
     // sys_call_1();
 
     // jump_usermode(term_run);
+    jump_kernel_mode(term_run);
 
-    term_run();
+    KERNEL_PANIC("You shouldn't be here!");
 }

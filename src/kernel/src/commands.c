@@ -6,11 +6,11 @@
 
 #include "cpu/ports.h"
 #include "cpu/ram.h"
-#include "drivers/timer.h"
 #include "debug.h"
 #include "disk.h"
 #include "drivers/rtc.h"
 #include "drivers/tar.h"
+#include "drivers/timer.h"
 #include "drivers/vga.h"
 #include "exec.h"
 #include "libc/memory.h"

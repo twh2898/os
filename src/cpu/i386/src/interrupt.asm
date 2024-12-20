@@ -2,6 +2,42 @@
 [extern isr_handler]
 [extern irq_handler]
 
+; void register_kernel_exit(kernel_exit_t exit_cb, uint32_t esp, uint32_t cr3);
+global register_kernel_exit
+register_kernel_exit:
+    mov eax, [esp+4]
+    mov [kernel_exit.esp], eax
+
+    mov eax, [esp+8]
+    mov [kernel_exit.ebp], eax
+
+    mov eax, [esp+12]
+    mov [kernel_exit.cr3], eax
+
+    mov eax, [esp+16]
+    mov [kernel_exit.eip], eax
+
+    ret
+
+global kernel_exit
+kernel_exit:
+    mov eax, [.cr3]
+    mov cr3, eax
+
+    mov eax, [.ebp]
+    mov ebp, eax
+
+    mov eax, [.esp]
+    mov esp, eax
+
+    mov eax, [.eip]
+    jmp eax
+
+.eip: dd 0
+.esp: dd 0
+.ebp: dd 0
+.cr3: dd 0
+
 %macro push_spec 2
 mov %1, %2
 push %1

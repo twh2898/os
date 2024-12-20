@@ -86,6 +86,9 @@ typedef struct {
 void isr_install();
 void isr_handler(registers_t r);
 
+extern void register_kernel_exit(uint32_t eip, uint32_t esp, uint32_t ebp, uint32_t cr3);
+extern void kernel_exit();
+
 typedef void (*isr_t)(registers_t);
 void register_interrupt_handler(uint8_t n, isr_t handler);
 
