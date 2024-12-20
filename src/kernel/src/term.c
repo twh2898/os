@@ -3,9 +3,9 @@
 #include "debug.h"
 #include "drivers/keyboard.h"
 #include "drivers/vga.h"
-#include "libc/process.h"
 #include "libc/circbuff.h"
 #include "libc/memory.h"
+#include "libc/process.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
 

@@ -1,5 +1,3 @@
-#include "libc/process.h"
-
 #include "commands.h"
 #include "cpu/gdt.h"
 #include "cpu/isr.h"
@@ -16,6 +14,7 @@
 #include "drivers/vga.h"
 #include "interrupts.h"
 #include "libc/memory.h"
+#include "libc/process.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
 #include "libk/defs.h"

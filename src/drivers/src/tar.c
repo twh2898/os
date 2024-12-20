@@ -2,8 +2,8 @@
 
 #include <stdint.h>
 
-#include "libc/process.h"
 #include "libc/memory.h"
+#include "libc/process.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
 
