@@ -14,7 +14,7 @@ typedef struct _drv_ramdisk {
 static drv_ramdisk_t devices[DRV_RAMDISK_MAX_DEVICES];
 static size_t        device_count;
 
-driver_register_t drv_register;
+static driver_register_t drv_register;
 
 int drv_ramdisk_init() {
     device_count = 0;

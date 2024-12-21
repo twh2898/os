@@ -11,7 +11,7 @@ typedef struct _drv_ata {
     driver_disk_t * driver;
 } drv_ata_t;
 
-driver_register_t drv_register;
+static driver_register_t drv_register;
 
 int drv_ata_init() {
     drv_register.type          = DRIVER_DEVICE_TYPE_DISK;
