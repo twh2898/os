@@ -6,7 +6,7 @@
 typedef struct _drv_ramdisk {
     int    id;
     size_t size;
-    void * data;
+    char * data;
 
     driver_disk_t * driver;
 } drv_ramdisk_t;
