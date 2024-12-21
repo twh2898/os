@@ -84,8 +84,8 @@ static bool ata_identify(drv_ata_t * device);
 static void software_reset(drv_ata_t * device);
 static bool ata_status(drv_ata_t * device);
 // Read one sector into device buffer
-static size_t ata_sect_read(drv_ata_t * device, size_t sect_count, uint32_t lba);
-static size_t ata_sect_write(drv_ata_t * device, size_t sect_count, uint32_t lba);
+static int ata_sect_read(drv_ata_t * device, size_t sect_count, uint32_t lba);
+static int ata_sect_write(drv_ata_t * device, size_t sect_count, uint32_t lba);
 
 static driver_register_t drv_register;
 
@@ -378,16 +378,21 @@ static bool ata_status(drv_ata_t * device) {
     return false;
 }
 
-static size_t ata_sect_read(drv_ata_t * device, size_t sect_count, uint32_t lba) {
-    if (!device || !sect_count)
+static int ata_sect_read(drv_ata_t * device, size_t sect_count, uint32_t lba) {
+    if (!device) {
+        return -1;
+    }
+
+    if (sect_count == 0) {
         return 0;
+    }
 
     // read max 256 sectors at a time
     if (sect_count > 256)
         sect_count = 256;
 
     if (lba > device->sect_count) {
-        return 0;
+        return -1;
     }
     else if (lba + sect_count > device->sect_count) {
         sect_count = device->sect_count - lba;
@@ -398,7 +403,7 @@ static size_t ata_sect_read(drv_ata_t * device, size_t sect_count, uint32_t lba)
     while (port_byte_in(device->ct_base + ATA_CTL_ALT_STATUS) & (ATA_STATUS_FLAG_DRQ | ATA_STATUS_FLAG_BSY)) {
         if (retry++ > MAX_RETRY) {
             // puts("[ERROR] max retries for ata_sect_read wait for first status\n");
-            return 0;
+            return -1;
         }
     }
 
@@ -420,7 +425,7 @@ static size_t ata_sect_read(drv_ata_t * device, size_t sect_count, uint32_t lba)
             while (!(port_byte_in(device->ct_base + ATA_CTL_ALT_STATUS) & ATA_STATUS_FLAG_DRQ)) {
                 if (retry++ > MAX_RETRY) {
                     // puts("[ERROR] max retries for ata_sect_read wait to read next sect\n");
-                    return 0;
+                    return -1;
                 }
             }
 
@@ -436,16 +441,21 @@ static size_t ata_sect_read(drv_ata_t * device, size_t sect_count, uint32_t lba)
     return sect_count;
 }
 
-static size_t ata_sect_write(drv_ata_t * device, size_t sect_count, uint32_t lba) {
-    if (!device || !sect_count)
+static int ata_sect_write(drv_ata_t * device, size_t sect_count, uint32_t lba) {
+    if (!device) {
+        return -1;
+    }
+
+    if (sect_count == 0) {
         return 0;
+    }
 
     // write max 256 sectors at a time
     if (sect_count > 256)
         sect_count = 256;
 
     if (lba > device->sect_count) {
-        return 0;
+        return -1;
     }
     else if (lba + sect_count > device->sect_count) {
         sect_count = device->sect_count - lba;
@@ -456,7 +466,7 @@ static size_t ata_sect_write(drv_ata_t * device, size_t sect_count, uint32_t lba
     while (port_byte_in(device->ct_base + ATA_CTL_ALT_STATUS) & (ATA_STATUS_FLAG_DRQ | ATA_STATUS_FLAG_BSY)) {
         if (retry++ > MAX_RETRY) {
             // puts("[ERROR] max retries for ata_sect_write wait for first status\n");
-            return 0;
+            return -1;
         }
     }
 
@@ -479,7 +489,7 @@ static size_t ata_sect_write(drv_ata_t * device, size_t sect_count, uint32_t lba
             while (!(port_byte_in(device->ct_base + ATA_CTL_ALT_STATUS) & ATA_STATUS_FLAG_DRQ)) {
                 if (retry++ > MAX_RETRY) {
                     // puts("[ERROR] max retries for ata_sect_write wait to write next sect\n");
-                    return 0;
+                    return -1;
                 }
             }
 
