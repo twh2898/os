@@ -1,4 +1,4 @@
-#include "drivers/ata.h"
+#include "drivers/_ata.h"
 
 #include "cpu/isr.h"
 #include "cpu/ports.h"
@@ -7,8 +7,6 @@
 #include "libc/memory.h"
 #include "libc/process.h"
 #include "libc/stdio.h"
-
-// https://wiki.osdev.org/ATA_PIO_Mode
 
 #if SAFETY > 1
 #include "libc/stdio.h"
