@@ -119,7 +119,7 @@ int drv_ramdisk_read(driver_disk_t * disk, char * buff, size_t count, size_t add
         count = size - addr;
     }
 
-    if (!kmemcpy(buff, &device->data + addr, count)) {
+    if (!kmemcpy(buff, device->data + addr, count)) {
         return -1;
     }
 
@@ -146,7 +146,7 @@ int drv_ramdisk_write(driver_disk_t * disk, const char * buff, size_t count, siz
         count = size - addr;
     }
 
-    if (!kmemcpy(&device->data + addr, buff, count)) {
+    if (!kmemcpy(device->data + addr, buff, count)) {
         return -1;
     }
 
