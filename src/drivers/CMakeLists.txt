@@ -1,7 +1,10 @@
-set(TARGET drivers)
 
 add_subdirectory(src)
 
-cross_target(${TARGET})
-target_link_libraries(${TARGET} libc cpu)
-target_link_libraries(${TARGET} ramdisk_driver)
+set(TARGET drivers)
+add_library(${TARGET} INTERFACE)
+target_link_libraries(${TARGET}
+    INTERFACE
+    driver_lib
+    driver_ramdisk
+    driver_legacy)

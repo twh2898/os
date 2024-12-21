@@ -1,4 +1,4 @@
-set(TARGET ramdisk_driver)
+set(TARGET driver_ramdisk)
 
 cross_target(${TARGET})
-target_link_libraries(${TARGET} libc cpu driver_lib)
+target_link_libraries(${TARGET} libc driver_lib)

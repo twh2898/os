@@ -271,7 +271,7 @@ void kernel_main() {
     term_command_add("demo", demo);
     term_command_add("exit", kill);
 
-    ramdisk_create(4096);
+    drv_ramdisk_create_device(4096);
 
     // jump_usermode(term_run);
     jump_kernel_mode(term_run);
