@@ -1,4 +1,15 @@
 unit_test(
+    TARGET test_ramdisk
+    TEST_FILES test_ramdisk.cpp
+    TARGET_FILES drivers/src/ramdisk/src/ramdisk.c
+    INCLUDE_DIRS
+    drivers/src/lib/include
+    drivers/src/ramdisk/include
+    cpu/include
+    libc/include
+)
+
+unit_test(
     TARGET test_vga
     TEST_FILES test_vga.cpp
     TARGET_FILES drivers/src/vga.c
