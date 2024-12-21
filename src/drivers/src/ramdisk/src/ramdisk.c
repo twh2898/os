@@ -115,6 +115,10 @@ int drv_ramdisk_read(driver_disk_t * disk, char * buff, size_t count, size_t add
     drv_ramdisk_t * device = &devices[disk->id];
 
     size_t size = device->size;
+    if (addr >= size) {
+        return 0;
+    }
+
     if (size - addr < count) {
         count = size - addr;
     }
@@ -142,6 +146,10 @@ int drv_ramdisk_write(driver_disk_t * disk, const char * buff, size_t count, siz
     drv_ramdisk_t * device = &devices[disk->id];
 
     size_t size = device->size;
+    if (addr >= size) {
+        return 0;
+    }
+
     if (size - addr < count) {
         count = size - addr;
     }
