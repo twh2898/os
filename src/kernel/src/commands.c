@@ -429,7 +429,7 @@ static int fs_cat_cmd(size_t argc, char ** argv) {
 }
 
 // static int status_cmd(size_t argc, char ** argv) {
-//     // ata_status();
+//     // drv_ata_status();
 //     return 0;
 // }
 

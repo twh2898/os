@@ -156,7 +156,7 @@ size_t disk_write(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
 //     if (count % ATA_SECTOR_BYTES)
 //         sect_to_read++;
 
-//     if (ata_sect_read(disk->device.ata, disk->buff, sect_to_read, lba)
+//     if (drv_ata_sect_read(disk->device.ata, disk->buff, sect_to_read, lba)
 //         != sect_to_read) {
 //         return 0;
 //     }
@@ -180,14 +180,14 @@ size_t disk_write(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
 //     size_t sect_to_write = count / ATA_SECTOR_BYTES;
 
 //     if (count % ATA_SECTOR_BYTES) {
-//         if (!ata_sect_read(disk->device.ata, disk->buff, 1, lba))
+//         if (!drv_ata_sect_read(disk->device.ata, disk->buff, 1, lba))
 //             return 0;
 //         sect_to_write++;
 //     }
 
 //     kmemcpy(disk->buff, buff, count);
 
-//     if (ata_sect_write(disk->device.ata, disk->buff, sect_to_write, lba)
+//     if (drv_ata_sect_write(disk->device.ata, disk->buff, sect_to_write, lba)
 //         != sect_to_write) {
 //         return 0;
 //     }

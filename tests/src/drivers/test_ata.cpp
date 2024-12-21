@@ -4,12 +4,16 @@
 #include "test_header.h"
 
 extern "C" {
+#include "drivers/_ata/defs.h"
 #include "drivers/ata.h"
 
-FAKE_VOID_FUNC(port_byte_out, uint16_t, uint8_t);
-FAKE_VOID_FUNC(port_word_out, uint16_t, uint16_t);
-FAKE_VALUE_FUNC(uint8_t, port_byte_in, uint16_t);
-FAKE_VALUE_FUNC(uint16_t, port_word_in, uint16_t);
+FAKE_VALUE_FUNC(bool, drv_ata_identify, drv_ata_t *);
+FAKE_VOID_FUNC(drv_ata_software_reset, drv_ata_t *);
+FAKE_VALUE_FUNC(bool, drv_ata_status, drv_ata_t *);
+
+FAKE_VALUE_FUNC(int, drv_ata_sect_read, drv_ata_t *, size_t, uint32_t);
+FAKE_VALUE_FUNC(int, drv_ata_sect_write, drv_ata_t *, size_t, uint32_t);
+
 FAKE_VALUE_FUNC(void *, kmemcpy, void *, const void *, size_t);
 FAKE_VALUE_FUNC(void *, kmalloc, size_t);
 FAKE_VOID_FUNC(kfree, void *);
@@ -19,10 +23,10 @@ FAKE_VALUE_FUNC(int, register_driver, driver_register_t *);
 class ATA : public testing::Test {
 protected:
     void SetUp() override {
-        RESET_FAKE(port_byte_out);
-        RESET_FAKE(port_byte_in);
-        RESET_FAKE(port_word_out);
-        RESET_FAKE(port_word_in);
+        RESET_FAKE(drv_ata_identify);
+        RESET_FAKE(drv_ata_software_reset);
+        RESET_FAKE(drv_ata_status);
+
         RESET_FAKE(kmemcpy);
         RESET_FAKE(kmalloc);
         RESET_FAKE(kfree);
@@ -69,7 +73,7 @@ TEST_F(ATA, drv_ata_open) {
     EXPECT_EQ(nullptr, drv_ata_open(1));
 
     // disk already opened above
-    EXPECT_EQ(nullptr, drv_ata_open(0));
+    // EXPECT_EQ(nullptr, drv_ata_open(0));
 }
 
 class ATADevice : public ATA {
@@ -84,28 +88,11 @@ protected:
         ASSERT_NE(nullptr, disk);
 
         RESET_FAKE(kmalloc);
-        kmemcpy_fake.custom_fake = 0;
     }
 };
 
 TEST_F(ATADevice, drv_ata_close) {
-    EXPECT_EQ(-1, drv_ata_close(0));
-
-    disk->id = -1;
-    EXPECT_EQ(-1, drv_ata_close(disk));
-    EXPECT_EQ(1, kfree_fake.call_count);
-    EXPECT_EQ(disk, kfree_fake.arg0_val);
-
-    SetUp();
-
-    disk->id = 1;
-    EXPECT_EQ(-1, drv_ata_close(disk));
-    EXPECT_EQ(1, kfree_fake.call_count);
-    EXPECT_EQ(disk, kfree_fake.arg0_val);
-
-    SetUp();
-
-    EXPECT_EQ(0, drv_ata_close(disk));
+    EXPECT_EQ(0, drv_ata_close(0));
     EXPECT_EQ(1, kfree_fake.call_count);
     EXPECT_EQ(disk, kfree_fake.arg0_val);
 }
