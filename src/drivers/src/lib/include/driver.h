@@ -34,6 +34,7 @@ typedef struct _driver_register {
     };
 } driver_register_t;
 
+// TODO assign id field
 int register_driver(driver_register_t * reg);
 int unregister_driver(driver_register_t * reg);
 
