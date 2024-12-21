@@ -2,7 +2,6 @@
 #define DRIVER_FS_H
 
 #include <stddef.h>
-#include <stdint.h>
 
 #include "_driver/disk.h"
 #include "_driver/fs_file.h"
@@ -13,7 +12,7 @@ typedef enum DRIVER_FS_STATE {
 } driver_fs_state_t;
 
 typedef struct _driver_fs_stat {
-    uint32_t             size;
+    size_t               size;
     enum DRIVER_FS_STATE state;
     const char *         format;
 } driver_fs_stat_t;

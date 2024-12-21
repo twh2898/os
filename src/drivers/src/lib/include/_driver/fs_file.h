@@ -2,13 +2,12 @@
 #define DRIVER_FS_FILE_H
 
 #include <stddef.h>
-#include <stdint.h>
 
 #include "_driver/fs.h"
 
 typedef struct _driver_fs_file_stat {
     const char * path;
-    uint32_t     size;
+    size_t       size;
 } driver_fs_file_stat_t;
 
 typedef struct _driver_fs_file {

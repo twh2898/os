@@ -2,7 +2,6 @@
 #define DRIVER_DISK_H
 
 #include <stddef.h>
-#include <stdint.h>
 
 typedef enum DRIVER_DISK_STATE {
     DRIVER_DISK_STATE_CLOSED,
@@ -11,12 +10,12 @@ typedef enum DRIVER_DISK_STATE {
 } driver_disk_state_t;
 
 typedef struct _driver_disk_stat {
-    uint32_t               size;
+    size_t                 size;
     enum DRIVER_DISK_STATE state;
 } disk_stat_t;
 
 typedef struct _driver_disk {
-    uint8_t                  id;
+    int                      id;
     struct _driver_disk_stat stat;
 } driver_disk_t;
 
