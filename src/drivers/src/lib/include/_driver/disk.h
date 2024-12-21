@@ -7,6 +7,7 @@ typedef enum DRIVER_DISK_STATE {
     DRIVER_DISK_STATE_CLOSED,
     DRIVER_DISK_STATE_IDLE,
     DRIVER_DISK_STATE_WAITING,
+    DRIVER_DISK_STATE_ERROR,
 } driver_disk_state_t;
 
 typedef struct _driver_disk_stat {
@@ -17,6 +18,7 @@ typedef struct _driver_disk_stat {
 typedef struct _driver_disk {
     int                      id;
     struct _driver_disk_stat stat;
+    void *                   drv_data;
 } driver_disk_t;
 
 typedef driver_disk_t * (*driver_disk_fn_open)(int id);
