@@ -1,6 +1,6 @@
 #include "drivers/disk.h"
 
-#include "drivers/ata.h"
+#include "drivers/_ata.h"
 // #include "drivers/ramdisk.h"
 #include "libc/memory.h"
 #include "libc/string.h"

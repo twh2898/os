@@ -6,6 +6,7 @@
 #include "cpu/ram.h"
 #include "cpu/tss.h"
 #include "defs.h"
+// #include "drivers/_ata.h"
 #include "drivers/ata.h"
 #include "drivers/keyboard.h"
 #include "drivers/ramdisk.h"
@@ -70,7 +71,7 @@ static void irq_install() {
     /* IRQ1: keyboard */
     init_keyboard();
     /* IRQ14: ata disk */
-    init_ata();
+    // init_ata();
     /* IRQ8: real time clock */
     init_rtc(RTC_RATE_1024_HZ);
 }
@@ -264,6 +265,9 @@ void kernel_main() {
     // init_tss();
 
     // check_malloc();
+
+    drv_ramdisk_init();
+    drv_ata_init();
 
     term_init();
     commands_init();
