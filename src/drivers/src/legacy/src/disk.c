@@ -1,7 +1,7 @@
 #include "drivers/disk.h"
 
 #include "drivers/ata.h"
-#include "drivers/ramdisk.h"
+// #include "drivers/ramdisk.h"
 #include "libc/memory.h"
 #include "libc/string.h"
 
@@ -18,7 +18,7 @@ struct _disk {
     union {
         ata_t * ata;
         // TODO floppy
-        ramdisk_t * rdisk;
+        // ramdisk_t * rdisk;
     } device;
 
     size_t  size;
@@ -64,15 +64,15 @@ disk_t * disk_open(int id, enum DISK_DRIVER driver) {
                 return 0;
             } break;
             case DISK_DRIVER_RAM_DISK: {
-                disk->device.rdisk = ramdisk_open(id);
-                if (!disk->device.rdisk) {
-                    kfree(disk->buff);
-                    kfree(disk);
-                    return 0;
-                }
-                disk->size     = ramdisk_size(disk->device.rdisk);
-                disk->fn_read  = disk_rdisk_read;
-                disk->fn_write = disk_rdisk_write;
+                // disk->device.rdisk = ramdisk_open(id);
+                // if (!disk->device.rdisk) {
+                //     kfree(disk->buff);
+                //     kfree(disk);
+                //     return 0;
+                // }
+                // disk->size     = ramdisk_size(disk->device.rdisk);
+                // disk->fn_read  = disk_rdisk_read;
+                // disk->fn_write = disk_rdisk_write;
             } break;
             default: {
                 return 0;
@@ -196,30 +196,30 @@ static size_t disk_ata_write(disk_t * disk, uint8_t * buff, size_t count, size_t
     return count;
 }
 
-static size_t disk_rdisk_read(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
-    if (!disk || !buff)
-        return 0;
+// static size_t disk_rdisk_read(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
+//     if (!disk || !buff)
+//         return 0;
 
-    if (count > disk->buff_size)
-        count = disk->buff_size;
+//     if (count > disk->buff_size)
+//         count = disk->buff_size;
 
-    if (disk->size - pos < count)
-        count = disk->size - pos;
+//     if (disk->size - pos < count)
+//         count = disk->size - pos;
 
-    size_t o_len = ramdisk_read(disk->device.rdisk, buff, count, pos);
-    return o_len;
-}
+//     size_t o_len = ramdisk_read(disk->device.rdisk, buff, count, pos);
+//     return o_len;
+// }
 
-static size_t disk_rdisk_write(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
-    if (!disk || !buff)
-        return 0;
+// static size_t disk_rdisk_write(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
+//     if (!disk || !buff)
+//         return 0;
 
-    if (count > disk->buff_size)
-        count = disk->buff_size;
+//     if (count > disk->buff_size)
+//         count = disk->buff_size;
 
-    if (disk->size - pos < count)
-        count = disk->size - pos;
+//     if (disk->size - pos < count)
+//         count = disk->size - pos;
 
-    size_t o_len = ramdisk_write(disk->device.rdisk, buff, count, pos);
-    return o_len;
-}
+//     size_t o_len = ramdisk_write(disk->device.rdisk, buff, count, pos);
+//     return o_len;
+// }
