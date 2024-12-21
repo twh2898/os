@@ -5,6 +5,11 @@
 
 #include "driver.h"
 
+/**
+ * @brief Register ata driver.
+ *
+ * @return int < 0 if registration fails
+ */
 int drv_ata_init();
 
 /**
