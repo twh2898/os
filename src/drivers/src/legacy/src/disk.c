@@ -1,6 +1,5 @@
 #include "drivers/disk.h"
 
-#include "drivers/_ata.h"
 // #include "drivers/ramdisk.h"
 #include "libc/memory.h"
 #include "libc/string.h"
@@ -16,7 +15,7 @@ struct _disk {
     size_t buff_size;
 
     union {
-        ata_t * ata;
+        // ata_t * ata;
         // TODO floppy
         // ramdisk_t * rdisk;
     } device;
@@ -46,16 +45,16 @@ disk_t * disk_open(int id, enum DISK_DRIVER driver) {
 
         switch (driver) {
             case DISK_DRIVER_ATA: {
-                disk->device.ata = ata_open(id);
-                if (!disk->device.ata) {
-                    kfree(disk->buff);
-                    kfree(disk);
-                    return 0;
-                }
+                // disk->device.ata = ata_open(id);
+                // if (!disk->device.ata) {
+                //     kfree(disk->buff);
+                //     kfree(disk);
+                //     return 0;
+                // }
 
-                disk->size     = ata_size(disk->device.ata);
-                disk->fn_read  = disk_ata_read;
-                disk->fn_write = disk_ata_write;
+                // disk->size     = ata_size(disk->device.ata);
+                // disk->fn_read  = disk_ata_read;
+                // disk->fn_write = disk_ata_write;
             } break;
             case DISK_DRIVER_FLOPPY: {
                 // TODO open floppy driver
@@ -86,7 +85,7 @@ void disk_close(disk_t * disk) {
     if (disk) {
         switch (disk->driver) {
             case DISK_DRIVER_ATA: {
-                ata_close(disk->device.ata);
+                // ata_close(disk->device.ata);
             } break;
             case DISK_DRIVER_FLOPPY: {
 
@@ -141,60 +140,60 @@ size_t disk_write(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
     return o_len;
 }
 
-static size_t disk_ata_read(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
-    if (!disk || !buff)
-        return 0;
+// static size_t disk_ata_read(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
+//     if (!disk || !buff)
+//         return 0;
 
-    if (count > disk->buff_size)
-        count = disk->buff_size;
+//     if (count > disk->buff_size)
+//         count = disk->buff_size;
 
-    if (disk->size - pos < count)
-        count = disk->size - pos;
+//     if (disk->size - pos < count)
+//         count = disk->size - pos;
 
-    size_t lba          = pos / ATA_SECTOR_BYTES;
-    size_t sect_to_read = count / ATA_SECTOR_BYTES;
+//     size_t lba          = pos / ATA_SECTOR_BYTES;
+//     size_t sect_to_read = count / ATA_SECTOR_BYTES;
 
-    if (count % ATA_SECTOR_BYTES)
-        sect_to_read++;
+//     if (count % ATA_SECTOR_BYTES)
+//         sect_to_read++;
 
-    if (ata_sect_read(disk->device.ata, disk->buff, sect_to_read, lba)
-        != sect_to_read) {
-        return 0;
-    }
+//     if (ata_sect_read(disk->device.ata, disk->buff, sect_to_read, lba)
+//         != sect_to_read) {
+//         return 0;
+//     }
 
-    size_t pos_in_buff = pos % ATA_SECTOR_BYTES;
-    kmemcpy(buff, disk->buff + pos_in_buff, count);
-    return count;
-}
+//     size_t pos_in_buff = pos % ATA_SECTOR_BYTES;
+//     kmemcpy(buff, disk->buff + pos_in_buff, count);
+//     return count;
+// }
 
-static size_t disk_ata_write(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
-    if (!disk || !buff)
-        return 0;
+// static size_t disk_ata_write(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
+//     if (!disk || !buff)
+//         return 0;
 
-    if (count > disk->buff_size)
-        count = disk->buff_size;
+//     if (count > disk->buff_size)
+//         count = disk->buff_size;
 
-    if (disk->size - pos < count)
-        count = disk->size - pos;
+//     if (disk->size - pos < count)
+//         count = disk->size - pos;
 
-    size_t lba           = pos / ATA_SECTOR_BYTES;
-    size_t sect_to_write = count / ATA_SECTOR_BYTES;
+//     size_t lba           = pos / ATA_SECTOR_BYTES;
+//     size_t sect_to_write = count / ATA_SECTOR_BYTES;
 
-    if (count % ATA_SECTOR_BYTES) {
-        if (!ata_sect_read(disk->device.ata, disk->buff, 1, lba))
-            return 0;
-        sect_to_write++;
-    }
+//     if (count % ATA_SECTOR_BYTES) {
+//         if (!ata_sect_read(disk->device.ata, disk->buff, 1, lba))
+//             return 0;
+//         sect_to_write++;
+//     }
 
-    kmemcpy(disk->buff, buff, count);
+//     kmemcpy(disk->buff, buff, count);
 
-    if (ata_sect_write(disk->device.ata, disk->buff, sect_to_write, lba)
-        != sect_to_write) {
-        return 0;
-    }
+//     if (ata_sect_write(disk->device.ata, disk->buff, sect_to_write, lba)
+//         != sect_to_write) {
+//         return 0;
+//     }
 
-    return count;
-}
+//     return count;
+// }
 
 // static size_t disk_rdisk_read(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
 //     if (!disk || !buff)
