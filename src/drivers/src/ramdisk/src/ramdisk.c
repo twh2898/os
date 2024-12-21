@@ -76,7 +76,7 @@ int drv_ramdisk_close(driver_disk_t * disk) {
     }
 
     int id = disk->id;
-    if (id < 0 || id >= DRV_RAMDISK_MAX_DEVICES) {
+    if (id < 0 || id >= device_count) {
         kfree(disk);
         return -1;
     }
@@ -104,7 +104,7 @@ int drv_ramdisk_read(driver_disk_t * disk, char * buff, size_t count, size_t add
         return -1;
     }
 
-    if (disk->id < 0 || disk->id >= DRV_RAMDISK_MAX_DEVICES) {
+    if (disk->id < 0 || disk->id >= device_count) {
         return -1;
     }
 
@@ -131,7 +131,7 @@ int drv_ramdisk_write(driver_disk_t * disk, const char * buff, size_t count, siz
         return -1;
     }
 
-    if (disk->id < 0 || disk->id >= DRV_RAMDISK_MAX_DEVICES) {
+    if (disk->id < 0 || disk->id >= device_count) {
         return -1;
     }
 
