@@ -12,6 +12,9 @@ unit_test(
 unit_test(
     TARGET test_vga
     TEST_FILES test_vga.cpp
-    TARGET_FILES drivers/src/vga.c
-    INCLUDE_DIRS drivers/include cpu/include libc/include
+    TARGET_FILES drivers/src/legacy/src/vga.c
+    INCLUDE_DIRS
+    drivers/src/legacy/include
+    cpu/include
+    libc/include
 )
