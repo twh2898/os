@@ -16,7 +16,7 @@ typedef struct _driver_fs_file {
 } driver_fs_file_t;
 
 typedef driver_fs_file_t * (*driver_fs_fn_file_open)(struct _driver_fs *, const char * path);
-typedef int (*driver_fs_fn_file_close)(driver_fs_file_t *, driver_fs_file_t *);
+typedef int (*driver_fs_fn_file_close)(driver_fs_file_t *);
 typedef int (*driver_fs_fn_file_stat)(driver_fs_file_t *, driver_fs_file_stat_t *);
 typedef int (*driver_fs_fn_file_read)(driver_fs_file_t *, char * buff, size_t count, size_t addr);
 typedef int (*driver_fs_fn_file_write)(driver_fs_file_t *, const char * buff, size_t count, size_t addr);
