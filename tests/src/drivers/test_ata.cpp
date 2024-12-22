@@ -223,7 +223,9 @@ TEST_F(ATADevice, drv_ata_read) {
 
     EXPECT_EQ(0, kmemcpy_fake.call_count);
 
-    kmemcpy_fake.return_val = (void *)1;
+    // TODO curr impl should fail to read more than driver buffer, need fix
+
+    drv_ata_sect_read_fake.return_val = 1;
 
     // Good
     EXPECT_EQ(3, drv_ata_read(disk, buff, 3, 0));
@@ -235,6 +237,15 @@ TEST_F(ATADevice, drv_ata_read) {
     SetUp();
 
     kmemcpy_fake.return_val = (void *)1;
+
+    // Address
+
+    // 0
+    // 1
+    // ATA_SECTOR_BYTES - 1
+    // ATA_SECTOR_BYTES
+    // ATA_SECTOR_BYTES + 1
+    // count % ATA_SECTOR_BYTES != 0
 
     // Address
     EXPECT_EQ(2, drv_ata_read(disk, buff, 3, 1));
@@ -291,6 +302,8 @@ TEST_F(ATADevice, drv_ata_write) {
     EXPECT_EQ(0, kmemcpy_fake.call_count);
 
     kmemcpy_fake.return_val = (void *)1;
+
+    disk->stat.size = 3;
 
     // Good
     EXPECT_EQ(3, drv_ata_write(disk, buff, 3, 0));

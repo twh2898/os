@@ -90,6 +90,10 @@ int drv_ata_read(driver_disk_t * disk, char * buff, size_t count, size_t addr) {
         return -1;
     }
 
+    if (disk->id != 0) {
+        return -1;
+    }
+
     if (count == 0) {
         return 0;
     }
@@ -111,6 +115,8 @@ int drv_ata_read(driver_disk_t * disk, char * buff, size_t count, size_t addr) {
     if (count % ATA_SECTOR_BYTES)
         sect_to_read++;
 
+    // TODO curr impl should fail to read more than driver buffer, need fix
+
     if (drv_ata_sect_read(device, sect_to_read, lba) != sect_to_read) {
         return 0;
     }
@@ -123,6 +129,10 @@ int drv_ata_read(driver_disk_t * disk, char * buff, size_t count, size_t addr) {
 
 int drv_ata_write(driver_disk_t * disk, const char * buff, size_t count, size_t addr) {
     if (!disk || !buff) {
+        return -1;
+    }
+
+    if (disk->id != 0) {
         return -1;
     }
 

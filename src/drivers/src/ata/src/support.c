@@ -154,8 +154,8 @@ int drv_ata_sect_read(drv_ata_t * device, size_t sect_count, uint32_t lba) {
     }
 
     // read max 256 sectors at a time
-    if (sect_count > 256)
-        sect_count = 256;
+    if (sect_count > ATA_MAX_SECTOR_READ_WRITE)
+        sect_count = ATA_MAX_SECTOR_READ_WRITE;
 
     if (lba > device->sect_count) {
         return -1;
@@ -217,8 +217,8 @@ int drv_ata_sect_write(drv_ata_t * device, size_t sect_count, uint32_t lba) {
     }
 
     // write max 256 sectors at a time
-    if (sect_count > 256)
-        sect_count = 256;
+    if (sect_count > ATA_MAX_SECTOR_READ_WRITE)
+        sect_count = ATA_MAX_SECTOR_READ_WRITE;
 
     if (lba > device->sect_count) {
         return -1;
