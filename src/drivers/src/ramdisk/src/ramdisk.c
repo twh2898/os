@@ -20,6 +20,7 @@ int drv_ramdisk_init() {
     device_count = 0;
 
     drv_register.type          = DRIVER_DEVICE_TYPE_DISK;
+    drv_register.disk.type     = "ramdisk";
     drv_register.disk.fn_open  = drv_ramdisk_open;
     drv_register.disk.fn_close = drv_ramdisk_close;
     drv_register.disk.fn_stat  = drv_ramdisk_stat;

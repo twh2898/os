@@ -11,6 +11,7 @@ static driver_register_t drv_register;
 
 int drv_ata_init() {
     drv_register.type          = DRIVER_DEVICE_TYPE_DISK;
+    drv_register.disk.type     = "ata";
     drv_register.disk.fn_open  = drv_ata_open;
     drv_register.disk.fn_close = drv_ata_close;
     drv_register.disk.fn_stat  = drv_ata_stat;

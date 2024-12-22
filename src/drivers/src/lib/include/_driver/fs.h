@@ -20,6 +20,7 @@ typedef struct _driver_fs_stat {
 typedef struct _driver_fs {
     struct _driver_disk *  disk;
     struct _driver_fs_stat stat;
+    void *                 drv_data;
 } driver_fs_t;
 
 typedef driver_fs_t * (*driver_fs_fn_open)(driver_disk_t *);
@@ -27,6 +28,8 @@ typedef int (*driver_fs_fn_close)(driver_fs_t *);
 typedef int (*driver_fs_fn_stat)(driver_fs_t *, driver_fs_stat_t *);
 
 struct _driver_device_fs {
+    const char * format;
+
     driver_fs_fn_open  fn_open;
     driver_fs_fn_close fn_close;
     driver_fs_fn_stat  fn_stat;

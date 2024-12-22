@@ -28,6 +28,8 @@ typedef int (*driver_disk_fn_read)(driver_disk_t *, char * buff, size_t count, s
 typedef int (*driver_disk_fn_write)(driver_disk_t *, const char * buff, size_t count, size_t addr);
 
 struct _driver_device_disk {
+    const char * type;
+
     driver_disk_fn_open  fn_open;
     driver_disk_fn_close fn_close;
     driver_disk_fn_stat  fn_stat;
