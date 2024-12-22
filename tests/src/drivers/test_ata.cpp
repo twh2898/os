@@ -171,22 +171,30 @@ TEST_F(ATADevice, drv_ata_close) {
 }
 
 TEST_F(ATADevice, drv_ata_stat) {
-    disk_stat_t stat;
-    kmemcpy_fake.custom_fake = memcpy;
+    disk_stat_t stat = {.size = 0, .state = DRIVER_DISK_STATE_CLOSED};
 
-    EXPECT_EQ(-1, drv_ata_stat(0, &stat));
+    // Null disk or Null stat
+    EXPECT_EQ(-1, drv_ata_stat(0, 0));
     EXPECT_EQ(-1, drv_ata_stat(disk, 0));
+    EXPECT_EQ(-1, drv_ata_stat(0, &stat));
 
-    EXPECT_EQ(0, drv_ata_stat(disk, &stat));
-    EXPECT_EQ(1, kmemcpy_fake.call_count);
-    EXPECT_EQ(&stat, kmemcpy_fake.arg0_val);
-    EXPECT_EQ(&disk->stat, kmemcpy_fake.arg1_val);
-    EXPECT_EQ(sizeof(disk_stat_t), kmemcpy_fake.arg2_val);
-
+    // kmemcpy fail
     kmemcpy_fake.custom_fake = 0;
     kmemcpy_fake.return_val  = 0;
+
     EXPECT_EQ(-1, drv_ata_stat(disk, &stat));
-    EXPECT_EQ(2, kmemcpy_fake.call_count);
+
+    SetUp();
+
+    // Good
+    EXPECT_GE(0, drv_ata_stat(disk, &stat));
+    EXPECT_EQ(1, kmemcpy_fake.call_count);
+    EXPECT_EQ(kmemcpy_fake.arg0_val, &stat);
+    EXPECT_EQ(kmemcpy_fake.arg1_val, &disk->stat);
+    EXPECT_EQ(kmemcpy_fake.arg2_val, sizeof(disk_stat_t));
+
+    EXPECT_EQ(disk->stat.size, stat.size);
+    EXPECT_EQ(disk->stat.state, stat.state);
 }
 
 TEST_F(ATADevice, drv_ata_read) {
