@@ -8,4 +8,5 @@ target_link_libraries(${TARGET}
     driver_lib
     driver_ata
     driver_ramdisk
+    driver_fs_tar
     driver_legacy)
