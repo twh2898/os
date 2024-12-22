@@ -18,7 +18,7 @@ function(unit_test)
         ${target_files}
     )
     target_include_directories(${target} PRIVATE ${include_dirs})
-    target_link_libraries(${target} PRIVATE gtest gtest_main)
+    target_link_libraries(${target} PRIVATE gtest gtest_main fff)
     target_compile_definitions(${target} PUBLIC TEST_USER_OWN_TR1_TUPLE=1 TESTING)
 
     add_test(
