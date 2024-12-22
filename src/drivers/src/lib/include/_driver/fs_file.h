@@ -34,7 +34,7 @@ typedef struct _driver_fs_file_stat {
 
 typedef void * FILE;
 
-typedef FILE * (*driver_fs_fn_file_open)(driver_fs_t *, const char * path);
+typedef FILE * (*driver_fs_fn_file_open)(driver_fs_t *, const char * path, const char * mode);
 typedef int (*driver_fs_fn_file_close)(FILE * file);
 typedef int (*driver_fs_fn_file_read)(FILE * file, char * buff, size_t count, size_t addr);
 typedef int (*driver_fs_fn_file_write)(FILE * file, const char * buff, size_t count, size_t addr);
