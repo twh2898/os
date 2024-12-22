@@ -4,7 +4,6 @@
 #include <stddef.h>
 
 #include "_driver/disk.h"
-#include "_driver/fs_file.h"
 
 typedef enum DRIVER_FS_STATE {
     DRIVER_FS_STATE_IDLE,
@@ -27,6 +26,9 @@ typedef driver_fs_t * (*driver_fs_fn_open)(driver_disk_t *);
 typedef int (*driver_fs_fn_close)(driver_fs_t *);
 typedef int (*driver_fs_fn_stat)(driver_fs_t *, driver_fs_stat_t *);
 
+#include "_driver/fs_dir.h"
+#include "_driver/fs_file.h"
+
 struct _driver_device_fs {
     const char * format;
 
@@ -36,9 +38,18 @@ struct _driver_device_fs {
 
     driver_fs_fn_file_open  fn_file_open;
     driver_fs_fn_file_close fn_file_close;
-    driver_fs_fn_file_stat  fn_file_stat;
     driver_fs_fn_file_read  fn_file_read;
     driver_fs_fn_file_write fn_file_write;
+    driver_fs_fn_file_seek  fn_file_seek;
+    driver_fs_fn_file_tell  fn_file_tell;
+
+    driver_fs_fn_file_stat fn_file_stat;
+
+    driver_fs_fn_dir_open  fn_dir_open;
+    driver_fs_fn_dir_close fn_dir_close;
+    driver_fs_fn_dir_read  fn_dir_read;
+    driver_fs_fn_dir_seek  fn_dir_seek;
+    driver_fs_fn_dir_tell  fn_dir_tell;
 };
 
 #endif // DRIVER_FS_H
