@@ -18,6 +18,11 @@ FAKE_VALUE_FUNC(void *, kmemcpy, void *, const void *, size_t);
 FAKE_VALUE_FUNC(void *, kmalloc, size_t);
 FAKE_VOID_FUNC(kfree, void *);
 FAKE_VALUE_FUNC(int, register_driver, driver_register_t *);
+
+bool drv_ata_identify_custom(drv_ata_t * device) {
+    device->sect_count = 3;
+    return true;
+}
 }
 
 class ATA : public testing::Test {
@@ -31,9 +36,10 @@ protected:
         RESET_FAKE(kmalloc);
         RESET_FAKE(kfree);
 
-        kmemcpy_fake.custom_fake = memcpy;
-        kmalloc_fake.custom_fake = malloc;
-        kfree_fake.custom_fake   = free;
+        kmemcpy_fake.custom_fake          = memcpy;
+        kmalloc_fake.custom_fake          = malloc;
+        kfree_fake.custom_fake            = free;
+        drv_ata_identify_fake.custom_fake = drv_ata_identify_custom;
 
         drv_ata_init();
 
@@ -59,20 +65,72 @@ TEST_F(ATA, drv_ata_init) {
     EXPECT_NE(nullptr, reg->disk.fn_stat);
     EXPECT_NE(nullptr, reg->disk.fn_read);
     EXPECT_NE(nullptr, reg->disk.fn_write);
+
+    // TODO test register_interrupt_handler called?
 }
 
 TEST_F(ATA, drv_ata_open) {
+    // Bad ID
     EXPECT_EQ(nullptr, drv_ata_open(-1));
 
+    kmalloc_fake.custom_fake = 0;
+    kfree_fake.custom_fake   = 0;
+    kmalloc_fake.return_val  = 0;
+
+    // First malloc fail
+    EXPECT_EQ(0, drv_ata_open(0));
+    EXPECT_EQ(1, kmalloc_fake.call_count);
+    EXPECT_EQ(sizeof(drv_ata_t), kmalloc_fake.arg0_val);
+
+    SetUp();
+
+    drv_ata_identify_fake.custom_fake = 0;
+    drv_ata_identify_fake.return_val  = false;
+
+    // ATA Identity Fails
+    EXPECT_EQ(0, drv_ata_open(0));
+    EXPECT_EQ(1, kmalloc_fake.call_count);
+    EXPECT_EQ(1, drv_ata_identify_fake.call_count);
+    // TODO verify this is done
+
+    SetUp();
+
+    void * dev = malloc(sizeof(drv_ata_t));
+
+    void * kmalloc_returns[2] = {dev, 0};
+
+    kmalloc_fake.custom_fake = 0;
+    SET_RETURN_SEQ(kmalloc, kmalloc_returns, 2);
+
+    // Second malloc fails
+    EXPECT_EQ(0, drv_ata_open(0));
+    EXPECT_EQ(2, kmalloc_fake.call_count);
+    EXPECT_EQ(sizeof(driver_disk_t), kmalloc_fake.arg0_val);
+    EXPECT_EQ(1, kfree_fake.call_count);
+    EXPECT_EQ(dev, kfree_fake.arg0_val);
+
+    SetUp();
+
+    // Good
     driver_disk_t * disk = drv_ata_open(0);
+    EXPECT_EQ(2, kmalloc_fake.call_count);
+    EXPECT_EQ(1, drv_ata_identify_fake.call_count);
+
+    EXPECT_NE(nullptr, drv_ata_identify_fake.arg0_val);
+
     ASSERT_NE(nullptr, disk);
+
     EXPECT_EQ(0, disk->id);
-    EXPECT_EQ(10, disk->stat.size);
+    EXPECT_EQ(3 * ATA_SECTOR_BYTES, disk->stat.size);
     EXPECT_EQ(DRIVER_DISK_STATE_IDLE, disk->stat.state);
+    ASSERT_NE(nullptr, disk->drv_data);
 
-    EXPECT_EQ(nullptr, drv_ata_open(1));
+    drv_ata_t * device = (drv_ata_t *)disk->drv_data;
+    EXPECT_EQ(ATA_BUS_0_IO_BASE, device->io_base);
+    EXPECT_EQ(ATA_BUS_0_CTL_BASE, device->ct_base);
+    EXPECT_EQ(3, device->sect_count);
 
-    // disk already opened above
+    // // disk already opened above
     // EXPECT_EQ(nullptr, drv_ata_open(0));
 }
 
