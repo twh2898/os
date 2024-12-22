@@ -146,13 +146,28 @@ protected:
         ASSERT_NE(nullptr, disk);
 
         RESET_FAKE(kmalloc);
+        kmalloc_fake.custom_fake = malloc;
     }
 };
 
 TEST_F(ATADevice, drv_ata_close) {
-    EXPECT_EQ(0, drv_ata_close(0));
+    // Null disk
+    EXPECT_EQ(-1, drv_ata_close(0));
+
+    disk->drv_data = 0;
+
+    // No device to free
+    EXPECT_EQ(0, drv_ata_close(disk));
     EXPECT_EQ(1, kfree_fake.call_count);
     EXPECT_EQ(disk, kfree_fake.arg0_val);
+
+    SetUp();
+
+    // Good
+    EXPECT_EQ(0, drv_ata_close(disk));
+    EXPECT_EQ(2, kfree_fake.call_count);
+    EXPECT_EQ(disk->drv_data, kfree_fake.arg0_history[0]);
+    EXPECT_EQ(disk, kfree_fake.arg0_history[1]);
 }
 
 TEST_F(ATADevice, drv_ata_stat) {
