@@ -7,6 +7,7 @@
 
 typedef enum DRIVER_FS_STATE {
     DRIVER_FS_STATE_IDLE,
+    DRIVER_FS_STATE_READY,
     DRIVER_FS_STATE_BUSY,
 } driver_fs_state_t;
 
@@ -24,7 +25,6 @@ typedef struct _driver_fs {
 
 typedef driver_fs_t * (*driver_fs_fn_open)(driver_disk_t *);
 typedef int (*driver_fs_fn_close)(driver_fs_t *);
-typedef int (*driver_fs_fn_stat)(driver_fs_t *, driver_fs_stat_t *);
 
 #include "_driver/fs_dir.h"
 #include "_driver/fs_file.h"
@@ -34,7 +34,6 @@ struct _driver_device_fs {
 
     driver_fs_fn_open  fn_open;
     driver_fs_fn_close fn_close;
-    driver_fs_fn_stat  fn_stat;
 
     driver_fs_fn_file_open  fn_file_open;
     driver_fs_fn_file_close fn_file_close;
