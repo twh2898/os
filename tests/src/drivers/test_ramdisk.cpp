@@ -34,7 +34,7 @@ TEST_F(Ramdisk, drv_ramdisk_init) {
 
     int res = drv_ramdisk_init();
 
-    EXPECT_GE(0, res);
+    EXPECT_EQ(0, res);
 
     EXPECT_EQ(1, register_driver_fake.call_count);
     driver_register_t * reg = register_driver_fake.arg0_val;
@@ -111,24 +111,24 @@ protected:
 };
 
 TEST_F(RamdiskDevice, drv_ramdisk_close) {
-    EXPECT_EQ(-1, drv_ramdisk_close(0));
+    EXPECT_NE(0, drv_ramdisk_close(0));
 
     disk->id = -1;
-    EXPECT_EQ(-1, drv_ramdisk_close(disk));
+    EXPECT_NE(0, drv_ramdisk_close(disk));
     EXPECT_EQ(1, kfree_fake.call_count);
     EXPECT_EQ(disk, kfree_fake.arg0_val);
 
     SetUp();
 
     disk->id = 1;
-    EXPECT_EQ(-1, drv_ramdisk_close(disk));
+    EXPECT_NE(0, drv_ramdisk_close(disk));
     EXPECT_EQ(1, kfree_fake.call_count);
     EXPECT_EQ(disk, kfree_fake.arg0_val);
 
     SetUp();
 
     disk->id = DRV_RAMDISK_MAX_DEVICES;
-    EXPECT_EQ(-1, drv_ramdisk_close(disk));
+    EXPECT_NE(0, drv_ramdisk_close(disk));
     EXPECT_EQ(1, kfree_fake.call_count);
     EXPECT_EQ(disk, kfree_fake.arg0_val);
 
@@ -143,8 +143,8 @@ TEST_F(RamdiskDevice, drv_ramdisk_stat) {
     disk_stat_t stat;
     kmemcpy_fake.custom_fake = memcpy;
 
-    EXPECT_EQ(-1, drv_ramdisk_stat(0, &stat));
-    EXPECT_EQ(-1, drv_ramdisk_stat(disk, 0));
+    EXPECT_NE(0, drv_ramdisk_stat(0, &stat));
+    EXPECT_NE(0, drv_ramdisk_stat(disk, 0));
 
     EXPECT_EQ(0, drv_ramdisk_stat(disk, &stat));
     EXPECT_EQ(1, kmemcpy_fake.call_count);
@@ -154,7 +154,7 @@ TEST_F(RamdiskDevice, drv_ramdisk_stat) {
 
     kmemcpy_fake.custom_fake = 0;
     kmemcpy_fake.return_val  = 0;
-    EXPECT_EQ(-1, drv_ramdisk_stat(disk, &stat));
+    EXPECT_NE(0, drv_ramdisk_stat(disk, &stat));
     EXPECT_EQ(2, kmemcpy_fake.call_count);
 }
 

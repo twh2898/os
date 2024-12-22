@@ -10,7 +10,7 @@
 /**
  * @brief Register ramdisk driver and initialize emtpy devices.
  *
- * @return int < 0 if registration fails
+ * @return int 0 for success
  */
 int drv_ramdisk_init();
 
@@ -33,7 +33,7 @@ driver_disk_t * drv_ramdisk_open(int id);
 /**
  * @brief Close ramdisk device and disk driver.
  *
- * @return int < 0 for fail
+ * @return int 0 for success
  */
 int drv_ramdisk_close(driver_disk_t *);
 
@@ -42,7 +42,7 @@ int drv_ramdisk_close(driver_disk_t *);
  *
  * @param disk driver object
  * @param stat pointer to output struct
- * @return int < 0 for fail
+ * @return int 0 for success
  */
 int drv_ramdisk_stat(driver_disk_t * disk, disk_stat_t * stat);
 

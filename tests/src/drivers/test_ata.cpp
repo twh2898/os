@@ -52,7 +52,7 @@ TEST_F(ATA, drv_ata_init) {
 
     int res = drv_ata_init();
 
-    EXPECT_GE(0, res);
+    EXPECT_EQ(0, res);
 
     EXPECT_EQ(1, register_driver_fake.call_count);
     driver_register_t * reg = register_driver_fake.arg0_val;
@@ -157,7 +157,7 @@ TEST_F(ATADevice, drv_ata_close) {
     disk->drv_data = 0;
 
     // No device to free
-    EXPECT_EQ(0, drv_ata_close(disk));
+    EXPECT_NE(0, drv_ata_close(disk));
     EXPECT_EQ(1, kfree_fake.call_count);
     EXPECT_EQ(disk, kfree_fake.arg0_val);
 
@@ -174,9 +174,9 @@ TEST_F(ATADevice, drv_ata_stat) {
     disk_stat_t stat = {.size = 0, .state = DRIVER_DISK_STATE_CLOSED};
 
     // Null disk or Null stat
-    EXPECT_EQ(-1, drv_ata_stat(0, 0));
-    EXPECT_EQ(-1, drv_ata_stat(disk, 0));
-    EXPECT_EQ(-1, drv_ata_stat(0, &stat));
+    EXPECT_NE(0, drv_ata_stat(0, 0));
+    EXPECT_NE(0, drv_ata_stat(disk, 0));
+    EXPECT_NE(0, drv_ata_stat(0, &stat));
 
     // kmemcpy fail
     kmemcpy_fake.custom_fake = 0;
@@ -187,7 +187,7 @@ TEST_F(ATADevice, drv_ata_stat) {
     SetUp();
 
     // Good
-    EXPECT_GE(0, drv_ata_stat(disk, &stat));
+    EXPECT_EQ(0, drv_ata_stat(disk, &stat));
     EXPECT_EQ(1, kmemcpy_fake.call_count);
     EXPECT_EQ(kmemcpy_fake.arg0_val, &stat);
     EXPECT_EQ(kmemcpy_fake.arg1_val, &disk->stat);
