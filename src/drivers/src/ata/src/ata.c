@@ -17,7 +17,7 @@ int drv_ata_init() {
     drv_register.disk.fn_read  = drv_ata_read;
     drv_register.disk.fn_write = drv_ata_write;
 
-    // TODO register interrupts
+    // TODO register interrupts? Or does the kernel get a callback fn?
     // register_interrupt_handler(IRQ14, drv_ata_irq_callback);
 
     int res = register_driver(&drv_register);
