@@ -7,6 +7,7 @@
 #include "cpu/ports.h"
 #include "cpu/ram.h"
 #include "debug.h"
+#include "driver.h"
 #include "drivers/disk.h"
 #include "drivers/rtc.h"
 #include "drivers/tar.h"
@@ -20,8 +21,8 @@
 
 bool debug = false;
 
-static disk_t *   disk = 0;
-static tar_fs_t * tar  = 0;
+static driver_disk_t * disk = 0;
+static driver_fs_t *   tar  = 0;
 
 static int clear_cmd(size_t argc, char ** argv) {
     vga_clear();
@@ -170,15 +171,17 @@ static int mount_cmd(size_t argc, char ** argv) {
         return 0;
     }
 
+    driver_device_disk_t * drv = driver_get_disk("ata");
+
     if (!disk) {
-        disk = disk_open(0, DISK_DRIVER_ATA);
+        disk = driver_disk_open(drv, 0);
         if (!disk) {
             puts("Failed to open disk\n");
             return 1;
         }
     }
 
-    tar = tar_open(disk);
+    tar = drv_fs_tar_open(disk);
     if (!tar) {
         puts("Failed to mount filesystem\n");
         return 1;
@@ -189,11 +192,11 @@ static int mount_cmd(size_t argc, char ** argv) {
 
 static int unmount_cmd(size_t argc, char ** argv) {
     if (tar) {
-        tar_close(tar);
+        drv_fs_tar_close(tar);
         tar = 0;
     }
     if (disk) {
-        disk_close(disk);
+        driver_disk_close(disk);
         disk = 0;
     }
     return 0;
@@ -271,48 +274,48 @@ static void ls_print_file_size(size_t size) {
     printf("%4u%c", size, order_c);
 }
 
-static void ls_print_file(tar_stat_t * stat) {
-    putc(stat->type == TAR_TYPE_DIR ? 'd' : '-');
+static void ls_print_file(driver_fs_file_stat_t * stat) {
+    // putc(stat->type == TAR_TYPE_DIR ? 'd' : '-');
 
-    putc(stat->mode & TAR_PEM_USER_READ ? 'r' : '-');
-    putc(stat->mode & TAR_PEM_USER_WRITE ? 'w' : '-');
-    putc(stat->mode & TAR_PEM_USER_EXECUTE ? 'x' : '-');
+    // putc(stat->mode & TAR_PEM_USER_READ ? 'r' : '-');
+    // putc(stat->mode & TAR_PEM_USER_WRITE ? 'w' : '-');
+    // putc(stat->mode & TAR_PEM_USER_EXECUTE ? 'x' : '-');
 
-    putc(stat->mode & TAR_PEM_GROUP_READ ? 'r' : '-');
-    putc(stat->mode & TAR_PEM_GROUP_WRITE ? 'w' : '-');
-    putc(stat->mode & TAR_PEM_GROUP_EXECUTE ? 'x' : '-');
+    // putc(stat->mode & TAR_PEM_GROUP_READ ? 'r' : '-');
+    // putc(stat->mode & TAR_PEM_GROUP_WRITE ? 'w' : '-');
+    // putc(stat->mode & TAR_PEM_GROUP_EXECUTE ? 'x' : '-');
 
-    putc(stat->mode & TAR_PEM_OTHER_READ ? 'r' : '-');
-    putc(stat->mode & TAR_PEM_OTHER_WRITE ? 'w' : '-');
-    putc(stat->mode & TAR_PEM_OTHER_EXECUTE ? 'x' : '-');
+    // putc(stat->mode & TAR_PEM_OTHER_READ ? 'r' : '-');
+    // putc(stat->mode & TAR_PEM_OTHER_WRITE ? 'w' : '-');
+    // putc(stat->mode & TAR_PEM_OTHER_EXECUTE ? 'x' : '-');
 
     printf(" %4u %4u ", stat->uid, stat->gid);
     ls_print_file_size(stat->size);
 
     printf(" %4u ", stat->mtime);
-    puts(stat->filename);
+    // puts(stat->filename);
     putc('\n');
 }
 
-static int ls_cmd(size_t argc, char ** argv) {
-    if (!tar) {
-        puts("Filesystem not mounted\n");
-        return 1;
-    }
+// static int ls_cmd(size_t argc, char ** argv) {
+//     if (!tar) {
+//         puts("Filesystem not mounted\n");
+//         return 1;
+//     }
 
-    size_t file_count = tar_file_count(tar);
-    printf("Found %u files\n", file_count);
+//     size_t file_count = tar_file_count(tar);
+//     printf("Found %u files\n", file_count);
 
-    tar_stat_t stat;
-    for (size_t i = 0; i < file_count; i++) {
-        if (!tar_stat_file_i(tar, i, &stat))
-            return 1;
-        ls_print_file(&stat);
-    }
+//     tar_stat_t stat;
+//     for (size_t i = 0; i < file_count; i++) {
+//         if (!tar_stat_file_i(tar, i, &stat))
+//             return 1;
+//         ls_print_file(&stat);
+//     }
 
-    putc('\n');
-    return 0;
-}
+//     putc('\n');
+//     return 0;
+// }
 
 static int stat_cmd(size_t argc, char ** argv) {
     if (!tar) {
@@ -320,13 +323,13 @@ static int stat_cmd(size_t argc, char ** argv) {
         return 1;
     }
 
-    tar_stat_t stat;
-    if (!tar_stat_file_i(tar, 0, &stat)) {
+    driver_fs_file_stat_t stat;
+    if (!drv_fs_tar_file_stat(tar, 0, &stat)) {
         puts("Failed to stat file\n");
         return 1;
     }
 
-    printf("File %s\n", stat.filename);
+    printf("File %s\n", stat.path);
     printf("Size %u\n", stat.size);
     printf("%04x (%u : %u)\n", stat.mode, stat.uid, stat.gid);
     printf("mtime %04x\n", stat.mtime);
@@ -348,25 +351,25 @@ static int fs_read_cmd(size_t argc, char ** argv) {
         return 1;
     }
 
-    tar_stat_t stat;
-    if (!tar_stat_file(tar, filename, &stat)) {
+    driver_fs_file_stat_t stat;
+    if (!drv_fs_tar_file_stat(tar, filename, &stat)) {
         puts("Failed to find file\n");
         return 1;
     }
 
-    ls_print_file(&stat);
+    // ls_print_file(&stat);
     uint8_t * buff = kmalloc(stat.size);
     if (!buff)
         return 1;
 
-    tar_fs_file_t * file = tar_file_open(tar, filename);
+    driver_fs_file_t * file = drv_fs_tar_file_open(tar, filename, "r");
     if (!file) {
         kfree(buff);
         return 1;
     }
 
-    if (!tar_file_read(file, buff, stat.size)) {
-        tar_file_close(file);
+    if (!drv_fs_tar_file_read(file, buff, stat.size)) {
+        drv_fs_tar_file_close(file);
         kfree(buff);
         return 1;
     }
@@ -375,7 +378,7 @@ static int fs_read_cmd(size_t argc, char ** argv) {
     if (!disk || !buff)
         return 0;
 
-    tar_file_close(file);
+    drv_fs_tar_file_close(file);
     kfree(buff);
 
     return 0;
@@ -394,8 +397,8 @@ static int fs_cat_cmd(size_t argc, char ** argv) {
         return 1;
     }
 
-    tar_stat_t stat;
-    if (!tar_stat_file(tar, filename, &stat)) {
+    driver_fs_file_stat_t stat;
+    if (!drv_fs_tar_file_stat(tar, filename, &stat)) {
         puts("Failed to find file\n");
         return 1;
     }
@@ -404,14 +407,14 @@ static int fs_cat_cmd(size_t argc, char ** argv) {
     if (!buff)
         return 1;
 
-    tar_fs_file_t * file = tar_file_open(tar, filename);
+    driver_fs_file_t * file = drv_fs_tar_file_open(tar, filename, "r");
     if (!file) {
         kfree(buff);
         return 1;
     }
 
-    if (!tar_file_read(file, buff, stat.size)) {
-        tar_file_close(file);
+    if (!drv_fs_tar_file_read(file, buff, stat.size)) {
+        drv_fs_tar_file_close(file);
         kfree(buff);
         return 1;
     }
@@ -422,7 +425,7 @@ static int fs_cat_cmd(size_t argc, char ** argv) {
     if (!disk || !buff)
         return 0;
 
-    tar_file_close(file);
+    drv_fs_tar_file_close(file);
     kfree(buff);
 
     return 0;
@@ -442,8 +445,10 @@ static int disk_read_cmd(size_t argc, char ** argv) {
     size_t pos   = katoi(argv[1]);
     size_t count = katoi(argv[2]);
 
+    driver_device_disk_t * drv = driver_get_disk("ata");
+
     if (!disk) {
-        disk = disk_open(0, DISK_DRIVER_ATA);
+        disk = driver_disk_open(drv, 0);
         if (!disk) {
             puts("Failed to open disk\n");
             return 1;
@@ -458,7 +463,7 @@ static int disk_read_cmd(size_t argc, char ** argv) {
         size_t to_read = count;
         if (to_read > 512)
             to_read = 512;
-        size_t read = disk_read(disk, data, to_read, pos);
+        size_t read = driver_disk_read(disk, data, to_read, pos);
         data[read]  = 0;
         print_hexblock(data, read, 512 * i);
         count -= to_read;
@@ -469,8 +474,11 @@ static int disk_read_cmd(size_t argc, char ** argv) {
 }
 
 static int disk_write_cmd(size_t argc, char ** argv) {
+
+    driver_device_disk_t * drv = driver_get_disk("ata");
+
     if (!disk) {
-        disk = disk_open(0, DISK_DRIVER_ATA);
+        disk = driver_disk_open(drv, 0);
         if (!disk) {
             puts("Failed to open disk\n");
             return 1;
@@ -489,20 +497,24 @@ static int disk_write_cmd(size_t argc, char ** argv) {
         else
             data[i * 2 + 1] = (i & 0xf) + 'a' - 10;
     }
-    disk_write(disk, data, 512, 0);
+    driver_disk_write(disk, data, 512, 0);
     return 0;
 }
 
 static int disk_size_cmd(size_t argc, char ** argv) {
+
+    driver_device_disk_t * drv = driver_get_disk("ata");
+
     if (!disk) {
-        disk = disk_open(0, DISK_DRIVER_ATA);
+        disk = driver_disk_open(drv, 0);
         if (!disk) {
             puts("Failed to open disk\n");
             return 1;
         }
     }
-    size_t size = disk_size(disk);
-    printf("Disk size %u\n", size);
+    driver_disk_stat_t stat;
+    driver_disk_stat(disk, &stat);
+    printf("Disk size %u\n", stat.size);
     return 0;
 }
 
@@ -514,8 +526,8 @@ static int command_lookup(size_t argc, char ** argv) {
         return 1;
     }
 
-    tar_stat_t stat;
-    if (!tar_stat_file(tar, filename, &stat)) {
+    driver_fs_file_stat_t stat;
+    if (!drv_fs_tar_file_stat(tar, filename, &stat)) {
         puts("Failed to find file\n");
         return 1;
     }
@@ -524,14 +536,14 @@ static int command_lookup(size_t argc, char ** argv) {
     if (!buff)
         return 1;
 
-    tar_fs_file_t * file = tar_file_open(tar, filename);
+    driver_fs_file_t * file = drv_fs_tar_file_open(tar, filename, "r");
     if (!file) {
         kfree(buff);
         return 1;
     }
 
-    if (!tar_file_read(file, buff, stat.size)) {
-        tar_file_close(file);
+    if (!drv_fs_tar_file_read(file, buff, stat.size)) {
+        drv_fs_tar_file_close(file);
         kfree(buff);
         return 1;
     }
@@ -541,7 +553,7 @@ static int command_lookup(size_t argc, char ** argv) {
     if (!disk || !buff)
         return 0;
 
-    tar_file_close(file);
+    drv_fs_tar_file_close(file);
     kfree(buff);
 
     return res;
@@ -562,7 +574,7 @@ void commands_init() {
     term_command_add("mount", mount_cmd);
     term_command_add("unmount", unmount_cmd);
     term_command_add("mem", mem_cmd);
-    term_command_add("ls", ls_cmd);
+    // term_command_add("ls", ls_cmd);
     term_command_add("stat", stat_cmd);
     // term_command_add("status", status_cmd);
     term_command_add("read", fs_read_cmd);
