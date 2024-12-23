@@ -6,11 +6,12 @@
 #include "cpu/ram.h"
 #include "cpu/tss.h"
 #include "defs.h"
-// #include "drivers/_ata.h"
+#include "driver.h"
 #include "drivers/ata.h"
 #include "drivers/keyboard.h"
 #include "drivers/ramdisk.h"
 #include "drivers/rtc.h"
+#include "drivers/tar.h"
 #include "drivers/timer.h"
 #include "drivers/vga.h"
 #include "interrupts.h"
@@ -265,6 +266,11 @@ void kernel_main() {
     // init_tss();
 
     // check_malloc();
+
+    init_drivers();
+    drv_ramdisk_init();
+    drv_ata_init();
+    drv_fs_tar_init();
 
     drv_ramdisk_init();
     drv_ata_init();
