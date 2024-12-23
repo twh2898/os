@@ -13,11 +13,11 @@
 #include "drivers/timer.h"
 #include "drivers/vga.h"
 #include "interrupts.h"
-#include "libc/memory.h"
 #include "libc/process.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
 #include "libk/defs.h"
+#include "memory.h"
 #include "term.h"
 
 void cursor() {
@@ -44,7 +44,7 @@ int demo(size_t argc, char ** argv) {
     int store = 0;
     len += printf("The last part is pointers %8p\n", &store);
 
-    void * data = kmalloc(10);
+    void * data = impl_kmalloc(10);
 
     printf("\nMalloc memory got pointer %p\n", data);
     printf("Float number %f or shorter %3f or digits %.4f or lead %.04f\n", 3.14, 31.45, 3.14, 3.14);
@@ -137,8 +137,8 @@ static void check_malloc() {
 
     printf("Ram page alloc gave 0x%x and 0x%X\n", PTR2UINT(a), PTR2UINT(b));
 
-    void * c = kmalloc(1);
-    void * d = kmalloc(1);
+    void * c = impl_kmalloc(1);
+    void * d = impl_kmalloc(1);
 
     printf("Malloc gave vaddr %p and %p\n", c, d);
 
@@ -153,7 +153,7 @@ static uint32_t int_mem_cb(uint16_t int_no, registers_t * regs) {
     switch (int_no) {
         case SYS_INT_MEM_MALLOC: {
             size_t size = regs->ebx;
-            res         = PTR2UINT(kmalloc(size));
+            res         = PTR2UINT(impl_kmalloc(size));
         } break;
 
         case SYS_INT_MEM_REALLOC: {
@@ -164,7 +164,7 @@ static uint32_t int_mem_cb(uint16_t int_no, registers_t * regs) {
 
         case SYS_INT_MEM_FREE: {
             void * ptr = UINT2PTR(regs->ebx);
-            kfree(ptr);
+            impl_kfree(ptr);
         } break;
     }
 
