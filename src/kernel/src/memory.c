@@ -1,4 +1,4 @@
-#include "libc/memory.h"
+#include "memory.h"
 
 #include "cpu/ram.h"
 #include "libc/process.h"
@@ -66,7 +66,7 @@ void init_malloc(mmu_page_dir_t * dir, size_t first_page) {
     entry_set(entry_of(mtable, 0), PTR2UINT(first_free), PAGE_SIZE, MEMORY_ENTRY_FLAG_PRESENT | MEMORY_ENTRY_FLAG_FREE);
 }
 
-void * kmalloc(size_t size) {
+void * impl_kmalloc(size_t size) {
     if (!size)
         return 0;
 
@@ -108,7 +108,7 @@ void * kmalloc(size_t size) {
     return UINT2PTR(entry->addr_flags & MASK_ADDR);
 }
 
-void kfree(void * ptr) {
+void impl_kfree(void * ptr) {
     if (!ptr)
         return;
 
