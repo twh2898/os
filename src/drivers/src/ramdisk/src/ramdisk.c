@@ -88,12 +88,12 @@ int drv_ramdisk_close(driver_disk_t * disk) {
     return 0;
 }
 
-int drv_ramdisk_stat(driver_disk_t * disk, disk_stat_t * stat) {
+int drv_ramdisk_stat(driver_disk_t * disk, driver_disk_stat_t * stat) {
     if (!disk || !stat) {
         return -1;
     }
 
-    if (!kmemcpy(stat, &disk->stat, sizeof(disk_stat_t))) {
+    if (!kmemcpy(stat, &disk->stat, sizeof(driver_disk_stat_t))) {
         return -1;
     }
 

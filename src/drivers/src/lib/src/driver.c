@@ -81,7 +81,7 @@ int driver_disk_close(driver_disk_t * disk) {
     return disk->impl->fn_close(disk);
 }
 
-int driver_disk_stat(driver_disk_t * disk, disk_stat_t * stat) {
+int driver_disk_stat(driver_disk_t * disk, driver_disk_stat_t * stat) {
     if (!disk) {
         return -1;
     }

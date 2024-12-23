@@ -44,7 +44,7 @@ int drv_ramdisk_close(driver_disk_t *);
  * @param stat pointer to output struct
  * @return int 0 for success
  */
-int drv_ramdisk_stat(driver_disk_t * disk, disk_stat_t * stat);
+int drv_ramdisk_stat(driver_disk_t * disk, driver_disk_stat_t * stat);
 
 /**
  * @brief Read bytes from the disk.

@@ -13,7 +13,7 @@ typedef enum DRIVER_DISK_STATE {
 typedef struct _driver_disk_stat {
     size_t                 size;
     enum DRIVER_DISK_STATE state;
-} disk_stat_t;
+} driver_disk_stat_t;
 
 typedef struct _driver_disk {
     int    id;
@@ -25,7 +25,7 @@ typedef struct _driver_disk {
 
 typedef driver_disk_t * (*driver_disk_fn_open)(int id);
 typedef int (*driver_disk_fn_close)(driver_disk_t *);
-typedef int (*driver_disk_fn_stat)(driver_disk_t *, disk_stat_t *);
+typedef int (*driver_disk_fn_stat)(driver_disk_t *, driver_disk_stat_t *);
 typedef int (*driver_disk_fn_read)(driver_disk_t *, char * buff, size_t count, size_t addr);
 typedef int (*driver_disk_fn_write)(driver_disk_t *, const char * buff, size_t count, size_t addr);
 

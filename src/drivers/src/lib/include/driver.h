@@ -45,7 +45,7 @@ driver_device_fs_t *   driver_get_fs(const char * format);
 
 driver_disk_t * driver_disk_open(driver_device_disk_t * drv, int id);
 int             driver_disk_close(driver_disk_t * disk);
-int             driver_disk_stat(driver_disk_t * disk, disk_stat_t * stat);
+int             driver_disk_stat(driver_disk_t * disk, driver_disk_stat_t * stat);
 int             driver_disk_read(driver_disk_t * disk, char * buff, size_t count, size_t addr);
 int             driver_disk_write(driver_disk_t * disk, const char * buff, size_t count, size_t addr);
 
