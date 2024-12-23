@@ -140,7 +140,7 @@ TEST_F(RamdiskDevice, drv_ramdisk_close) {
 }
 
 TEST_F(RamdiskDevice, drv_ramdisk_stat) {
-    disk_stat_t stat;
+    driver_disk_stat_t stat;
     kmemcpy_fake.custom_fake = memcpy;
 
     EXPECT_NE(0, drv_ramdisk_stat(0, &stat));
@@ -150,7 +150,7 @@ TEST_F(RamdiskDevice, drv_ramdisk_stat) {
     EXPECT_EQ(1, kmemcpy_fake.call_count);
     EXPECT_EQ(&stat, kmemcpy_fake.arg0_val);
     EXPECT_EQ(&disk->stat, kmemcpy_fake.arg1_val);
-    EXPECT_EQ(sizeof(disk_stat_t), kmemcpy_fake.arg2_val);
+    EXPECT_EQ(sizeof(driver_disk_stat_t), kmemcpy_fake.arg2_val);
 
     kmemcpy_fake.custom_fake = 0;
     kmemcpy_fake.return_val  = 0;

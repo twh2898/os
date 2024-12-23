@@ -171,7 +171,7 @@ TEST_F(ATADevice, drv_ata_close) {
 }
 
 TEST_F(ATADevice, drv_ata_stat) {
-    disk_stat_t stat = {.size = 0, .state = DRIVER_DISK_STATE_CLOSED};
+    driver_disk_stat_t stat = {.size = 0, .state = DRIVER_DISK_STATE_CLOSED};
 
     // Null disk or Null stat
     EXPECT_NE(0, drv_ata_stat(0, 0));
@@ -191,7 +191,7 @@ TEST_F(ATADevice, drv_ata_stat) {
     EXPECT_EQ(1, kmemcpy_fake.call_count);
     EXPECT_EQ(kmemcpy_fake.arg0_val, &stat);
     EXPECT_EQ(kmemcpy_fake.arg1_val, &disk->stat);
-    EXPECT_EQ(kmemcpy_fake.arg2_val, sizeof(disk_stat_t));
+    EXPECT_EQ(kmemcpy_fake.arg2_val, sizeof(driver_disk_stat_t));
 
     EXPECT_EQ(disk->stat.size, stat.size);
     EXPECT_EQ(disk->stat.state, stat.state);
