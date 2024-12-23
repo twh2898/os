@@ -13,7 +13,7 @@
 #include "drivers/timer.h"
 #include "drivers/vga.h"
 #include "exec.h"
-#include "libc/memory.h"
+#include "memory.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
 #include "term.h"
@@ -355,19 +355,19 @@ static int fs_read_cmd(size_t argc, char ** argv) {
     }
 
     ls_print_file(&stat);
-    uint8_t * buff = kmalloc(stat.size);
+    uint8_t * buff = impl_kmalloc(stat.size);
     if (!buff)
         return 1;
 
     tar_fs_file_t * file = tar_file_open(tar, filename);
     if (!file) {
-        kfree(buff);
+        impl_kfree(buff);
         return 1;
     }
 
     if (!tar_file_read(file, buff, stat.size)) {
         tar_file_close(file);
-        kfree(buff);
+        impl_kfree(buff);
         return 1;
     }
     print_hexblock(buff, stat.size, 0);
@@ -376,7 +376,7 @@ static int fs_read_cmd(size_t argc, char ** argv) {
         return 0;
 
     tar_file_close(file);
-    kfree(buff);
+    impl_kfree(buff);
 
     return 0;
 }
@@ -400,19 +400,19 @@ static int fs_cat_cmd(size_t argc, char ** argv) {
         return 1;
     }
 
-    uint8_t * buff = kmalloc(stat.size);
+    uint8_t * buff = impl_kmalloc(stat.size);
     if (!buff)
         return 1;
 
     tar_fs_file_t * file = tar_file_open(tar, filename);
     if (!file) {
-        kfree(buff);
+        impl_kfree(buff);
         return 1;
     }
 
     if (!tar_file_read(file, buff, stat.size)) {
         tar_file_close(file);
-        kfree(buff);
+        impl_kfree(buff);
         return 1;
     }
     for (size_t i = 0; i < stat.size; i++) {
@@ -423,7 +423,7 @@ static int fs_cat_cmd(size_t argc, char ** argv) {
         return 0;
 
     tar_file_close(file);
-    kfree(buff);
+    impl_kfree(buff);
 
     return 0;
 }
@@ -520,19 +520,19 @@ static int command_lookup(size_t argc, char ** argv) {
         return 1;
     }
 
-    uint8_t * buff = kmalloc(stat.size);
+    uint8_t * buff = impl_kmalloc(stat.size);
     if (!buff)
         return 1;
 
     tar_fs_file_t * file = tar_file_open(tar, filename);
     if (!file) {
-        kfree(buff);
+        impl_kfree(buff);
         return 1;
     }
 
     if (!tar_file_read(file, buff, stat.size)) {
         tar_file_close(file);
-        kfree(buff);
+        impl_kfree(buff);
         return 1;
     }
 
@@ -542,7 +542,7 @@ static int command_lookup(size_t argc, char ** argv) {
         return 0;
 
     tar_file_close(file);
-    kfree(buff);
+    impl_kfree(buff);
 
     return res;
 }

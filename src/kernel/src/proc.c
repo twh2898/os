@@ -1,10 +1,10 @@
 #include "proc.h"
 
-#include "libc/memory.h"
 #include "libc/string.h"
+#include "memory.h"
 
 process_t * proc_new(uint32_t pid, const char * command, uint16_t flags) {
-    process_t * proc = kmalloc(sizeof(process_t));
+    process_t * proc = impl_kmalloc(sizeof(process_t));
     if (proc) {
         proc->esp  = 0;
         proc->cr3  = 0;
@@ -15,5 +15,5 @@ process_t * proc_new(uint32_t pid, const char * command, uint16_t flags) {
 }
 
 void proc_free(process_t * proc) {
-    kfree(proc);
+    impl_kfree(proc);
 }
