@@ -16,9 +16,11 @@ typedef struct _driver_disk_stat {
 } disk_stat_t;
 
 typedef struct _driver_disk {
-    int                      id;
-    struct _driver_disk_stat stat;
-    void *                   drv_data;
+    int    id;
+    void * drv_data;
+
+    struct _driver_disk_stat     stat;
+    struct _driver_device_disk * impl;
 } driver_disk_t;
 
 typedef driver_disk_t * (*driver_disk_fn_open)(int id);

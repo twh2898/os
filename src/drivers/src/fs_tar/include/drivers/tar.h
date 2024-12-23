@@ -35,9 +35,9 @@ int drv_fs_tar_close(driver_fs_t * fs);
  * @param fs filesystem driver object
  * @param path path to file
  * @param mode file operation mode
- * @return FILE* file object or null
+ * @return driver_fs_file_t* file object or null
  */
-void * drv_fs_tar_file_open(driver_fs_t * fs, const char * path, const char * mode);
+driver_fs_file_t * drv_fs_tar_file_open(driver_fs_t * fs, const char * path, const char * mode);
 
 /**
  * @brief Close a file object.
@@ -45,12 +45,12 @@ void * drv_fs_tar_file_open(driver_fs_t * fs, const char * path, const char * mo
  * @param file file object
  * @return int 0 = success
  */
-int drv_fs_tar_file_close(void * file);
-int drv_fs_tar_file_read(void * file, char * buff, size_t count, size_t addr);
-int drv_fs_tar_file_write(void * file, const char * buff, size_t count, size_t addr);
-int drv_fs_tar_file_seek(void * file, size_t pos, enum DRV_FS_FILE_SEEK_ORIGIN origin);
-int drv_fs_tar_file_tell(void * file);
-int drv_fs_tar_file_stat(const char * path, driver_fs_file_stat_t * stat);
+int drv_fs_tar_file_close(driver_fs_file_t * file);
+int drv_fs_tar_file_read(driver_fs_file_t * file, char * buff, size_t count);
+int drv_fs_tar_file_write(driver_fs_file_t * file, const char * buff, size_t count);
+int drv_fs_tar_file_seek(driver_fs_file_t * file, size_t pos, enum DRV_FS_FILE_SEEK_ORIGIN origin);
+int drv_fs_tar_file_tell(driver_fs_file_t * file);
+int drv_fs_tar_file_stat(driver_fs_t * fs, const char * path, driver_fs_file_stat_t * stat);
 
 void *       drv_fs_tar_dir_open(driver_fs_t * fs, const char * path);
 int          drv_fs_tar_dir_close(void * dir);

@@ -32,13 +32,18 @@ typedef struct _driver_fs_file_stat {
     enum DRV_FS_FILE_TYPE type;
 } driver_fs_file_stat_t;
 
-typedef void * (*driver_fs_fn_file_open)(driver_fs_t *, const char * path, const char * mode);
-typedef int (*driver_fs_fn_file_close)(void * file);
-typedef int (*driver_fs_fn_file_read)(void * file, char * buff, size_t count, size_t addr);
-typedef int (*driver_fs_fn_file_write)(void * file, const char * buff, size_t count, size_t addr);
-typedef int (*driver_fs_fn_file_seek)(void * file, size_t pos, enum DRV_FS_FILE_SEEK_ORIGIN);
-typedef int (*driver_fs_fn_file_tell)(void * file);
+typedef struct _driver_fs_file {
+    struct _driver_fs *         fs;
+    struct _driver_fs_file_stat stat;
+    void *                      drv_data;
+} driver_fs_file_t;
 
-typedef int (*driver_fs_fn_file_stat)(const char * path, driver_fs_file_stat_t *);
+typedef driver_fs_file_t * (*driver_fs_fn_file_open)(driver_fs_t *, const char * path, const char * mode);
+typedef int (*driver_fs_fn_file_close)(driver_fs_file_t * file);
+typedef int (*driver_fs_fn_file_read)(driver_fs_file_t * file, char * buff, size_t count);
+typedef int (*driver_fs_fn_file_write)(driver_fs_file_t * file, const char * buff, size_t count);
+typedef int (*driver_fs_fn_file_seek)(driver_fs_file_t * file, size_t pos, enum DRV_FS_FILE_SEEK_ORIGIN);
+typedef int (*driver_fs_fn_file_tell)(driver_fs_file_t * file);
+typedef int (*driver_fs_fn_file_stat)(driver_fs_t *, const char * path, driver_fs_file_stat_t *);
 
 #endif // DRIVER_FS_FILE_H

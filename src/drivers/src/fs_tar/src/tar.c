@@ -17,12 +17,6 @@ int drv_fs_tar_init() {
 
     drv_register.fs.fn_file_open  = drv_fs_tar_file_open;
     drv_register.fs.fn_file_close = drv_fs_tar_file_close;
-    drv_register.fs.fn_file_stat  = drv_fs_tar_file_stat;
-    drv_register.fs.fn_file_read  = drv_fs_tar_file_read;
-    drv_register.fs.fn_file_write = drv_fs_tar_file_write;
-
-    drv_register.fs.fn_file_open  = drv_fs_tar_file_open;
-    drv_register.fs.fn_file_close = drv_fs_tar_file_close;
     drv_register.fs.fn_file_read  = drv_fs_tar_file_read;
     drv_register.fs.fn_file_write = drv_fs_tar_file_write;
     drv_register.fs.fn_file_seek  = drv_fs_tar_file_seek;
@@ -48,6 +42,15 @@ driver_fs_t * drv_fs_tar_open(driver_disk_t * disk) {
     if (!tar) {
         return 0;
     }
+
+    tar->disk = disk;
+
+    int count = drv_fs_tar_count_files(disk, tar);
+    if (count < 0) {
+        return 0;
+    }
+
+    tar->file_count = count;
 
     if (drv_fs_tar_load_files(disk, tar) < 0) {
         if (tar->files) {
