@@ -1,7 +1,7 @@
 #include "libc/file.h"
 
-#include "memory.h"
 #include "libc/string.h"
+#include "memory.h"
 
 struct _file {
     size_t pos;

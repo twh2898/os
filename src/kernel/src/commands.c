@@ -13,9 +13,9 @@
 #include "drivers/timer.h"
 #include "drivers/vga.h"
 #include "exec.h"
-#include "memory.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
+#include "memory.h"
 #include "term.h"
 
 bool debug = false;
