@@ -7,12 +7,12 @@ print:
 ; the comparison for string end (null byte)
 .start:
     mov al, [bx] ; 'bx' is the base address for the string
-    cmp al, 0 
-    je .done
+    cmp al, 0
+    je  .done
 
     ; the part where we print with the BIOS help
     mov ah, 0x0e
-    int 0x10 ; 'al' already contains the char
+    int 0x10     ; 'al' already contains the char
 
     ; increment pointer and do next loop
     add bx, 1
@@ -24,24 +24,24 @@ print:
 
 print_nl:
     pusha
-    
+
     mov ah, 0x0e
     mov al, 0x0a ; newline char
     int 0x10
     mov al, 0x0d ; carriage return
     int 0x10
-    
+
     popa
     ret
 
 print_hex:
     pusha
-    
+
     xor cx, cx
 
 .loop:
     cmp cx, 4
-    je .stop
+    je  .stop
 
     mov ax, dx
     and ax, 0x000f
@@ -51,16 +51,16 @@ print_hex:
     add al, 7
 
 .number:
-    mov bx, .HEX_OUT + 5
-    sub bx, cx
+    mov bx,   .HEX_OUT + 5
+    sub bx,   cx
     mov [bx], al
-    ror dx, 4
+    ror dx,   4
 
     add cx, 1
     jmp .loop
 
 .stop:
-    mov bx, .HEX_OUT
+    mov  bx, .HEX_OUT
     call print
     popa
     ret

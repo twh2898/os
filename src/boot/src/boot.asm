@@ -1,15 +1,15 @@
 [org 0x7c00]
-DATA equ 0x500
-STACK equ 0x6fff
-SECOND_STAGE equ 0x7e00
+DATA          equ 0x500
+STACK         equ 0x6fff
+SECOND_STAGE  equ 0x7e00
 KERNEL_OFFSET equ 0x8000
 
 ; 1. Save boot drive id
-mov [BOOT_DRIVE], dl
+mov  [BOOT_DRIVE], dl
 
 ; 2. Setup stack
-mov bp, STACK
-mov sp, bp
+mov  bp,           STACK
+mov  sp,           bp
 
 ; 3. Detect memory and store for stage 2 kernel
 call detect_mem
@@ -20,10 +20,10 @@ call load_kernel
 ; 5. Enter protected mode
 cli
 lgdt [gdt_descriptor]
-mov eax, cr0
-or eax, 0x1 ; set 32-bit mode bit in cr0
-mov cr0, eax
-jmp CODE_SEG:init_pm ; far jump by using a different segment
+mov  eax,          cr0
+or   eax,          0x1   ; set 32-bit mode bit in cr0
+mov  cr0,          eax
+jmp  CODE_SEG:init_pm    ; far jump by using a different segment
 
 ; 6. Stop if there are any errors
 halt:
@@ -50,7 +50,7 @@ init_pm: ; we are now using 32-bit instructions
 %include "lib/disk.asm"
 %include "lib/gdt.asm"
 
-BOOT_DRIVE db 0
+BOOT_DRIVE       db 0
 
 times 510-($-$$) db 0
-dw 0xaa55
+dw                  0xaa55

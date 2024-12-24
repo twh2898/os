@@ -1,6 +1,6 @@
-DATA_AREA_LOW equ DATA
+DATA_AREA_LOW   equ DATA
 DATA_AREA_COUNT equ DATA + 2
-DATA_AREA_HIGH equ DATA + 4
+DATA_AREA_HIGH  equ DATA + 4
 
 detect_mem:
     pusha
@@ -8,14 +8,14 @@ detect_mem:
 .lower:
     clc
     int 0x12
-    jc .error
+    jc  .error
 
     mov [DATA_AREA_LOW], ax
 
-    xor ebx, ebx
+    xor ebx,               ebx
     mov [DATA_AREA_COUNT], bx
-    mov es, ebx
-    mov di, DATA_AREA_HIGH
+    mov es,                ebx
+    mov di,                DATA_AREA_HIGH
 
 .upper:
     mov edx, 0x534D4150
@@ -33,11 +33,12 @@ detect_mem:
 
     mov bx, [DATA_AREA_COUNT]
     inc bx
+
     mov [DATA_AREA_COUNT], bx
 
     pop ebx
     cmp ebx, 0
-    je .done
+    je  .done
 
     add di, 24
     jmp .upper
@@ -48,10 +49,10 @@ detect_mem:
     ret
 
 .error:
-    mov bx, .MSG_MEM_ERROR
+    mov  bx, .MSG_MEM_ERROR
     call print
     call print_nl
-    jmp halt
+    jmp  halt
 
 .MSG_MEM_ERROR:
     db "MEMERROR", 0
