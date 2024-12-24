@@ -3,10 +3,6 @@
 
 #include <stddef.h>
 
-typedef struct _ds_arr ds_arr_t;
-
-#include <stddef.h>
-
 typedef struct _ds_arr arr_t;
 
 /**
