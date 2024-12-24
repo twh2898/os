@@ -19,6 +19,8 @@ NO_RETURN void _proc_exit(uint8_t code);
 NO_RETURN void _proc_abort(uint8_t code, const char * msg);
 NO_RETURN void _proc_panic(const char * msg, const char * file, unsigned int line);
 
+void _register_signal(int sig_no, void * callback);
+
 size_t _putc(char c);
 size_t _puts(const char * str);
 

@@ -38,6 +38,10 @@ void _proc_panic(const char * msg, const char * file, unsigned int line) {
     send_interrupt_noret(SYS_INT_PROC_PANIC, msg, file, line);
 }
 
+void _register_signal(int sig_no, void * callback) {
+    send_interrupt(SYS_INT_PROC_REG_SIG, sig_no, callback);
+}
+
 size_t _putc(char c) {
     return send_interrupt(SYS_INT_STDIO_PUTC, c);
 }

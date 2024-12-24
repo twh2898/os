@@ -216,6 +216,10 @@ static uint32_t int_proc_cb(uint16_t int_no, registers_t * regs) {
                 asm("hlt");
             }
         } break;
+
+        case SYS_INT_PROC_REG_SIG: {
+            PANIC("Signals not yet implemented!\n");
+        } break;
     }
 
     return 0;
