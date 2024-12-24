@@ -13,14 +13,15 @@ macro(add_app target)
     add_custom_target(${target}_app
         DEPENDS ${APPS_BASE_DIR}/${target})
 
-    list(APPEND APPS_TARGETS ${target})
+    list(APPEND APPS_TARGETS ${target} ${target}_app)
     set(APPS_TARGETS ${APPS_TARGETS} PARENT_SCOPE)
 endmacro()
 
 add_subdirectory(foo)
 add_subdirectory(bar)
+add_subdirectory(demo)
 
-list(TRANSFORM APPS_TARGETS APPEND _app)
+message("App targets are ${APPS_TARGETS}")
 
 add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/apps.tar
     COMMAND tar -cf ${CMAKE_BINARY_DIR}/apps.tar *
