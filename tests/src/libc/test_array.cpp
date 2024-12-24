@@ -301,7 +301,6 @@ TEST_F(Array, arr_remove_start_only) {
     EXPECT_EQ('b', *(char *)arr_at(arr, 1));
     EXPECT_EQ('c', *(char *)arr_at(arr, 2));
 
-
     EXPECT_NE(0, arr_remove(0, 0, 0));
     EXPECT_NE(0, arr_remove(0, 0, &c));
     EXPECT_EQ(3, arr_size(arr));
