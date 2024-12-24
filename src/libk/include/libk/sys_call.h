@@ -1,5 +1,5 @@
-#ifndef FOO_H
-#define FOO_H
+#ifndef LIBK_SYS_CALL_H
+#define LIBK_SYS_CALL_H
 
 #include <stdarg.h>
 #include <stddef.h>
@@ -24,4 +24,4 @@ void _register_signal(int sig_no, void * callback);
 size_t _putc(char c);
 size_t _puts(const char * str);
 
-#endif // FOO_H
+#endif // LIBK_SYS_CALL_H
