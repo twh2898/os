@@ -195,7 +195,8 @@ static uint32_t int_proc_cb(uint16_t int_no, registers_t * regs) {
         case SYS_INT_PROC_EXIT: {
             uint8_t code = regs->ebx;
             printf("Proc exit with code %u\n", code);
-            kernel_exit();
+            regs->eip = PTR2UINT(term_run);
+            // kernel_exit();
         } break;
 
         case SYS_INT_PROC_ABORT: {
@@ -203,7 +204,8 @@ static uint32_t int_proc_cb(uint16_t int_no, registers_t * regs) {
             const char * msg  = UINT2PTR(regs->ecx);
             printf("Proc exit with code %u\n", code);
             puts(msg);
-            kernel_exit();
+            regs->eip = PTR2UINT(term_run);
+            // kernel_exit();
         } break;
 
         case SYS_INT_PROC_PANIC: {
