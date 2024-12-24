@@ -4,7 +4,9 @@
 # ========
 CROSS_PREFIX ?= "${HOME}"/.local/opt/cross
 GDB = $(CROSS_PREFIX)/bin/i386-elf-gdb
-QEMU = qemu-system-i386 -cpu host -enable-kvm -boot order=a
+# QEMU = qemu-system-i386 -cpu host -enable-kvm -boot order=a
+# Using host cpu will disable debugger
+QEMU = qemu-system-i386 -boot order=a
 
 # QEMUFLAGS = -m 4G -drive format=qcow2,file=drive.img -d int,cpu_reset -D qemu_log.txt -no-reboot
 # QEMUFLAGS = -m 1G -drive format=raw,file=drive.tar -d int,mmu -D qemu_log.txt -no-reboot -no-shutdown
