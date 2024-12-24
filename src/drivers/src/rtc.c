@@ -33,7 +33,7 @@ uint32_t time_s() {
     return ticks / frequency;
 }
 
-static void rtc_callback(registers_t regs) {
+static void rtc_callback(registers_t * regs) {
     port_byte_out(RTC_REG_PORT, RTC_REG_C);
     port_byte_in(RTC_DATA_PORT);
     ticks++;

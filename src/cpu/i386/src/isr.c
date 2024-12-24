@@ -193,7 +193,7 @@ void irq_handler(registers_t r) {
     /* Handle the interrupt in a more modular way */
     if (interrupt_handlers[r.int_no] != 0) {
         isr_t handler = interrupt_handlers[r.int_no];
-        handler(r);
+        handler(&r);
     }
 }
 

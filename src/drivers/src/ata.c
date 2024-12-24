@@ -123,7 +123,7 @@ struct _ata {
     uint32_t sect_count;
 };
 
-static void ata_callback(registers_t regs) {
+static void ata_callback(registers_t * regs) {
     if (debug)
         puts("disk callback\n");
 }

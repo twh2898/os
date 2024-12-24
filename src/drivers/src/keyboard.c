@@ -21,7 +21,7 @@ void keyboard_set_cb(keyboard_cb_t cb) {
     _cb = cb;
 }
 
-static void keyboard_callback(registers_t regs) {
+static void keyboard_callback(registers_t * regs) {
     /* The PIC leaves us the scancode in port 0x60 */
     uint8_t scancode = port_byte_in(0x60);
     uint8_t keycode  = scancode;
