@@ -13,7 +13,3 @@ void proc_abort(uint8_t code, const char * msg) {
 NO_RETURN void proc_panic(const char * msg, const char * file, unsigned int line) {
     _proc_panic(msg, file, line);
 }
-
-void register_signal(int sig_no, void * callback) {
-    _register_signal(sig_no, callback);
-}

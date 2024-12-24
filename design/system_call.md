@@ -30,13 +30,16 @@ An interrupt id is an 8 bit family + an 8 bit id.
 | Process Control | 0x0300 | `void exit(uint8_t code)`                                            |
 |                 | 0x0301 | `void abort(uint8_t code, const char * msg)`                         |
 |                 | 0x0302 | `void panic(const char * msg, const char * file, unsigned int line)` |
-|                 | 0x0303 | `int register_signal(int sig_no, void * callback)`                   |
+|                 | 0x0303 | `int register_signals(void * callback)`                              |
 | Tmp Std I/O     | 0x1000 | `size_t putc(char c)`                                                |
 |                 | 0x1001 | `size_t puts(const char * str)`                                      |
 |                 | 0x1002 | `size_t vprintf(const char * fmt, va_list params)`                   |
 
-# System Interrupts
+# System Signals
 
 These are callbacks from the kernel to the process.
+
+The `register_signals` call will hook a function in libc to receive all signals.
+It will then store all registered callbacks of the process.
 
 TODO - keyboard event
