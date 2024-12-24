@@ -102,7 +102,7 @@ directory.
 | 0x00002000 | 0x00002fff | 0x00001 | 0x00002000    | ram region table                                          |
 | 0x00003000 | 0x00006fff | 0x00004 | 0x00003000    | Stack                                                     |
 | 0x00007000 | 0x0009efff | 0x00098 | 0x00007000    | Kernel (from 0x7e00 to 0x9efff)                           |
-| 0x0009f000 | 0x000b7fff | 0x00019 |               | Unused                                                    |
+| 0x0009f000 | 0x000b7fff | 0x00019 |               | ISR/TSS Stack                                             |
 | 0x000b8000 | 0x000b8fff | 0x00001 | 0x000b8000    | VGA Memory                                                |
 | 0x000b9000 | 0x002b9fff | 0x00200 |               | ram region bitmasks                                       |
 | 0x002ba000 | 0x003fffff | 0x00146 |               | _free memory for kmalloc (remainder of first page table)_ |

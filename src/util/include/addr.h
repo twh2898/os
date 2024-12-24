@@ -27,6 +27,8 @@ typedef void * v_ptr_t;
 #define VADDR_RAM_TABLE PADDR_RAM_TABLE
 #define VADDR_STACK     PADDR_STACK
 #define VADDR_KERNEL    PADDR_KERNEL
+#define VADDR_ISR_STACK 0x9f000
+#define VADDR_ISR_EBP   0xb7fff
 #define VADDR_VGA       PADDR_VGA
 
 // Physical address allocated at runtime

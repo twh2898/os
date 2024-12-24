@@ -75,7 +75,16 @@ static void irq_install() {
     init_rtc(RTC_RATE_1024_HZ);
 }
 
-static void id_map(mmu_page_table_t * table, size_t start, size_t end) {
+static void map_addr(mmu_page_dir_t * pdir, uint32_t vaddr, uint32_t paddr) {
+    size_t page_i  = ADDR2PAGE(vaddr);
+    size_t table_i = page_i / 1024;
+    page_i         = page_i % 1024;
+
+    mmu_page_table_t * table = mmu_dir_get_table(pdir, table_i);
+    mmu_table_set(table, page_i, vaddr, MMU_TABLE_RW);
+}
+
+static void id_map_range(mmu_page_table_t * table, size_t start, size_t end) {
     if (end > 1023) {
         PANIC("End is past table limits");
         end = 1023;
@@ -97,7 +106,7 @@ static void map_virt_page_dir(mmu_page_dir_t * dir) {
     mmu_table_set(firstTable, 0, 0, 0);
 
     // Kernel
-    id_map(firstTable, 1, 0x9e);
+    id_map_range(firstTable, 1, 0x9e);
 
     /* SKIP UNUSED MEMORY */
 
@@ -124,10 +133,18 @@ static void map_virt_page_dir(mmu_page_dir_t * dir) {
     mmu_table_set(lastTable, PAGE_TABLE_SIZE - 1, PTR2UINT(lastTable), MMU_TABLE_RW);
 }
 
+static void setup_isr_stack(mmu_page_dir_t * pdir) {
+    for (size_t i = 0; i < 0x19; i++) {
+        void * new_page = ram_page_alloc();
+        map_addr(pdir, VADDR_ISR_STACK + i * PAGE_SIZE, PTR2UINT(new_page));
+    }
+}
+
 static mmu_page_dir_t * enter_paging() {
     mmu_page_dir_t * pdir = mmu_dir_create((void *)PADDR_PAGE_DIR);
     map_virt_page_dir(pdir);
     mmu_enable_paging(pdir);
+    setup_isr_stack(pdir);
     return pdir;
 }
 
@@ -261,7 +278,7 @@ void kernel_main() {
     init_malloc(pdir, VADDR_FREE_MEM_KERNEL >> 12);
 
     init_gdt();
-    // init_tss();
+    init_tss(VADDR_ISR_EBP, PTR2UINT(pdir));
 
     // check_malloc();
 
