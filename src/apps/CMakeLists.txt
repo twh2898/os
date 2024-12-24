@@ -20,6 +20,7 @@ endmacro()
 add_subdirectory(foo)
 add_subdirectory(bar)
 add_subdirectory(demo)
+add_subdirectory(shell)
 
 message("App targets are ${APPS_TARGETS}")
 
