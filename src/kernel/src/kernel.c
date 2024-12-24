@@ -18,6 +18,7 @@
 #include "libc/string.h"
 #include "libk/defs.h"
 #include "memory.h"
+#include "proc.h"
 #include "term.h"
 
 void cursor() {
@@ -81,7 +82,8 @@ static void map_addr(mmu_page_dir_t * pdir, uint32_t vaddr, uint32_t paddr) {
     page_i         = page_i % 1024;
 
     mmu_page_table_t * table = mmu_dir_get_table(pdir, table_i);
-    mmu_table_set(table, page_i, vaddr, MMU_TABLE_RW);
+    mmu_dir_set_flags(pdir, table_i, mmu_dir_get_flags(pdir, table_i) | MMU_PAGE_DIR_FLAG_USER_SUPERVISOR);
+    mmu_table_set(table, page_i, vaddr, MMU_TABLE_RW | MMU_PAGE_TABLE_FLAG_USER_SUPERVISOR);
 }
 
 static void id_map_range(mmu_page_table_t * table, size_t start, size_t end) {
@@ -100,7 +102,7 @@ static void map_virt_page_dir(mmu_page_dir_t * dir) {
     mmu_page_table_t * firstTable = init_ram(UINT2PTR(PADDR_RAM_TABLE), &ram_table_count);
     // printf("First table is at 0x%x\n", PTR2UINT(firstTable));
     mmu_table_create(firstTable);
-    mmu_dir_set(dir, 0, firstTable, MMU_DIR_RW);
+    mmu_dir_set(dir, 0, firstTable, MMU_DIR_RW | MMU_PAGE_DIR_FLAG_USER_SUPERVISOR);
 
     // null page 0
     mmu_table_set(firstTable, 0, 0, 0);
@@ -111,7 +113,7 @@ static void map_virt_page_dir(mmu_page_dir_t * dir) {
     /* SKIP UNUSED MEMORY */
 
     // VGA
-    mmu_table_set(firstTable, 0xb8, PADDR_VGA, MMU_TABLE_RW);
+    mmu_table_set(firstTable, 0xb8, PADDR_VGA, MMU_TABLE_RW | MMU_PAGE_TABLE_FLAG_USER_SUPERVISOR);
 
     // RAM region bitmasks
     for (size_t i = 0; i < ram_table_count; i++) {
@@ -291,6 +293,16 @@ void kernel_main() {
     term_command_add("exit", kill);
 
     ramdisk_create(4096);
+
+    process_t * proc = proc_new(PTR2UINT(term_run),
+                                VADDR_ISR_EBP,
+                                PTR2UINT(pdir),
+                                0x10,
+                                3,
+                                "abcd",
+                                1);
+
+    // switch_to_task(proc);
 
     // jump_usermode(term_run);
     jump_kernel_mode(term_run);

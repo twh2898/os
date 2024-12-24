@@ -57,13 +57,15 @@ jump_usermode:
 ;
 ;WARNING: Caller is expected to disable IRQs before calling, and enable IRQs again after function returns
 
-TCB_ESP equ 4
-TCB_CR3 equ 8
-TCB_ESP0 equ 12
-TSS_ESP0 equ 16
+TCB_EIP equ 4
+TCB_ESP equ 8
+TCB_CR3 equ 12
+TCB_ESP0 equ 16
+TSS_ESP0 equ 20
 
 current_task_TCB: dd 0
 
+global switch_to_task
 switch_to_task:
 
     ;Save previous task's state
