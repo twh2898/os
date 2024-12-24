@@ -34,6 +34,13 @@ unit_test(
 )
 
 unit_test(
+    TARGET test_libc_signal
+    TEST_FILES test_signal.cpp
+    TARGET_FILES libc/src/signal.c
+    INCLUDE_DIRS libc/include libk/include
+)
+
+unit_test(
     TARGET test_libc_string
     TEST_FILES test_string.cpp
     TARGET_FILES libc/src/string.c
