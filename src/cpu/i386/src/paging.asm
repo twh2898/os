@@ -46,11 +46,8 @@ mmu_change_dir:
 ; mmu_page_dir_t * mmu_get_curr_dir()
 global mmu_get_curr_dir
 mmu_get_curr_dir:
-    pusha
-
     mov eax, cr3
     shr eax, 12
     shl eax, 12
 
-    popa
     ret
