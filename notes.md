@@ -93,6 +93,22 @@ section once they are finished.
   - [x] sys_call.h
 - [ ] Move drivers and other os level code out of kernel (only keep essentials)
 
+## TSS / Process
+
+In an effort to reach ring 3, there are a few required systems to setup.
+
+TSS needs a kernel stack. The space between the vga page and kernel code, there
+will exist the kernel stack for TSS / interrupts.
+
+### Tasks
+
+- [ ] Setup kernel stack pages bellow VGA memory
+  - [ ] Assign TSS
+- [ ] Function to create a new process struct
+  - [ ] Create page directory
+  - [ ] Copy kernel tables
+  - [ ] Point malloc to here
+
 ## _Template Task_
 
 Description of task and any relevant details / information.
