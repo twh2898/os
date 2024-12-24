@@ -88,8 +88,6 @@ void init_gdt() {
     gdt_set(GDT_ENTRY_INDEX_USER_TSS, 0, 0xfffff, GDT_PRESET_USER_TSS_ACCESS, GDT_PRESET_USER_TSS_FLAGS);
 
     load_gdt(GDT_N * 64 - 1, PTR2UINT(gdt));
-
-    // flush_tss();
 }
 
 size_t gdt_entry_count() {
