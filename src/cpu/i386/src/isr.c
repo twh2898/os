@@ -120,11 +120,15 @@ char * exception_messages[] = {
 };
 
 void isr_handler(registers_t r) {
-    printf("%s\n", exception_messages[r.int_no]);
-    printf("ISR %u (err 0x%X)\n", r.int_no, r.err_code);
     print_trace(&r);
+    printf("ISR %u (err 0x%X)\n", r.int_no, r.err_code);
+    printf("%s\n", exception_messages[r.int_no]);
     switch (r.int_no) {
+        case 13: {
+            printf("Tried to access address %p\n", r.eax);
+        } break;
         case 14: {
+            printf("Tried to access address: %p\n", r.eax);
             switch (r.err_code) {
                 case 0:
                     puts("Supervisory process tried to read a non-present page entry\n");
