@@ -36,22 +36,6 @@ void test_interrupt() {
     asm volatile("int $3");
 }
 
-int demo(size_t argc, char ** argv) {
-    printf("Lets demo some cool features of printf\n");
-    int len = printf("Like the percent sign %%, \na signed int %d, a signed int with width formatting %4d, \nleading zeros %04d, left align %-4d\n", 10, 10, 10, 10);
-    len += printf("How about negative numbers: signed %d and unsigned %u\n", -10, -10);
-    len += printf("Now for non decimal 0x%04x and 0x%04X or octal %o\n", 1234, 1234, 1234);
-    len += printf("There's booleans to %b and chars like %c and strings like %s\n", true, 'c', "this");
-    int store = 0;
-    len += printf("The last part is pointers %8p\n", &store);
-
-    void * data = impl_kmalloc(10);
-
-    printf("\nMalloc memory got pointer %p\n", data);
-    printf("Float number %f or shorter %3f or digits %.4f or lead %.04f\n", 3.14, 31.45, 3.14, 3.14);
-    printf("%f\n", 12345678.0);
-}
-
 void key_cb(uint8_t code, char c, keyboard_event_t event, keyboard_mod_t mod) {
     if (event != KEY_EVENT_RELEASE && c) {
         putc(c);
@@ -289,7 +273,6 @@ void kernel_main() {
     term_init();
     commands_init();
 
-    term_command_add("demo", demo);
     term_command_add("exit", kill);
 
     ramdisk_create(4096);
