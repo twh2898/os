@@ -1,5 +1,3 @@
-DATA_AREA_G equ DATA
-
 align 4
 gdt_start: ; don't remove the labels, they're needed to compute sizes and jumps
 

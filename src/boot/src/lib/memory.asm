@@ -1,6 +1,6 @@
-DATA_AREA_LOW equ DATA + 4
-DATA_AREA_COUNT equ DATA + 6
-DATA_AREA_HIGH equ DATA + 8
+DATA_AREA_LOW equ DATA
+DATA_AREA_COUNT equ DATA + 2
+DATA_AREA_HIGH equ DATA + 4
 
 detect_mem:
     pusha
