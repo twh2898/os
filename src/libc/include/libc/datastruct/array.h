@@ -76,7 +76,7 @@ int arr_set(arr_t * arr, size_t i, const void * item);
 int arr_get(arr_t * arr, size_t i, void * item);
 
 /**
- * @brief Add an element to the end of the array.
+ * @brief Add an element to the array.
  *
  * If there is no space in the array, a new internal array will be allocated
  * with a copy of the current contents.
@@ -89,10 +89,10 @@ int arr_get(arr_t * arr, size_t i, void * item);
 int arr_insert(arr_t * arr, size_t i, const void * item);
 
 /**
- * @brief Remove an element from the back of the array.
+ * @brief Remove an element from the array.
  *
- * If `item` is not 0, the value of the first element will be copied to item
- * before poping.
+ * If `item` is not 0, the value of the element will be copied to item before
+ * removing.
  *
  * @param arr pointer to the array
  * @param i array index
