@@ -10,7 +10,6 @@ extern "C" {
 FAKE_VOID_FUNC(_proc_exit, uint8_t);
 FAKE_VOID_FUNC(_proc_abort, uint8_t, const char *);
 FAKE_VOID_FUNC(_proc_panic, const char *, const char *, unsigned int);
-FAKE_VOID_FUNC(_register_signal, int, void *);
 
 void * custom_malloc(size_t size) {
     return malloc(size);
