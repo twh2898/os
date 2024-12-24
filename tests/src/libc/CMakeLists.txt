@@ -13,6 +13,13 @@ unit_test(
 )
 
 unit_test(
+    TARGET test_libc_array
+    TEST_FILES test_array.cpp
+    TARGET_FILES libc/src/array.c
+    INCLUDE_DIRS libc/include
+)
+
+unit_test(
     TARGET test_libc_memory
     TEST_FILES test_memory.cpp
     TARGET_FILES libc/src/memory.c
