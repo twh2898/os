@@ -5,6 +5,7 @@ global __start
 __start:
     call kernel_main ; Calls the C function. The linker will know where it is placed in memory
 
+; If the kernel ever returns, halt
 halt:
     cli
     hlt
@@ -15,13 +16,13 @@ halt:
 ; void jump_kernel_mode(void * fn);
 global jump_kernel_mode
 jump_kernel_mode:
-    mov eax, [esp+4]
-    mov [exit.cb], eax
+    mov eax,   [esp+4]
+    mov [.cb], eax
 
-    mov eax, exit
+    mov  eax, .exit
     push eax
 
-    mov eax, cr3
+    mov  eax, cr3
     push eax
 
     push ebp
@@ -30,7 +31,7 @@ jump_kernel_mode:
 
     call register_kernel_exit
 
-exit:
+.exit:
     call [.cb]
 
     ret
