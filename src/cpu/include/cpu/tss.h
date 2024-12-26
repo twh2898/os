@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-typedef struct {
+typedef struct _tss_entry {
     uint16_t prev_tss;
     uint16_t __res1;
     uint32_t esp0;
