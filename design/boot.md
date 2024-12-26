@@ -17,12 +17,12 @@ are included.
 Execution of the first 512 bytes "boot sector".
 
 1. Store boot drive id
-2. Setup stage 1 stack at 0x06fff
+2. Setup stage 1 stack at 0x6fff
 3. Read memory map to 0x500
-4. Read stage 2 from boot drive to 0x07e00
+4. Read stage 2 from boot drive to 0x7e00
 5. Setup GDT
 7. Switch to protected mode
-8. Jump to 0x07e00
+8. Jump to 0x7e00
 
 ## Stage 2 - Kernel
 
