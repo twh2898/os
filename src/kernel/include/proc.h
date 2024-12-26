@@ -12,13 +12,17 @@ enum PROCESS_FLAGS {
     PROCESS_FLAGS_DEAD   = 0x4,
 };
 
+typedef void (*signals_master_callback)(int);
+
 typedef struct _process {
     uint32_t eip;
     uint32_t esp;
     uint32_t cr3;
     uint32_t ss0;
     uint16_t pid;
-    arr_t *  pages; // array<void *> pages owned by this procs page dir (not including special or kernel)
+    arr_t *  pages; // array<uint32_t> pages paddr owned by this procs page dir (not including special or kernel)
+
+    signals_master_callback sys_call_callback;
 
     struct _process * next_proc;
 } process_t;
@@ -26,6 +30,8 @@ typedef struct _process {
 process_t * proc_new(void * fn, uint32_t ss0);
 process_t * proc_from_ptr(uint32_t eip, uint32_t esp, uint32_t cr3, uint32_t ss0);
 void        proc_free(process_t * proc);
+
+int proc_add_page(process_t * proc, uint32_t page_i, uint32_t paddr);
 
 extern void set_first_task(process_t * next_proc);
 extern void switch_to_task(process_t * next_proc);

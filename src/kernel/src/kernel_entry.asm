@@ -6,6 +6,7 @@ __start:
     call kernel_main ; Calls the C function. The linker will know where it is placed in memory
 
 ; If the kernel ever returns, halt
+global halt
 halt:
     cli
     hlt

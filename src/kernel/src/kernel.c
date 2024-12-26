@@ -1,3 +1,5 @@
+#include "kernel.h"
+
 #include "commands.h"
 #include "cpu/gdt.h"
 #include "cpu/isr.h"
@@ -20,6 +22,17 @@
 #include "memory.h"
 #include "proc.h"
 #include "term.h"
+
+static kernel_t kernel;
+
+int kernel_init(kernel_t * kernel) {
+    if (!kernel
+        || !kmemset(kernel, 0, sizeof(kernel_t))) {
+        return -1;
+    }
+
+    return 0;
+}
 
 void cursor() {
     vga_cursor(3, 3);
@@ -174,9 +187,6 @@ static uint32_t int_mem_cb(uint16_t int_no, registers_t * regs) {
     return res;
 }
 
-typedef void (*signals_master_callback)(int);
-static signals_master_callback master_callback;
-
 static uint32_t int_proc_cb(uint16_t int_no, registers_t * regs) {
     uint32_t res = 0;
 
@@ -221,8 +231,8 @@ static uint32_t int_proc_cb(uint16_t int_no, registers_t * regs) {
         } break;
 
         case SYS_INT_PROC_REG_SIG: {
-            master_callback = (signals_master_callback)regs->ebx;
-            printf("Attached master signal callback at %p\n", master_callback);
+            kernel.pm.curr_task->sys_call_callback = (signals_master_callback)regs->ebx;
+            printf("Attached master signal callback at %p\n", kernel.pm.curr_task->sys_call_callback);
         } break;
     }
 
@@ -263,11 +273,26 @@ static int try_switch(size_t argc, char ** argv) {
 
 extern void jump_kernel_mode(void * fn);
 
+extern _Noreturn void halt(void);
+
 void kernel_main() {
     init_vga(UINT2PTR(PADDR_VGA));
     vga_clear();
+    vga_print("Welcome to kernel v..\n");
 
-    master_callback = 0;
+    if (kernel_init(&kernel) != 0) {
+        vga_color(VGA_RED_ON_WHITE);
+        vga_print("KERNEL INIT FAILED");
+        halt();
+    }
+
+    // TODO where does kernel
+
+    mmu_page_dir_t * pdir = enter_paging();
+    init_malloc(pdir, VADDR_FREE_MEM_KERNEL >> 12);
+
+    init_gdt();
+    init_tss(VADDR_ISR_EBP, PTR2UINT(pdir));
 
     isr_install();
     irq_install();
@@ -276,14 +301,6 @@ void kernel_main() {
     system_interrupt_register(SYS_INT_FAMILY_MEM, int_mem_cb);
     system_interrupt_register(SYS_INT_FAMILY_PROC, int_proc_cb);
     system_interrupt_register(SYS_INT_FAMILY_STDIO, int_tmp_stdio_cb);
-
-    vga_print("Welcome to kernel v..\n");
-
-    mmu_page_dir_t * pdir = enter_paging();
-    init_malloc(pdir, VADDR_FREE_MEM_KERNEL >> 12);
-
-    init_gdt();
-    init_tss(VADDR_ISR_EBP, PTR2UINT(pdir));
 
     // check_malloc();
 
