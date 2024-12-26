@@ -37,7 +37,7 @@ static void callback(registers_t * regs) {
         res = handler(int_no, regs);
     }
     else {
-        vga_print("Unknown interrupt: 0x");
+        vga_puts("Unknown interrupt: 0x");
         vga_putx(int_no);
         // print_trace(&regs);
         PANIC("UNKNOWN INTERRUPT");

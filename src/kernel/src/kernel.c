@@ -212,16 +212,16 @@ static uint32_t int_proc_cb(uint16_t int_no, registers_t * regs) {
             const char * file = UINT2PTR(regs->ecx);
             unsigned int line = regs->edx;
             vga_color(VGA_FG_WHITE | VGA_BG_RED);
-            vga_print("[PANIC]");
+            vga_puts("[PANIC]");
             if (file) {
                 vga_putc('[');
-                vga_print(file);
-                vga_print("]:");
+                vga_puts(file);
+                vga_puts("]:");
                 vga_putu(line);
             }
             if (msg) {
                 vga_putc(' ');
-                vga_print(msg);
+                vga_puts(msg);
             }
             vga_cursor_hide();
             asm("cli");
@@ -250,7 +250,7 @@ static uint32_t int_tmp_stdio_cb(uint16_t int_no, registers_t * regs) {
 
         case SYS_INT_STDIO_PUTS: {
             char * str = UINT2PTR(regs->ebx);
-            res        = vga_print(str);
+            res        = vga_puts(str);
         } break;
     }
 
@@ -278,11 +278,11 @@ extern _Noreturn void halt(void);
 void kernel_main() {
     init_vga(UINT2PTR(PADDR_VGA));
     vga_clear();
-    vga_print("Welcome to kernel v..\n");
+    vga_puts("Welcome to kernel v..\n");
 
     if (kernel_init(&kernel) != 0) {
         vga_color(VGA_RED_ON_WHITE);
-        vga_print("KERNEL INIT FAILED");
+        vga_puts("KERNEL INIT FAILED");
         halt();
     }
 

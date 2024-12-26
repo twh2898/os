@@ -122,7 +122,7 @@ size_t vga_putc(char c) {
     return ret;
 }
 
-size_t vga_print(const char * str) {
+size_t vga_puts(const char * str) {
     if (!str)
         return 0;
 

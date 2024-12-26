@@ -149,12 +149,12 @@ void term_update() {
     circbuff_pop(keybuff);
 
     vga_color(RESET);
-    vga_print("> ");
+    vga_puts("> ");
 }
 
 void term_run() {
     vga_color(RESET);
-    vga_print("> ");
+    vga_puts("> ");
 
     for (;;) {
         term_update();

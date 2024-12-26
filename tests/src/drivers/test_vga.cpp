@@ -180,12 +180,12 @@ TEST_F(VGA, vga_putc) {
     // TODO test shift lines
 }
 
-TEST_F(VGA, vga_print) {
-    vga_print(0);
+TEST_F(VGA, vga_puts) {
+    vga_puts(0);
     EXPECT_EQ(0, vga_cursor_row());
     EXPECT_EQ(0, vga_cursor_col());
 
-    vga_print("ab");
+    vga_puts("ab");
 
     EXPECT_EQ('a', buff[0]);
     EXPECT_EQ(7, buff[1]);
