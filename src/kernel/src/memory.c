@@ -119,7 +119,7 @@ void impl_kfree(void * ptr) {
 }
 
 static void * add_page() {
-    void * ram_page_paddr = ram_page_alloc();
+    uint32_t ram_page_paddr = ram_page_alloc();
 
     size_t table = next_page / 1024;
     size_t cell  = next_page % 1024;
@@ -128,17 +128,17 @@ static void * add_page() {
 
     uint8_t flags = mmu_dir_get_flags(pdir, table);
     if (!(flags & MMU_PAGE_DIR_FLAG_PRESENT)) {
-        void * new_table_page_paddr = ram_page_alloc();
+        uint32_t new_table_page_paddr = ram_page_alloc();
 
         mmu_page_table_t * last_table = mmu_dir_get_table(pdir, PAGE_DIR_SIZE - 1);
-        mmu_table_set(last_table, table, PTR2UINT(new_table_page_paddr), MMU_TABLE_RW);
+        mmu_table_set(last_table, table, new_table_page_paddr, MMU_TABLE_RW);
 
         mmu_page_table_t * app_table = mmu_dir_get_table(pdir, table);
         mmu_table_create(app_table);
     }
 
     mmu_page_table_t * ptable = mmu_dir_get_table(pdir, table);
-    mmu_table_set(ptable, cell, PTR2UINT(ram_page_paddr), MMU_TABLE_RW);
+    mmu_table_set(ptable, cell, ram_page_paddr, MMU_TABLE_RW);
 
     next_page++;
     return page_vaddr;

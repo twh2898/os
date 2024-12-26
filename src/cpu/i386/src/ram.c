@@ -110,7 +110,7 @@ uint32_t ram_bitmask_vaddr(size_t region_index) {
     return 0;
 }
 
-void * ram_page_alloc() {
+uint32_t ram_page_alloc() {
     for (size_t i = 0; i < REGION_TABLE_SIZE; i++) {
         uint8_t flag = region_table->entries[i].addr_flags & MASK_FLAGS;
         if (flag & REGION_TABLE_FLAG_PRESENT && region_table->entries[i].free_count) {
@@ -121,20 +121,20 @@ void * ram_page_alloc() {
             set_bitmask(i, bit, false);
             region_table->entries[i].free_count--;
             uint32_t page_addr = ram_bitmask_paddr(i) + bit * PAGE_SIZE;
-            return (void *)page_addr;
+            return page_addr;
         }
     }
 
     return 0;
 }
 
-void ram_page_free(void * addr) {
-    size_t                 region_index = find_addr_entry((uint32_t)addr);
+void ram_page_free(uint32_t addr) {
+    size_t                 region_index = find_addr_entry(addr);
     region_table_entry_t * region       = &region_table->entries[region_index];
     if (!region)
         return;
 
-    uint16_t bit = find_addr_bit(region_index, (uint32_t)addr);
+    uint16_t bit = find_addr_bit(region_index, addr);
     if (!bit)
         return;
 

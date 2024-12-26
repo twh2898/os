@@ -26,7 +26,7 @@ void mmu_dir_clear(mmu_page_dir_t * dir) {
 
 void mmu_dir_free(mmu_page_dir_t * dir) {
     mmu_dir_clear(dir);
-    ram_page_free(dir);
+    ram_page_free(PTR2UINT(dir));
 }
 
 mmu_page_table_t * mmu_table_create(void * addr) {
@@ -44,14 +44,14 @@ void mmu_table_clear(mmu_page_table_t * table) {
     for (size_t i = 0; i < PAGE_TABLE_SIZE; i++) {
         if (table->entries[i] & MMU_PAGE_TABLE_FLAG_PRESENT) {
             uint32_t page_addr = table->entries[i] & MASK_ADDR;
-            ram_page_free((void *)page_addr);
+            ram_page_free(page_addr);
         }
     }
 }
 
 void mmu_table_free(mmu_page_table_t * table) {
     mmu_table_clear(table);
-    ram_page_free(table);
+    ram_page_free(PTR2UINT(table));
 }
 
 void mmu_dir_set_table(mmu_page_dir_t * dir, size_t i, mmu_page_table_t * table) {
@@ -125,8 +125,8 @@ void mmu_dir_map_paddr(mmu_page_dir_t *         dir,
     table_i        = table_i % 1024;
 
     if (!(mmu_dir_get_flags(dir, table_i) & MMU_PAGE_DIR_FLAG_PRESENT)) {
-        void * new_table = ram_page_alloc();
-        mmu_dir_set(dir, dir_i, new_table, dir_flags);
+        uint32_t new_table = ram_page_alloc();
+        mmu_dir_set(dir, dir_i, (mmu_page_table_t *)new_table, dir_flags);
     }
     mmu_dir_set_flags(dir, dir_i, dir_flags);
 

@@ -121,8 +121,8 @@ static void map_virt_page_dir(mmu_page_dir_t * dir) {
 
 static void setup_isr_stack(mmu_page_dir_t * pdir) {
     for (size_t i = 0; i < 0x19; i++) {
-        void * new_page = ram_page_alloc();
-        map_addr(pdir, VADDR_ISR_STACK + i * PAGE_SIZE, PTR2UINT(new_page));
+        uint32_t new_page = ram_page_alloc();
+        map_addr(pdir, VADDR_ISR_STACK + i * PAGE_SIZE, new_page);
     }
 }
 
@@ -135,17 +135,17 @@ static mmu_page_dir_t * enter_paging() {
 }
 
 static void check_malloc() {
-    void * a = ram_page_alloc();
-    void * b = ram_page_alloc();
+    uint32_t a = ram_page_alloc();
+    uint32_t b = ram_page_alloc();
 
-    printf("Ram page alloc gave 0x%x and 0x%X\n", PTR2UINT(a), PTR2UINT(b));
+    printf("Ram page alloc gave 0x%x and 0x%X\n", a, b);
 
     void * c = impl_kmalloc(1);
     void * d = impl_kmalloc(1);
 
     printf("Malloc gave vaddr %p and %p\n", c, d);
 
-    void * e = ram_page_alloc();
+    uint32_t e = ram_page_alloc();
 
     printf("Ram page alloc gave %p\n", e);
 }

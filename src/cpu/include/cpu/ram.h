@@ -35,13 +35,13 @@ uint32_t ram_bitmask_vaddr(size_t region_index);
  Same as found in Page Table entry.
  0 is error
  */
-void * ram_page_alloc();
+uint32_t ram_page_alloc();
 
 /*
  Bits 12 - 31 of memory address (ie. page aligned pointer)
  Same as found in Page Table entry.
  0 is error
  */
-void ram_page_free(void * addr);
+void ram_page_free(uint32_t addr);
 
 #endif // RAM_H

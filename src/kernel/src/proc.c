@@ -6,7 +6,7 @@
 #include "memory.h"
 
 static mmu_page_dir_t * make_user_page_dir(mmu_page_dir_t *);
-void *                  tmp_map(void * paddr, size_t i);
+void *                  tmp_map(uint32_t paddr, size_t i);
 
 process_t * proc_new(void * fn, uint32_t ss0) {
     process_t * proc = impl_kmalloc(sizeof(process_t));
@@ -48,7 +48,7 @@ void proc_free(process_t * proc) {
         for (size_t i = 0; i < arr_size(proc->pages); i++) {
             void * paddr;
             arr_get(proc->pages, i, &paddr);
-            ram_page_free(paddr);
+            ram_page_free(PTR2UINT(paddr));
         }
         arr_free(proc->pages);
         impl_kfree(proc);
@@ -104,25 +104,25 @@ static int id_map_range(mmu_page_table_t * table, size_t start, size_t end) {
 }
 
 static mmu_page_dir_t * make_user_page_dir(mmu_page_dir_t * curr_dir) {
-    void * new_dir_page   = ram_page_alloc();
-    void * new_table_page = ram_page_alloc();
+    uint32_t new_dir_page   = ram_page_alloc();
+    uint32_t new_table_page = ram_page_alloc();
 
     mmu_page_dir_t * dir = mmu_dir_create(tmp_map(new_dir_page, 0));
-    mmu_dir_set(dir, 0, new_table_page, MMU_DIR_RW);
+    mmu_dir_set(dir, 0, (mmu_page_table_t *)new_table_page, MMU_DIR_RW);
 
     mmu_page_table_t * table_1 = mmu_table_create(tmp_map(new_table_page, 1));
 
     mmu_page_table_t * curr_table = mmu_dir_get_table(curr_dir, 0);
 
-    mmu_table_set(table_1, 1, PTR2UINT(new_dir_page), MMU_TABLE_RW);
+    mmu_table_set(table_1, 1, new_dir_page, MMU_TABLE_RW);
     id_map_range(table_1, 2, 0x9e);
 
     // TODO pages for stack
 
-    return new_dir_page;
+    return (mmu_page_dir_t *)new_dir_page;
 }
 
-void * tmp_map(void * paddr, size_t i) {
+void * tmp_map(uint32_t paddr, size_t i) {
     if (i >= VADDR_TMP_PAGE_COUNT) {
         return 0;
     }
@@ -131,6 +131,6 @@ void * tmp_map(void * paddr, size_t i) {
 
     mmu_page_dir_t *   dir   = mmu_get_curr_dir();
     mmu_page_table_t * table = mmu_dir_get_table(dir, table_i);
-    mmu_table_set(table, table_i, PTR2UINT(paddr), MMU_TABLE_RW_USER);
+    mmu_table_set(table, table_i, paddr, MMU_TABLE_RW_USER);
     return UINT2PTR(PAGE2ADDR(table_i));
 }
