@@ -119,7 +119,6 @@ Applications / processes require access to less of the memory than the kernel.
 With the use of interrupts for system calls and page directories for each
 process,
 
-
 ## Physical Allocator (`ram.h`)
 
 Physical pages are tracked by a region table. The region table has on entry

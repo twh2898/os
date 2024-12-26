@@ -294,14 +294,14 @@ void kernel_main() {
 
     ramdisk_create(4096);
 
-    process_t * idle_task = proc_new(term_run, 0x10);
+    // process_t * idle_task = proc_new(term_run, 0x10);
 
-    proc_man_t * pm = proc_man_new();
-    proc_man_set_idle(pm, idle_task);
+    // proc_man_t * pm = proc_man_new();
+    // proc_man_set_idle(pm, idle_task);
 
-    proc = proc_new(try_switch, 0x10);
+    // proc = proc_new(try_switch, 0x10);
 
-    set_first_task(proc);
+    // set_first_task(proc);
 
     // switch_to_task(proc);
 
