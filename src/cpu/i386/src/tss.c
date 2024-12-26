@@ -7,15 +7,11 @@
 #define TSS_N 2
 tss_entry_t tss_stack[TSS_N];
 
-void init_tss(uint32_t ebp, uint32_t cr3) {
+void init_tss() {
     kmemset(tss_stack, 0, sizeof(tss_stack));
 
     gdt_set_base(GDT_ENTRY_INDEX_KERNEL_TSS, PTR2UINT(&tss_stack[0]));
     gdt_set_base(GDT_ENTRY_INDEX_USER_TSS, PTR2UINT(&tss_stack[1]));
-
-    tss_stack[0].ss0  = 0x10;
-    tss_stack[0].esp0 = ebp;
-    tss_stack[0].cr3  = cr3;
 
     flush_tss();
 }

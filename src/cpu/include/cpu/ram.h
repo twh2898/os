@@ -13,7 +13,7 @@ enum RAM_TYPE {
 
 // THIS IS IN PHYSICAL ADDRESS SPACE NOT VIRTUAL
 // Returns pointer to the pre-allocated pages (first page table, last page table, )
-void * init_ram(void * ram_table, size_t * ram_table_count);
+void ram_init(void * ram_table, size_t * ram_table_count);
 
 uint16_t ram_lower_size();
 
@@ -36,6 +36,9 @@ uint32_t ram_bitmask_vaddr(size_t region_index);
  0 is error
  */
 uint32_t ram_page_alloc();
+
+// Allocate in physical address space (before paging)
+uint32_t ram_page_palloc();
 
 /*
  Bits 12 - 31 of memory address (ie. page aligned pointer)

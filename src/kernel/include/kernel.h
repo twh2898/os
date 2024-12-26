@@ -7,7 +7,9 @@
 #include "proc.h"
 
 typedef struct _kernel {
-    void *     ram_table;
+    uint32_t   ram_table;
+    size_t     ram_table_count;
+    uint32_t   cr3;
     proc_man_t pm;
 } kernel_t;
 

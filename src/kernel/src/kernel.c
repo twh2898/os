@@ -23,7 +23,13 @@
 #include "proc.h"
 #include "term.h"
 
-static kernel_t kernel;
+static kernel_t __kernel;
+
+extern _Noreturn void halt(void);
+
+static void map_first_table(mmu_page_table_t * table);
+static void id_map_range(mmu_page_table_t * table, size_t start, size_t end);
+static void id_map_page(mmu_page_table_t * table, size_t page);
 
 int kernel_init(kernel_t * kernel) {
     if (!kernel
@@ -71,80 +77,6 @@ static void irq_install() {
     init_ata();
     /* IRQ8: real time clock */
     init_rtc(RTC_RATE_1024_HZ);
-}
-
-static void map_addr(mmu_page_dir_t * pdir, uint32_t vaddr, uint32_t paddr) {
-    size_t page_i  = ADDR2PAGE(vaddr);
-    size_t table_i = page_i / 1024;
-    page_i         = page_i % 1024;
-
-    mmu_page_table_t * table = mmu_dir_get_table(pdir, table_i);
-    mmu_dir_set_flags(pdir, table_i, mmu_dir_get_flags(pdir, table_i) | MMU_PAGE_DIR_FLAG_USER_SUPERVISOR);
-    mmu_table_set(table, page_i, vaddr, MMU_TABLE_RW | MMU_PAGE_TABLE_FLAG_USER_SUPERVISOR);
-}
-
-static void id_map_range(mmu_page_table_t * table, size_t start, size_t end) {
-    if (end > 1023) {
-        PANIC("End is past table limits");
-        end = 1023;
-    }
-    while (start <= end) {
-        mmu_table_set(table, start, start << 12, MMU_TABLE_RW);
-        start++;
-    }
-}
-
-static void map_virt_page_dir(mmu_page_dir_t * dir) {
-    size_t             ram_table_count;
-    mmu_page_table_t * firstTable = init_ram(UINT2PTR(PADDR_RAM_TABLE), &ram_table_count);
-    // printf("First table is at 0x%x\n", PTR2UINT(firstTable));
-    mmu_table_create(firstTable);
-    mmu_dir_set(dir, 0, firstTable, MMU_DIR_RW | MMU_PAGE_DIR_FLAG_USER_SUPERVISOR);
-
-    // null page 0
-    mmu_table_set(firstTable, 0, 0, 0);
-
-    // Kernel
-    id_map_range(firstTable, 1, 0x9e);
-
-    /* SKIP UNUSED MEMORY */
-
-    // VGA
-    mmu_table_set(firstTable, 0xb8, PADDR_VGA, MMU_TABLE_RW | MMU_PAGE_TABLE_FLAG_USER_SUPERVISOR);
-
-    // RAM region bitmasks
-    for (size_t i = 0; i < ram_table_count; i++) {
-        mmu_table_set(firstTable, ADDR2PAGE(VADDR_RAM_BITMASKS) + i, ram_bitmask_paddr(i), MMU_TABLE_RW);
-    }
-
-    /* SKIP FREE MEMORY */
-
-    // create page table for the last entry of the page directory
-    mmu_page_table_t * lastTable = firstTable + PAGE_SIZE;
-    // printf("Last table created at %p\n", lastTable);
-    mmu_table_create(lastTable);
-    mmu_dir_set(dir, PAGE_DIR_SIZE - 1, lastTable, MMU_DIR_RW);
-
-    // first entry of the last page is the memory map
-    mmu_table_set(lastTable, 0, PTR2UINT(firstTable), MMU_TABLE_RW);
-
-    // last entry of the last page table points to the block of page tables
-    mmu_table_set(lastTable, PAGE_TABLE_SIZE - 1, PTR2UINT(lastTable), MMU_TABLE_RW);
-}
-
-static void setup_isr_stack(mmu_page_dir_t * pdir) {
-    for (size_t i = 0; i < 0x19; i++) {
-        uint32_t new_page = ram_page_alloc();
-        map_addr(pdir, VADDR_ISR_STACK + i * PAGE_SIZE, new_page);
-    }
-}
-
-static mmu_page_dir_t * enter_paging() {
-    mmu_page_dir_t * pdir = mmu_dir_create((void *)PADDR_PAGE_DIR);
-    map_virt_page_dir(pdir);
-    mmu_enable_paging(pdir);
-    setup_isr_stack(pdir);
-    return pdir;
 }
 
 static void check_malloc() {
@@ -231,8 +163,8 @@ static uint32_t int_proc_cb(uint16_t int_no, registers_t * regs) {
         } break;
 
         case SYS_INT_PROC_REG_SIG: {
-            kernel.pm.curr_task->sys_call_callback = (signals_master_callback)regs->ebx;
-            printf("Attached master signal callback at %p\n", kernel.pm.curr_task->sys_call_callback);
+            __kernel.pm.curr_task->sys_call_callback = (signals_master_callback)regs->ebx;
+            printf("Attached master signal callback at %p\n", __kernel.pm.curr_task->sys_call_callback);
         } break;
     }
 
@@ -273,26 +205,41 @@ static int try_switch(size_t argc, char ** argv) {
 
 extern void jump_kernel_mode(void * fn);
 
-extern _Noreturn void halt(void);
-
 void kernel_main() {
     init_vga(UINT2PTR(PADDR_VGA));
     vga_clear();
-    vga_puts("Welcome to kernel v..\n");
 
-    if (kernel_init(&kernel) != 0) {
+    if (kernel_init(&__kernel) != 0) {
         vga_color(VGA_RED_ON_WHITE);
         vga_puts("KERNEL INIT FAILED");
         halt();
     }
 
-    // TODO where does kernel
+    // Init RAM
+    __kernel.ram_table = PADDR_RAM_TABLE;
+    ram_init((void *)__kernel.ram_table, &__kernel.ram_table_count);
 
-    mmu_page_dir_t * pdir = enter_paging();
-    init_malloc(pdir, VADDR_FREE_MEM_KERNEL >> 12);
+    // Init Page Dir
+    __kernel.cr3          = PADDR_PAGE_DIR;
+    mmu_page_dir_t * pdir = mmu_dir_create((void *)__kernel.cr3);
 
+    // Init first table
+    uint32_t first_table_addr = ram_page_palloc();
+    mmu_dir_set(pdir, 0, first_table_addr, MMU_DIR_RW);
+
+    // Map first table
+    mmu_page_table_t * first_table = mmu_table_create(UINT2PTR(first_table_addr));
+    map_first_table(first_table);
+
+    // Map last table to dir for access to tables
+    mmu_dir_set(pdir, PAGE_DIR_SIZE - 1, __kernel.cr3, MMU_DIR_RW);
+
+    // Enter Paging
+    mmu_enable_paging(pdir);
+
+    // GDT & TSS
     init_gdt();
-    init_tss(VADDR_ISR_EBP, PTR2UINT(pdir));
+    init_tss();
 
     isr_install();
     irq_install();
@@ -302,7 +249,11 @@ void kernel_main() {
     system_interrupt_register(SYS_INT_FAMILY_PROC, int_proc_cb);
     system_interrupt_register(SYS_INT_FAMILY_STDIO, int_tmp_stdio_cb);
 
+    init_malloc(pdir, VADDR_FREE_MEM_KERNEL >> 12);
+
     // check_malloc();
+
+    vga_puts("Welcome to kernel v..\n");
 
     term_init();
     commands_init();
@@ -326,4 +277,44 @@ void kernel_main() {
     jump_kernel_mode(term_run);
 
     PANIC("You shouldn't be here!");
+}
+
+static void map_first_table(mmu_page_table_t * table) {
+    // null page 0
+    mmu_table_set(table, 0, 0, 0);
+
+    // Page Directory
+    mmu_table_set(table, 1, __kernel.cr3, MMU_DIR_RW);
+
+    // Create first table
+    mmu_table_set(table, 2, __kernel.ram_table, MMU_DIR_RW);
+
+    // Stack
+    id_map_range(table, 3, 6);
+
+    // Kernel
+    id_map_range(table, 7, 0x9e);
+
+    // VGA
+    id_map_page(table, 0xb8);
+
+    // RAM region bitmasks
+    for (size_t i = 0; i < __kernel.ram_table_count; i++) {
+        mmu_table_set(table, ADDR2PAGE(VADDR_RAM_BITMASKS) + i, ram_bitmask_paddr(i), MMU_TABLE_RW);
+    }
+}
+
+static void id_map_range(mmu_page_table_t * table, size_t start, size_t end) {
+    if (end > 1023) {
+        PANIC("End is past table limits");
+        end = 1023;
+    }
+    while (start <= end) {
+        id_map_page(table, start);
+        start++;
+    }
+}
+
+static void id_map_page(mmu_page_table_t * table, size_t page) {
+    mmu_table_set(table, page, page << 12, MMU_TABLE_RW);
 }

@@ -30,21 +30,22 @@ Kernel in protected mode setting up system for user space applications.
 
 1. Load VGA driver
    1. Clear screen
-   2. Print hello
-2. Setup ISR and IDT
+2. Setup Memory
+   1. Physical Memory Allocator
+   2. Virtual Memory (paging)
+3. Enable Paging
+4. Setup GDT (kernel + user + tss)
+5. Setup TSS (empty)
+6. Setup ISR and IDT
    1. Init timer
    2. Init keyboard
-   3. Init ata
-   4. Init rtc
-3. Setup GDT (kernel + user + tss)
-4. Setup TSS
-5. Setup Memory Allocator
-   1. Physical Memory
-   2. Virtual Memory (paging)
-6. Enable Paging
+   3. ~~Init ata~~
 7. Load ATA & FS drivers
 8. Read OS into memory
-9. Create idle process
+9. Setup stack for TSS
+10. Create idle process
+11. ~~Setup Malloc~~
+    1. should be per proc
 
 ## Stage 3 - OS
 
@@ -53,7 +54,8 @@ Kernel in protected mode setting up system for user space applications.
    2. Keyboard
    3. Disk
    4. Filesystem
-   5. etc.
+   5. RTC
+   6. etc.
 2. Mount os drive / partition? (does this happen in stage 2?)
 3. Setup kernel service calls
 4. Begin user space applications loop

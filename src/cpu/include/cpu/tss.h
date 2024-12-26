@@ -47,7 +47,7 @@ typedef struct _tss_entry {
 extern void flush_tss();
 extern void jump_usermode(void * fn);
 
-void init_tss(uint32_t ebp, uint32_t cr3);
+void init_tss();
 
 tss_entry_t * tss_get_entry(size_t i);
 

@@ -5,8 +5,8 @@
 #include "libc/string.h"
 #include "memory.h"
 
-static mmu_page_dir_t * make_user_page_dir(mmu_page_dir_t *);
-void *                  tmp_map(uint32_t paddr, size_t i);
+static uint32_t make_user_page_dir();
+void *          tmp_map(uint32_t paddr, size_t i);
 
 process_t * proc_new(void * fn, uint32_t ss0) {
     process_t * proc = impl_kmalloc(sizeof(process_t));
@@ -15,13 +15,13 @@ process_t * proc_new(void * fn, uint32_t ss0) {
     }
 
     mmu_page_dir_t * curr_dir       = mmu_get_curr_dir();
-    void *           proc_dir_paddr = make_user_page_dir(curr_dir);
+    uint32_t         proc_dir_paddr = make_user_page_dir();
 
     // TODO setup stack
 
     proc->eip = PTR2UINT(fn);
     // proc->esp       = esp;
-    proc->cr3       = PTR2UINT(proc_dir_paddr);
+    proc->cr3       = proc_dir_paddr;
     proc->ss0       = ss0;
     proc->pid       = 0;
     proc->pages     = arr_new(3, sizeof(void *));
@@ -103,23 +103,22 @@ static int id_map_range(mmu_page_table_t * table, size_t start, size_t end) {
     return 0;
 }
 
-static mmu_page_dir_t * make_user_page_dir(mmu_page_dir_t * curr_dir) {
-    uint32_t new_dir_page   = ram_page_alloc();
-    uint32_t new_table_page = ram_page_alloc();
+static void stack_pages(mmu_page_dir_t * dir, size_t n) {
+    // Page table for stack
+    uint32_t stack_table_page = ram_page_alloc();
+    mmu_dir_set(dir, PAGE_DIR_SIZE - 2, stack_table_page, MMU_DIR_RW);
+    mmu_page_table_t * stack_table = mmu_table_create(UINT2PTR(stack_table_page));
 
-    mmu_page_dir_t * dir = mmu_dir_create(tmp_map(new_dir_page, 0));
-    mmu_dir_set(dir, 0, (mmu_page_table_t *)new_table_page, MMU_DIR_RW);
+    // First stack page
+    uint32_t stack_page = ram_page_alloc();
+    mmu_table_set(stack_table, PAGE_TABLE_SIZE - 1, stack_page, MMU_TABLE_RW);
+}
 
-    mmu_page_table_t * table_1 = mmu_table_create(tmp_map(new_table_page, 1));
-
-    mmu_page_table_t * curr_table = mmu_dir_get_table(curr_dir, 0);
-
-    mmu_table_set(table_1, 1, new_dir_page, MMU_TABLE_RW);
-    id_map_range(table_1, 2, 0x9e);
-
-    // TODO pages for stack
-
-    return (mmu_page_dir_t *)new_dir_page;
+static uint32_t make_user_page_dir() {
+    uint32_t         new_dir_page = ram_page_alloc();
+    mmu_page_dir_t * dir          = mmu_dir_create(tmp_map(new_dir_page, 0));
+    tmp_map(0, 0);
+    return new_dir_page;
 }
 
 void * tmp_map(uint32_t paddr, size_t i) {
@@ -131,6 +130,6 @@ void * tmp_map(uint32_t paddr, size_t i) {
 
     mmu_page_dir_t *   dir   = mmu_get_curr_dir();
     mmu_page_table_t * table = mmu_dir_get_table(dir, table_i);
-    mmu_table_set(table, table_i, paddr, MMU_TABLE_RW_USER);
+    mmu_table_set(table, table_i, paddr, (paddr ? MMU_TABLE_RW_USER : 0));
     return UINT2PTR(PAGE2ADDR(table_i));
 }

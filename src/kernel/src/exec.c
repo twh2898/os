@@ -29,7 +29,7 @@ static void setup_user_space(size_t size) {
     mmu_page_table_t * last_table = UINT2PTR(VADDR_LAST_PAGE_TABLE);
 
     uint32_t page = ram_page_alloc();
-    mmu_dir_set(dir, 1, (mmu_page_table_t *)page, MMU_DIR_RW);
+    mmu_dir_set(dir, 1, page, MMU_DIR_RW);
     mmu_table_set(last_table, 1, page, MMU_TABLE_RW);
 
     mmu_page_table_t * user_table = UINT2PTR(mmu_dir_get_vaddr(dir, 1));

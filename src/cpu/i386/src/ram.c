@@ -45,7 +45,7 @@ static upper_ram_t * upper_ram;
 
 static void sort_ram();
 
-void * init_ram(void * ram_table, size_t * ram_table_count) {
+void ram_init(void * ram_table, size_t * ram_table_count) {
     region_table = (region_table_t *)ram_table;
     kmemset(region_table, 0, sizeof(region_table_t));
 
@@ -57,16 +57,6 @@ void * init_ram(void * ram_table, size_t * ram_table_count) {
     sort_ram();
 
     *ram_table_count = build_table();
-
-    // first page table
-    set_bitmask_early(0, 1, 0);
-
-    // ... idr
-    set_bitmask_early(0, 2, 0);
-
-    region_table->entries[0].free_count -= 2;
-
-    return LUINT2PTR(ram_bitmask_paddr(0) + PAGE_SIZE);
 }
 
 uint16_t ram_lower_size() {
@@ -119,6 +109,24 @@ uint32_t ram_page_alloc() {
                 PANIC("Could not find free bit in page with free count");
 
             set_bitmask(i, bit, false);
+            region_table->entries[i].free_count--;
+            uint32_t page_addr = ram_bitmask_paddr(i) + bit * PAGE_SIZE;
+            return page_addr;
+        }
+    }
+
+    return 0;
+}
+
+uint32_t ram_page_palloc() {
+    for (size_t i = 0; i < REGION_TABLE_SIZE; i++) {
+        uint8_t flag = region_table->entries[i].addr_flags & MASK_FLAGS;
+        if (flag & REGION_TABLE_FLAG_PRESENT && region_table->entries[i].free_count) {
+            uint16_t bit = find_free_bit(i);
+            if (!bit)
+                PANIC("Could not find free bit in page with free count");
+
+            set_bitmask_early(i, bit, false);
             region_table->entries[i].free_count--;
             uint32_t page_addr = ram_bitmask_paddr(i) + bit * PAGE_SIZE;
             return page_addr;
