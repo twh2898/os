@@ -20,9 +20,9 @@ Execution of the first 512 bytes "boot sector".
 2. Setup stage 1 stack at 0x6fff
 3. Read memory map to 0x500
 4. Read stage 2 from boot drive to 0x7e00
-5. Setup GDT
-7. Switch to protected mode
-8. Jump to 0x7e00
+5. Setup GDT (kernel)
+6. Switch to protected mode
+7. Jump to 0x7e00
 
 ## Stage 2 - Kernel
 
@@ -36,14 +36,15 @@ Kernel in protected mode setting up system for user space applications.
    2. Init keyboard
    3. Init ata
    4. Init rtc
-3. Setup Memory Allocator
+3. Setup GDT (kernel + user + tss)
+4. Setup TSS
+5. Setup Memory Allocator
    1. Physical Memory
    2. Virtual Memory (paging)
-4. Enable Paging
-5. Load ATA driver
-   1. Mount fs
-   2. Read kernel into page directory
-6. Start kernel
+6. Enable Paging
+7. Load ATA & FS drivers
+8. Read OS into memory
+9. Create idle process
 
 ## Stage 3 - OS
 
