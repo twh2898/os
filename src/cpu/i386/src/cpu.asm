@@ -65,6 +65,12 @@ TSS_ESP0 equ 20
 
 current_task_TCB: dd 0
 
+global set_first_task
+set_first_task:
+    mov eax, [esp + 4]
+    mov [current_task_TCB], eax
+    ret
+
 global switch_to_task
 switch_to_task:
 

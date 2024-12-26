@@ -22,14 +22,16 @@ typedef void * v_ptr_t;
 #define PADDR_VGA         0xb8000
 
 // Identity mapped
-#define VADDR_NULL      0x0
-#define VADDR_PAGE_DIR  PADDR_PAGE_DIR
-#define VADDR_RAM_TABLE PADDR_RAM_TABLE
-#define VADDR_STACK     PADDR_STACK
-#define VADDR_KERNEL    PADDR_KERNEL
-#define VADDR_ISR_STACK 0x9f000
-#define VADDR_ISR_EBP   0xb7fff
-#define VADDR_VGA       PADDR_VGA
+#define VADDR_NULL           0x0
+#define VADDR_PAGE_DIR       PADDR_PAGE_DIR
+#define VADDR_RAM_TABLE      PADDR_RAM_TABLE
+#define VADDR_STACK          PADDR_STACK
+#define VADDR_KERNEL         PADDR_KERNEL
+#define VADDR_TMP_PAGE       0x9f000
+#define VADDR_TMP_PAGE_COUNT 0x19
+#define VADDR_ISR_STACK      0xa0000
+#define VADDR_ISR_EBP        0xb7fff
+#define VADDR_VGA            PADDR_VGA
 
 // Physical address allocated at runtime
 #define VADDR_RAM_BITMASKS    (VADDR_VGA + PAGE_SIZE)

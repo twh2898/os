@@ -9,6 +9,9 @@
 #define MMU_DIR_RW   (MMU_PAGE_DIR_FLAG_PRESENT | MMU_PAGE_DIR_FLAG_READ_WRITE)
 #define MMU_TABLE_RW (MMU_PAGE_TABLE_FLAG_PRESENT | MMU_PAGE_TABLE_FLAG_READ_WRITE)
 
+#define MMU_DIR_RW_USER   (MMU_DIR_RW | MMU_PAGE_DIR_FLAG_USER_SUPERVISOR)
+#define MMU_TABLE_RW_USER (MMU_TABLE_RW | MMU_PAGE_DIR_FLAG_USER_SUPERVISOR)
+
 enum MMU_PAGE_DIR_FLAG {
     MMU_PAGE_DIR_FLAG_PRESENT         = 0x1,
     MMU_PAGE_DIR_FLAG_READ_WRITE      = 0x2,
@@ -58,6 +61,7 @@ void               mmu_dir_set(mmu_page_dir_t * dir, size_t i, mmu_page_table_t 
 uint32_t               mmu_dir_get_paddr(mmu_page_dir_t * dir, size_t i);
 uint32_t               mmu_dir_get_vaddr(mmu_page_dir_t * dir, size_t i);
 enum MMU_PAGE_DIR_FLAG mmu_dir_get_flags(mmu_page_dir_t * dir, size_t i);
+void                   mmu_dir_map_paddr(mmu_page_dir_t * dir, uint32_t vaddr, uint32_t paddr, enum MMU_PAGE_DIR_FLAG dir_flags, enum MMU_PAGE_TABLE_FLAG table_flags);
 
 void mmu_table_set_addr(mmu_page_table_t * table, size_t i, uint32_t page_addr);
 void mmu_table_set_flags(mmu_page_table_t * table, size_t i, enum MMU_PAGE_TABLE_FLAG flags);

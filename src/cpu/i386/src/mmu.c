@@ -115,6 +115,25 @@ enum MMU_PAGE_DIR_FLAG mmu_dir_get_flags(mmu_page_dir_t * dir, size_t i) {
     return dir->entries[i] & MASK_FLAGS;
 }
 
+void mmu_dir_map_paddr(mmu_page_dir_t *         dir,
+                       uint32_t                 vaddr,
+                       uint32_t                 paddr,
+                       enum MMU_PAGE_DIR_FLAG   dir_flags,
+                       enum MMU_PAGE_TABLE_FLAG table_flags) {
+    size_t table_i = ADDR2PAGE(vaddr);
+    size_t dir_i   = table_i / 1024;
+    table_i        = table_i % 1024;
+
+    if (!(mmu_dir_get_flags(dir, table_i) & MMU_PAGE_DIR_FLAG_PRESENT)) {
+        void * new_table = ram_page_alloc();
+        mmu_dir_set(dir, dir_i, new_table, dir_flags);
+    }
+    mmu_dir_set_flags(dir, dir_i, dir_flags);
+
+    mmu_page_table_t * table = mmu_dir_get_table(dir, dir_i);
+    mmu_table_set(table, table_i, paddr, table_flags);
+}
+
 void mmu_table_set_addr(mmu_page_table_t * table, size_t i, uint32_t page_addr) {
     if (!table || i >= PAGE_TABLE_SIZE)
         return;

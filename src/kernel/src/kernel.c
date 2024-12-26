@@ -174,6 +174,9 @@ static uint32_t int_mem_cb(uint16_t int_no, registers_t * regs) {
     return res;
 }
 
+typedef void (*signals_master_callback)(int);
+static signals_master_callback master_callback;
+
 static uint32_t int_proc_cb(uint16_t int_no, registers_t * regs) {
     uint32_t res = 0;
 
@@ -218,7 +221,8 @@ static uint32_t int_proc_cb(uint16_t int_no, registers_t * regs) {
         } break;
 
         case SYS_INT_PROC_REG_SIG: {
-            PANIC("Signals not yet implemented!\n");
+            master_callback = (signals_master_callback)regs->ebx;
+            printf("Attached master signal callback at %p\n", master_callback);
         } break;
     }
 
@@ -250,11 +254,20 @@ static int kill(size_t argc, char ** argv) {
     return 0;
 }
 
+static process_t * proc;
+
+static int try_switch(size_t argc, char ** argv) {
+    puts("Switch was good!\n");
+    return 0;
+}
+
 extern void jump_kernel_mode(void * fn);
 
 void kernel_main() {
     init_vga(UINT2PTR(PADDR_VGA));
     vga_clear();
+
+    master_callback = 0;
 
     isr_install();
     irq_install();
@@ -281,13 +294,14 @@ void kernel_main() {
 
     ramdisk_create(4096);
 
-    process_t * proc = proc_new(PTR2UINT(term_run),
-                                VADDR_ISR_EBP,
-                                PTR2UINT(pdir),
-                                0x10,
-                                3,
-                                "abcd",
-                                1);
+    process_t * idle_task = proc_new(term_run, 0x10);
+
+    proc_man_t * pm = proc_man_new();
+    proc_man_set_idle(pm, idle_task);
+
+    proc = proc_new(try_switch, 0x10);
+
+    set_first_task(proc);
 
     // switch_to_task(proc);
 

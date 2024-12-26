@@ -73,7 +73,7 @@ Region Type can be one of the following
 > Reserved memory in protected mode starts at 0x9fc00 while real mode starts at
 > 0xa0000
 
-### Virtual Address Space
+### Virtual Address Space (stage 2)
 
 See https://wiki.osdev.org/Paging for information about page tables and
 directory.
@@ -102,7 +102,7 @@ directory.
 | 0x00002000 | 0x00002fff | 0x00001 | 0x00002000    | ram region table                                          |
 | 0x00003000 | 0x00006fff | 0x00004 | 0x00003000    | Stack                                                     |
 | 0x00007000 | 0x0009efff | 0x00098 | 0x00007000    | Kernel (from 0x7e00 to 0x9efff)                           |
-| 0x0009f000 | 0x000b7fff | 0x00019 |               | ISR/TSS Stack                                             |
+| 0x0009f000 | 0x000b7fff | 0x00019 |               | _temp pages for mapping_                                  |
 | 0x000b8000 | 0x000b8fff | 0x00001 | 0x000b8000    | VGA Memory                                                |
 | 0x000b9000 | 0x002b9fff | 0x00200 |               | ram region bitmasks                                       |
 | 0x002ba000 | 0x003fffff | 0x00146 |               | _free memory for kmalloc (remainder of first page table)_ |
@@ -112,6 +112,13 @@ directory.
 | 0xfffff000 | 0xffffffff | 0x00001 |               | last table (all the page tables)                          |
 
 _Pages with a blank physical address are allocated form free physical memory._
+
+### Virtual Address Space (Process)
+
+Applications / processes require access to less of the memory than the kernel.
+With the use of interrupts for system calls and page directories for each
+process,
+
 
 ## Physical Allocator (`ram.h`)
 
