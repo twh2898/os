@@ -27,17 +27,18 @@ static kernel_t __kernel;
 
 extern _Noreturn void halt(void);
 
-static void     map_first_table(mmu_page_table_t * table);
-static void     id_map_range(mmu_page_table_t * table, size_t start, size_t end);
-static void     id_map_page(mmu_page_table_t * table, size_t page);
-static void     cursor();
-static void     irq_install();
-static uint32_t int_mem_cb(uint16_t int_no, registers_t * regs);
-static uint32_t int_proc_cb(uint16_t int_no, registers_t * regs);
-static uint32_t int_tmp_stdio_cb(uint16_t int_no, registers_t * regs);
-static int      kill(size_t argc, char ** argv);
-static int      try_switch(size_t argc, char ** argv);
-static void     map_first_table(mmu_page_table_t * table);
+static process_t * get_current_process();
+static void        map_first_table(mmu_page_table_t * table);
+static void        id_map_range(mmu_page_table_t * table, size_t start, size_t end);
+static void        id_map_page(mmu_page_table_t * table, size_t page);
+static void        cursor();
+static void        irq_install();
+static uint32_t    int_mem_cb(uint16_t int_no, registers_t * regs);
+static uint32_t    int_proc_cb(uint16_t int_no, registers_t * regs);
+static uint32_t    int_tmp_stdio_cb(uint16_t int_no, registers_t * regs);
+static int         kill(size_t argc, char ** argv);
+static int         try_switch(size_t argc, char ** argv);
+static void        map_first_table(mmu_page_table_t * table);
 
 extern void jump_kernel_mode(void * fn);
 
@@ -121,7 +122,17 @@ int kernel_init(kernel_t * kernel) {
         return -1;
     }
 
+    kernel->pm.curr_task  = &kernel->proc;
+    kernel->pm.idle_task  = &kernel->proc;
+    kernel->pm.task_begin = &kernel->proc;
+
+    kernel->proc.next_proc = kernel->pm.idle_task;
+
     return 0;
+}
+
+static process_t * get_current_process() {
+    return __kernel.pm.curr_task;
 }
 
 static void cursor() {
@@ -149,20 +160,28 @@ static uint32_t int_mem_cb(uint16_t int_no, registers_t * regs) {
     uint32_t res = 0;
 
     switch (int_no) {
-        case SYS_INT_MEM_MALLOC: {
-            size_t size = regs->ebx;
-            res         = PTR2UINT(impl_kmalloc(size));
-        } break;
+            // case SYS_INT_MEM_MALLOC: {
+            //     size_t size = regs->ebx;
+            //     res         = PTR2UINT(impl_kmalloc(size));
+            // } break;
 
-        case SYS_INT_MEM_REALLOC: {
-            void * ptr  = UINT2PTR(regs->ebx);
-            size_t size = regs->ecx;
-            // res = PTR2UINT(krealloc(ptr, size));
-        } break;
+            // case SYS_INT_MEM_REALLOC: {
+            //     void * ptr  = UINT2PTR(regs->ebx);
+            //     size_t size = regs->ecx;
+            //     // res = PTR2UINT(krealloc(ptr, size));
+            // } break;
 
-        case SYS_INT_MEM_FREE: {
-            void * ptr = UINT2PTR(regs->ebx);
-            impl_kfree(ptr);
+            // case SYS_INT_MEM_FREE: {
+            //     void * ptr = UINT2PTR(regs->ebx);
+            //     impl_kfree(ptr);
+            // } break;
+
+        case SYS_INT_MEM_PAGE_ALLOC: {
+            size_t count = regs->ebx;
+
+            process_t * curr_proc = get_current_process();
+
+            // TODO alloc more pages
         } break;
     }
 

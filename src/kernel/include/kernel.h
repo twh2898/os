@@ -10,6 +10,7 @@ typedef struct _kernel {
     uint32_t   ram_table;
     size_t     ram_table_count;
     uint32_t   cr3;
+    process_t  proc;
     proc_man_t pm;
 } kernel_t;
 
