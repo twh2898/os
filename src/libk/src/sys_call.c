@@ -11,16 +11,20 @@
 extern uint32_t       send_interrupt(uint32_t int_no, ...);
 extern NO_RETURN void send_interrupt_noret(uint32_t int_no, ...);
 
-void * _malloc(size_t size) {
-    return UINT2PTR(send_interrupt(SYS_INT_MEM_MALLOC, size));
-}
+// void * _malloc(size_t size) {
+//     return UINT2PTR(send_interrupt(SYS_INT_MEM_MALLOC, size));
+// }
 
-void * _realloc(void * ptr, size_t size) {
-    return UINT2PTR(send_interrupt(SYS_INT_MEM_REALLOC, ptr, size));
-}
+// void * _realloc(void * ptr, size_t size) {
+//     return UINT2PTR(send_interrupt(SYS_INT_MEM_REALLOC, ptr, size));
+// }
 
-void _free(void * ptr) {
-    send_interrupt(SYS_INT_MEM_FREE, ptr);
+// void _free(void * ptr) {
+//     send_interrupt(SYS_INT_MEM_FREE, ptr);
+// }
+
+void * _page_alloc(size_t count) {
+    return UINT2PTR(send_interrupt(SYS_INT_MEM_PAGE_ALLOC, count));
 }
 
 void _proc_exit(uint8_t code) {
