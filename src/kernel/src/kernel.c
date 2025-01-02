@@ -27,9 +27,93 @@ static kernel_t __kernel;
 
 extern _Noreturn void halt(void);
 
-static void map_first_table(mmu_page_table_t * table);
-static void id_map_range(mmu_page_table_t * table, size_t start, size_t end);
-static void id_map_page(mmu_page_table_t * table, size_t page);
+static void     map_first_table(mmu_page_table_t * table);
+static void     id_map_range(mmu_page_table_t * table, size_t start, size_t end);
+static void     id_map_page(mmu_page_table_t * table, size_t page);
+static void     cursor();
+static void     irq_install();
+static uint32_t int_mem_cb(uint16_t int_no, registers_t * regs);
+static uint32_t int_proc_cb(uint16_t int_no, registers_t * regs);
+static uint32_t int_tmp_stdio_cb(uint16_t int_no, registers_t * regs);
+static int      kill(size_t argc, char ** argv);
+static int      try_switch(size_t argc, char ** argv);
+static void     map_first_table(mmu_page_table_t * table);
+
+extern void jump_kernel_mode(void * fn);
+
+void kernel_main() {
+    init_vga(UINT2PTR(PADDR_VGA));
+    vga_clear();
+
+    if (kernel_init(&__kernel) != 0) {
+        vga_color(VGA_RED_ON_WHITE);
+        vga_puts("KERNEL INIT FAILED");
+        halt();
+    }
+
+    // Init RAM
+    __kernel.ram_table = PADDR_RAM_TABLE;
+    ram_init((void *)__kernel.ram_table, &__kernel.ram_table_count);
+
+    // Init Page Dir
+    __kernel.cr3          = PADDR_PAGE_DIR;
+    mmu_page_dir_t * pdir = mmu_dir_create((void *)__kernel.cr3);
+
+    // Init first table
+    uint32_t first_table_addr = ram_page_palloc();
+    mmu_dir_set(pdir, 0, first_table_addr, MMU_DIR_RW);
+
+    // Map first table
+    mmu_page_table_t * first_table = mmu_table_create(UINT2PTR(first_table_addr));
+    map_first_table(first_table);
+
+    // Map last table to dir for access to tables
+    mmu_dir_set(pdir, PAGE_DIR_SIZE - 1, __kernel.cr3, MMU_DIR_RW);
+
+    // Enter Paging
+    mmu_enable_paging(pdir);
+
+    // GDT & TSS
+    init_gdt();
+    init_tss();
+
+    isr_install();
+    irq_install();
+
+    init_system_interrupts(IRQ16);
+    system_interrupt_register(SYS_INT_FAMILY_MEM, int_mem_cb);
+    system_interrupt_register(SYS_INT_FAMILY_PROC, int_proc_cb);
+    system_interrupt_register(SYS_INT_FAMILY_STDIO, int_tmp_stdio_cb);
+
+    init_malloc(pdir, VADDR_FREE_MEM_KERNEL >> 12);
+
+    // check_malloc();
+
+    vga_puts("Welcome to kernel v..\n");
+
+    term_init();
+    commands_init();
+
+    term_command_add("exit", kill);
+
+    ramdisk_create(4096);
+
+    // process_t * idle_task = proc_new(term_run, 0x10);
+
+    // proc_man_t * pm = proc_man_new();
+    // proc_man_set_idle(pm, idle_task);
+
+    // proc = proc_new(try_switch, 0x10);
+
+    // set_first_task(proc);
+
+    // switch_to_task(proc);
+
+    // jump_usermode(term_run);
+    jump_kernel_mode(term_run);
+
+    PANIC("You shouldn't be here!");
+}
 
 int kernel_init(kernel_t * kernel) {
     if (!kernel
@@ -40,30 +124,12 @@ int kernel_init(kernel_t * kernel) {
     return 0;
 }
 
-void cursor() {
+static void cursor() {
     vga_cursor(3, 3);
 
     vga_cursor_hide();
     vga_cursor_show();
     vga_cursor(vga_cursor_row(), vga_cursor_col());
-}
-
-void test_interrupt() {
-    vga_clear();
-    /* Test the interrupts */
-    asm volatile("int $2");
-    asm volatile("int $3");
-}
-
-void key_cb(uint8_t code, char c, keyboard_event_t event, keyboard_mod_t mod) {
-    if (event != KEY_EVENT_RELEASE && c) {
-        putc(c);
-    }
-}
-
-static void trigger_page_fault() {
-    uint8_t * v = (uint8_t *)0;
-    *v          = 0;
 }
 
 static void irq_install() {
@@ -77,22 +143,6 @@ static void irq_install() {
     init_ata();
     /* IRQ8: real time clock */
     init_rtc(RTC_RATE_1024_HZ);
-}
-
-static void check_malloc() {
-    uint32_t a = ram_page_alloc();
-    uint32_t b = ram_page_alloc();
-
-    printf("Ram page alloc gave 0x%x and 0x%X\n", a, b);
-
-    void * c = impl_kmalloc(1);
-    void * d = impl_kmalloc(1);
-
-    printf("Malloc gave vaddr %p and %p\n", c, d);
-
-    uint32_t e = ram_page_alloc();
-
-    printf("Ram page alloc gave %p\n", e);
 }
 
 static uint32_t int_mem_cb(uint16_t int_no, registers_t * regs) {
@@ -194,89 +244,6 @@ static int kill(size_t argc, char ** argv) {
     kernel_exit();
     PANIC("Never return!");
     return 0;
-}
-
-static process_t * proc;
-
-static int try_switch(size_t argc, char ** argv) {
-    puts("Switch was good!\n");
-    return 0;
-}
-
-extern void jump_kernel_mode(void * fn);
-
-void kernel_main() {
-    init_vga(UINT2PTR(PADDR_VGA));
-    vga_clear();
-
-    if (kernel_init(&__kernel) != 0) {
-        vga_color(VGA_RED_ON_WHITE);
-        vga_puts("KERNEL INIT FAILED");
-        halt();
-    }
-
-    // Init RAM
-    __kernel.ram_table = PADDR_RAM_TABLE;
-    ram_init((void *)__kernel.ram_table, &__kernel.ram_table_count);
-
-    // Init Page Dir
-    __kernel.cr3          = PADDR_PAGE_DIR;
-    mmu_page_dir_t * pdir = mmu_dir_create((void *)__kernel.cr3);
-
-    // Init first table
-    uint32_t first_table_addr = ram_page_palloc();
-    mmu_dir_set(pdir, 0, first_table_addr, MMU_DIR_RW);
-
-    // Map first table
-    mmu_page_table_t * first_table = mmu_table_create(UINT2PTR(first_table_addr));
-    map_first_table(first_table);
-
-    // Map last table to dir for access to tables
-    mmu_dir_set(pdir, PAGE_DIR_SIZE - 1, __kernel.cr3, MMU_DIR_RW);
-
-    // Enter Paging
-    mmu_enable_paging(pdir);
-
-    // GDT & TSS
-    init_gdt();
-    init_tss();
-
-    isr_install();
-    irq_install();
-
-    init_system_interrupts(IRQ16);
-    system_interrupt_register(SYS_INT_FAMILY_MEM, int_mem_cb);
-    system_interrupt_register(SYS_INT_FAMILY_PROC, int_proc_cb);
-    system_interrupt_register(SYS_INT_FAMILY_STDIO, int_tmp_stdio_cb);
-
-    init_malloc(pdir, VADDR_FREE_MEM_KERNEL >> 12);
-
-    // check_malloc();
-
-    vga_puts("Welcome to kernel v..\n");
-
-    term_init();
-    commands_init();
-
-    term_command_add("exit", kill);
-
-    ramdisk_create(4096);
-
-    // process_t * idle_task = proc_new(term_run, 0x10);
-
-    // proc_man_t * pm = proc_man_new();
-    // proc_man_set_idle(pm, idle_task);
-
-    // proc = proc_new(try_switch, 0x10);
-
-    // set_first_task(proc);
-
-    // switch_to_task(proc);
-
-    // jump_usermode(term_run);
-    jump_kernel_mode(term_run);
-
-    PANIC("You shouldn't be here!");
 }
 
 static void map_first_table(mmu_page_table_t * table) {
