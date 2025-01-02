@@ -1,4 +1,5 @@
 add_subdirectory(util)
+add_subdirectory(memory_alloc)
 
 add_subdirectory(cpu)
 add_subdirectory(libk)
