@@ -296,6 +296,7 @@ static void id_map_range(mmu_page_table_t * table, size_t start, size_t end) {
         PANIC("End is past table limits");
         end = 1023;
     }
+
     while (start <= end) {
         id_map_page(table, start);
         start++;
