@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 #include "cpu/ports.h"
-#include "cpu/ram.h"
+#include "ram.h"
 #include "debug.h"
 #include "drivers/disk.h"
 #include "drivers/rtc.h"

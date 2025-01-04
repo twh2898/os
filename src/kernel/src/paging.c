@@ -1,6 +1,6 @@
 #include "paging.h"
 
-#include "cpu/ram.h"
+#include "ram.h"
 #include "libc/string.h"
 
 static uint32_t temp_pages[VADDR_TMP_PAGE_COUNT];

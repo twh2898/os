@@ -5,7 +5,7 @@
 #include "cpu/isr.h"
 #include "cpu/mmu.h"
 #include "cpu/ports.h"
-#include "cpu/ram.h"
+#include "ram.h"
 #include "cpu/tss.h"
 #include "defs.h"
 #include "drivers/ata.h"

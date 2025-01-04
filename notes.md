@@ -45,7 +45,7 @@ section once they are finished.
   - [ ] cpu/isr.h
   - [ ] cpu/mmu.h
   - [ ] cpu/ports.h
-  - [ ] cpu/ram.h
+  - [ ] ram.h
   - [ ] drivers/timer.h
   - [ ] drivers/ata.h
   - [ ] drivers/keyboard.h
@@ -70,7 +70,7 @@ section once they are finished.
   - [ ] cpu/isr.h
   - [ ] cpu/mmu.h
   - [ ] cpu/ports.h
-  - [ ] cpu/ram.h
+  - [ ] ram.h
   - [ ] drivers/timer.h
   - [ ] drivers/ata.h
   - [ ] drivers/keyboard.h

@@ -1,7 +1,7 @@
 #include "proc.h"
 
 #include "cpu/mmu.h"
-#include "cpu/ram.h"
+#include "ram.h"
 #include "libc/string.h"
 #include "memory.h"
 #include "paging.h"

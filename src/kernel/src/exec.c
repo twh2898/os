@@ -1,7 +1,7 @@
 #include "exec.h"
 
 #include "cpu/mmu.h"
-#include "cpu/ram.h"
+#include "ram.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
 

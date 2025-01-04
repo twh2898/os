@@ -1,6 +1,6 @@
 #include "memory.h"
 
-#include "cpu/ram.h"
+#include "ram.h"
 #include "libc/process.h"
 #include "libc/stdio.h"
 #include "libc/string.h"

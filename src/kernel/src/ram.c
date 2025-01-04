@@ -1,4 +1,4 @@
-#include "cpu/ram.h"
+#include "ram.h"
 
 #include "cpu/boot_params.h"
 #include "defs.h"
