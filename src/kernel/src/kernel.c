@@ -53,8 +53,8 @@ void kernel_main() {
     }
 
     // Init RAM
-    __kernel.ram_table = PADDR_RAM_TABLE;
-    ram_init((void *)__kernel.ram_table, &__kernel.ram_table_count);
+    __kernel.ram_table_addr = PADDR_RAM_TABLE;
+    ram_init((void *)__kernel.ram_table_addr, &__kernel.ram_table_count);
 
     // Init Page Dir
     __kernel.cr3          = PADDR_PAGE_DIR;
@@ -273,7 +273,7 @@ static void map_first_table(mmu_page_table_t * table) {
     mmu_table_set(table, 1, __kernel.cr3, MMU_DIR_RW);
 
     // Create first table
-    mmu_table_set(table, 2, __kernel.ram_table, MMU_DIR_RW);
+    mmu_table_set(table, 2, __kernel.ram_table_addr, MMU_DIR_RW);
 
     // Stack
     id_map_range(table, 3, 6);
