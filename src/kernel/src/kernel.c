@@ -78,6 +78,8 @@ void kernel_main() {
     init_gdt();
     init_tss();
 
+    // TODO isr stack
+
     isr_install();
     irq_install();
 
@@ -85,6 +87,8 @@ void kernel_main() {
     system_interrupt_register(SYS_INT_FAMILY_MEM, int_mem_cb);
     system_interrupt_register(SYS_INT_FAMILY_PROC, int_proc_cb);
     system_interrupt_register(SYS_INT_FAMILY_STDIO, int_tmp_stdio_cb);
+
+    // TODO kernel heap with new memory_alloc (needs process or page allocator)
 
     init_malloc(pdir, VADDR_FREE_MEM_KERNEL >> 12);
 

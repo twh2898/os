@@ -29,13 +29,12 @@ typedef void * v_ptr_t;
 #define VADDR_KERNEL         PADDR_KERNEL
 #define VADDR_TMP_PAGE       0x9f000
 #define VADDR_TMP_PAGE_COUNT 0x19
-#define VADDR_ISR_STACK      0xa0000
-#define VADDR_ISR_EBP        0xb7fff
 #define VADDR_VGA            PADDR_VGA
 
 // Physical address allocated at runtime
 #define VADDR_RAM_BITMASKS    (VADDR_VGA + PAGE_SIZE)
 #define VADDR_FREE_MEM_KERNEL (VADDR_RAM_BITMASKS + PAGE_SIZE * 0x200)
+#define VADDR_ISR_STACK       0x3fffff
 #define VADDR_FREE_MEM_USER   0x400000
 
 #define VADDR_FIRST_PAGE_TABLE  0xffc00000
