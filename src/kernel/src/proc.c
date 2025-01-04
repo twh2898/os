@@ -4,9 +4,9 @@
 #include "cpu/ram.h"
 #include "libc/string.h"
 #include "memory.h"
+#include "paging.h"
 
 static uint32_t make_user_page_dir();
-void *          tmp_map(uint32_t paddr, size_t i);
 
 process_t * proc_new(void * fn, uint32_t ss0) {
     process_t * proc = impl_kmalloc(sizeof(process_t));
@@ -116,20 +116,7 @@ static void stack_pages(mmu_page_dir_t * dir, size_t n) {
 
 static uint32_t make_user_page_dir() {
     uint32_t         new_dir_page = ram_page_alloc();
-    mmu_page_dir_t * dir          = mmu_dir_create(tmp_map(new_dir_page, 0));
-    tmp_map(0, 0);
+    mmu_page_dir_t * dir          = mmu_dir_create(paging_temp_map(new_dir_page));
+    paging_temp_free(new_dir_page);
     return new_dir_page;
-}
-
-void * tmp_map(uint32_t paddr, size_t i) {
-    if (i >= VADDR_TMP_PAGE_COUNT) {
-        return 0;
-    }
-
-    size_t table_i = ADDR2PAGE(VADDR_TMP_PAGE) + i;
-
-    mmu_page_dir_t *   dir   = mmu_get_curr_dir();
-    mmu_page_table_t * table = mmu_dir_get_table(dir, table_i);
-    mmu_table_set(table, table_i, paddr, (paddr ? MMU_TABLE_RW_USER : 0));
-    return UINT2PTR(PAGE2ADDR(table_i));
 }

@@ -28,6 +28,7 @@ function(unit_test)
 endfunction()
 
 add_subdirectory(drivers)
+add_subdirectory(kernel)
 add_subdirectory(libc)
 add_subdirectory(libk)
 add_subdirectory(memory_alloc)
