@@ -35,4 +35,32 @@ void paging_temp_free(uint32_t paddr);
  */
 size_t paging_temp_available();
 
+/**
+ * @brief Map a virtual address to a physical address. The addresses must be
+ * page aligned.
+ *
+ * @param vaddr virtual address
+ * @param paddr physical address
+ * @param flags page table entry flags
+ * @return int 0 for success
+ */
+int paging_map(uint32_t vaddr, uint32_t paddr, enum MMU_PAGE_TABLE_FLAG flags);
+
+/**
+ * @brief Identity map a range of pages.
+ *
+ * @param start first page index
+ * @param end last page index
+ * @return int 0 for success
+ */
+int paging_id_map_range(size_t start, size_t end);
+
+/**
+ * @brief Identity map a single page.
+ *
+ * @param page page index
+ * @return int 0 for success
+ */
+int paging_id_map_page(size_t page);
+
 #endif // KERNEL_PAGING_H

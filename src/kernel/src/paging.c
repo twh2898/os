@@ -61,3 +61,52 @@ size_t paging_temp_available() {
 
     return free;
 }
+
+int paging_map(uint32_t vaddr, uint32_t paddr, enum MMU_PAGE_TABLE_FLAG flags) {
+    if (vaddr & MASK_FLAGS || paddr & MASK_FLAGS) {
+        return -1;
+    }
+
+    size_t page_i  = ADDR2PAGE(vaddr);
+    size_t dir_i   = page_i / PAGE_DIR_SIZE;
+    size_t table_i = page_i % PAGE_DIR_SIZE;
+
+    mmu_page_dir_t * dir = mmu_get_curr_dir();
+
+    if (!(mmu_dir_get_flags(dir, dir_i) & MMU_PAGE_DIR_FLAG_PRESENT)) {
+        return -1;
+    }
+
+    mmu_page_table_t * table = mmu_dir_get_table(dir, dir_i);
+
+    mmu_table_set(table, table_i, paddr, flags);
+
+    return 0;
+}
+
+int paging_id_map_range(size_t start, size_t end) {
+    while (start <= end) {
+        if (paging_id_map_page(start++)) {
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
+int paging_id_map_page(size_t page) {
+    size_t dir_i   = page / PAGE_DIR_SIZE;
+    size_t table_i = page % PAGE_DIR_SIZE;
+
+    mmu_page_dir_t * dir = mmu_get_curr_dir();
+
+    if (!(mmu_dir_get_flags(dir, dir_i) & MMU_PAGE_DIR_FLAG_PRESENT)) {
+        return -1;
+    }
+
+    mmu_page_table_t * table = mmu_dir_get_table(dir, dir_i);
+
+    mmu_table_set(table, page, page << 12, MMU_TABLE_RW);
+
+    return 0;
+}

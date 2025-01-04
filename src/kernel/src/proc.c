@@ -92,17 +92,6 @@ int proc_man_task_from_ptr(void * fn) {
 void proc_man_switch_to_idle(proc_man_t * pm) {
 }
 
-static int id_map_range(mmu_page_table_t * table, size_t start, size_t end) {
-    if (end > 1023) {
-        return -1;
-    }
-    while (start <= end) {
-        mmu_table_set(table, start, start << 12, MMU_TABLE_RW);
-        start++;
-    }
-    return 0;
-}
-
 static void stack_pages(mmu_page_dir_t * dir, size_t n) {
     // Page table for stack
     uint32_t stack_table_page = ram_page_alloc();
