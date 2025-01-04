@@ -46,11 +46,9 @@ typedef struct {
 
 mmu_page_dir_t * mmu_dir_create(void * addr);
 void             mmu_dir_clear(mmu_page_dir_t * dir);
-void             mmu_dir_free(mmu_page_dir_t * dir);
 
 mmu_page_table_t * mmu_table_create(void * addr);
 void               mmu_table_clear(mmu_page_table_t * table);
-void               mmu_table_free(mmu_page_table_t * table);
 
 void mmu_dir_set_table(mmu_page_dir_t * dir, size_t i, uint32_t table_addr);
 void mmu_dir_set_flags(mmu_page_dir_t * dir, size_t i, enum MMU_PAGE_DIR_FLAG flags);
@@ -62,7 +60,6 @@ void               mmu_dir_set(mmu_page_dir_t * dir, size_t i, uint32_t table_ad
 uint32_t               mmu_dir_get_paddr(mmu_page_dir_t * dir, size_t i);
 uint32_t               mmu_dir_get_vaddr(mmu_page_dir_t * dir, size_t i);
 enum MMU_PAGE_DIR_FLAG mmu_dir_get_flags(mmu_page_dir_t * dir, size_t i);
-void                   mmu_dir_map_paddr(mmu_page_dir_t * dir, uint32_t vaddr, uint32_t paddr, enum MMU_PAGE_DIR_FLAG dir_flags, enum MMU_PAGE_TABLE_FLAG table_flags);
 
 void mmu_table_set_addr(mmu_page_table_t * table, size_t i, uint32_t page_addr);
 void mmu_table_set_flags(mmu_page_table_t * table, size_t i, enum MMU_PAGE_TABLE_FLAG flags);

@@ -1,6 +1,5 @@
 #include "cpu/mmu.h"
 
-#include "cpu/ram.h"
 #include "libc/process.h"
 #include "libc/string.h"
 
@@ -19,20 +18,17 @@ void mmu_dir_clear(mmu_page_dir_t * dir) {
     for (size_t i = 0; i < PAGE_DIR_SIZE; i++) {
         if (dir->entries[i] & MMU_PAGE_DIR_FLAG_PRESENT) {
             uint32_t table_addr = dir->entries[i] & MASK_ADDR;
-            mmu_table_free((mmu_page_table_t *)table_addr);
+            mmu_table_clear((mmu_page_table_t *)table_addr);
         }
     }
-}
 
-void mmu_dir_free(mmu_page_dir_t * dir) {
-    mmu_dir_clear(dir);
-    ram_page_free(PTR2UINT(dir));
+    kmemset(dir, 0, sizeof(mmu_page_dir_t));
 }
 
 mmu_page_table_t * mmu_table_create(void * addr) {
     mmu_page_table_t * table = addr;
     if (table) {
-        kmemset(table, 0, sizeof(mmu_page_table_t));
+        mmu_table_clear(table);
     }
     return table;
 }
@@ -41,17 +37,7 @@ void mmu_table_clear(mmu_page_table_t * table) {
     if (!table)
         return;
 
-    for (size_t i = 0; i < PAGE_TABLE_SIZE; i++) {
-        if (table->entries[i] & MMU_PAGE_TABLE_FLAG_PRESENT) {
-            uint32_t page_addr = table->entries[i] & MASK_ADDR;
-            ram_page_free(page_addr);
-        }
-    }
-}
-
-void mmu_table_free(mmu_page_table_t * table) {
-    mmu_table_clear(table);
-    ram_page_free(PTR2UINT(table));
+    kmemset(table, 0, sizeof(mmu_page_table_t));
 }
 
 void mmu_dir_set_table(mmu_page_dir_t * dir, size_t i, uint32_t table_addr) {
@@ -113,25 +99,6 @@ enum MMU_PAGE_DIR_FLAG mmu_dir_get_flags(mmu_page_dir_t * dir, size_t i) {
         return 0;
 
     return dir->entries[i] & MASK_FLAGS;
-}
-
-void mmu_dir_map_paddr(mmu_page_dir_t *         dir,
-                       uint32_t                 vaddr,
-                       uint32_t                 paddr,
-                       enum MMU_PAGE_DIR_FLAG   dir_flags,
-                       enum MMU_PAGE_TABLE_FLAG table_flags) {
-    size_t table_i = ADDR2PAGE(vaddr);
-    size_t dir_i   = table_i / 1024;
-    table_i        = table_i % 1024;
-
-    if (!(mmu_dir_get_flags(dir, table_i) & MMU_PAGE_DIR_FLAG_PRESENT)) {
-        uint32_t new_table = ram_page_alloc();
-        mmu_dir_set(dir, dir_i, new_table, dir_flags);
-    }
-    mmu_dir_set_flags(dir, dir_i, dir_flags);
-
-    mmu_page_table_t * table = mmu_dir_get_table(dir, dir_i);
-    mmu_table_set(table, table_i, paddr, table_flags);
 }
 
 void mmu_table_set_addr(mmu_page_table_t * table, size_t i, uint32_t page_addr) {
