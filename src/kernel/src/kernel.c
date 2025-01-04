@@ -117,10 +117,11 @@ void kernel_main() {
 }
 
 int kernel_init(kernel_t * kernel) {
-    if (!kernel
-        || !kmemset(kernel, 0, sizeof(kernel_t))) {
+    if (!kernel) {
         return -1;
     }
+
+    kmemset(kernel, 0, sizeof(kernel_t));
 
     kernel->pm.curr_task  = &kernel->proc;
     kernel->pm.idle_task  = &kernel->proc;
