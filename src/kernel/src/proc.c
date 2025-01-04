@@ -1,10 +1,10 @@
 #include "proc.h"
 
 #include "cpu/mmu.h"
-#include "ram.h"
 #include "libc/string.h"
 #include "memory.h"
 #include "paging.h"
+#include "ram.h"
 
 static uint32_t make_user_page_dir();
 

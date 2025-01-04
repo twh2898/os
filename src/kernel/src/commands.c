@@ -5,7 +5,6 @@
 #include <stdint.h>
 
 #include "cpu/ports.h"
-#include "ram.h"
 #include "debug.h"
 #include "drivers/disk.h"
 #include "drivers/rtc.h"
@@ -16,6 +15,7 @@
 #include "libc/stdio.h"
 #include "libc/string.h"
 #include "memory.h"
+#include "ram.h"
 #include "term.h"
 
 bool debug = false;

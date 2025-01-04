@@ -1,9 +1,9 @@
 #include "exec.h"
 
 #include "cpu/mmu.h"
-#include "ram.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
+#include "ram.h"
 
 typedef int (*ff_t)(size_t argc, char ** argv);
 
