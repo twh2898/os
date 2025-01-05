@@ -10,7 +10,8 @@ typedef void (*signals_master_callback)(int);
 
 typedef struct _process {
     uint32_t pid;
-    uint32_t next_page;
+    uint32_t next_heap_page;
+    uint32_t stack_page_count;
 
     uint32_t esp;
     uint32_t cr3;
@@ -23,9 +24,25 @@ typedef struct _process {
     struct _process * next_proc;
 } process_t;
 
-void process_create(process_t * proc);
+int process_create(process_t * proc);
+int process_free(process_t * proc);
 
-int process_add_pages(process_t * proc, size_t count);
+/**
+ * @brief Add `count` pages to the process heap.
+ *
+ * @param proc pointer to the process object
+ * @param count number of pages to add
+ * @return pointer to the new pages in virtual memory
+ */
+void * process_add_pages(process_t * proc, size_t count);
+
+/**
+ * @brief Add a single page to expand the process stack
+ *
+ * @param proc pointer to the process object
+ * @return int 0 for success
+ */
+int process_grow_stack(process_t * proc);
 
 // Old
 
