@@ -48,8 +48,6 @@ void kernel_main() {
 
     kmemset(&__kernel, 0, sizeof(kernel_t));
 
-    isr_install();
-
     // Init RAM
     __kernel.ram_table_addr = PADDR_RAM_TABLE;
     ram_init((void *)__kernel.ram_table_addr, &__kernel.ram_table_count);
@@ -80,6 +78,7 @@ void kernel_main() {
 
     // TODO isr stack
 
+    isr_install();
     irq_install();
 
     init_system_interrupts(IRQ16);
