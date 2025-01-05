@@ -14,8 +14,8 @@ process_t * proc_new(void * fn, uint32_t ss0) {
         return 0;
     }
 
-    mmu_page_dir_t * curr_dir       = mmu_get_curr_dir();
-    uint32_t         proc_dir_paddr = make_user_page_dir();
+    mmu_dir_t * curr_dir       = mmu_get_curr_dir();
+    uint32_t    proc_dir_paddr = make_user_page_dir();
 
     // TODO setup stack
 
@@ -92,20 +92,22 @@ int proc_man_task_from_ptr(void * fn) {
 void proc_man_switch_to_idle(proc_man_t * pm) {
 }
 
-static void stack_pages(mmu_page_dir_t * dir, size_t n) {
+static void stack_pages(mmu_dir_t * dir, size_t n) {
     // Page table for stack
     uint32_t stack_table_page = ram_page_alloc();
-    mmu_dir_set(dir, PAGE_DIR_SIZE - 2, stack_table_page, MMU_DIR_RW);
-    mmu_page_table_t * stack_table = mmu_table_create(UINT2PTR(stack_table_page));
+    mmu_dir_set(dir, MMU_DIR_SIZE - 2, stack_table_page, MMU_DIR_RW);
+    mmu_table_t * stack_table = UINT2PTR(stack_table_page);
+    mmu_table_clear(stack_table);
 
     // First stack page
     uint32_t stack_page = ram_page_alloc();
-    mmu_table_set(stack_table, PAGE_TABLE_SIZE - 1, stack_page, MMU_TABLE_RW);
+    mmu_table_set(stack_table, MMU_TABLE_SIZE - 1, stack_page, MMU_TABLE_RW);
 }
 
 static uint32_t make_user_page_dir() {
-    uint32_t         new_dir_page = ram_page_alloc();
-    mmu_page_dir_t * dir          = mmu_dir_create(paging_temp_map(new_dir_page));
+    uint32_t    new_dir_page = ram_page_alloc();
+    mmu_dir_t * dir          = paging_temp_map(new_dir_page);
+    mmu_dir_clear(dir);
     paging_temp_free(new_dir_page);
     return new_dir_page;
 }

@@ -22,4 +22,6 @@
 #define UINT2PTR(UINT)  ((void *)(UINT))
 #define LUINT2PTR(UINT) UINT2PTR((uint32_t)(UINT))
 
+#define VIRTUAL_TABLE(I) ((mmu_table_t *)(VADDR_FIRST_PAGE_TABLE + ((I) << 12)))
+
 #endif // DEFS_H

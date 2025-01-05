@@ -44,7 +44,7 @@ size_t paging_temp_available();
  * @param flags page table entry flags
  * @return int 0 for success
  */
-int paging_map(uint32_t vaddr, uint32_t paddr, enum MMU_PAGE_TABLE_FLAG flags);
+int paging_map(uint32_t vaddr, uint32_t paddr, enum MMU_TABLE_FLAG flags);
 
 /**
  * @brief Identity map a range of pages.

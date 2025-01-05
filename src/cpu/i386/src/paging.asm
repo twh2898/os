@@ -31,7 +31,7 @@ mmu_paging_enabled:
 
     ret
 
-; void mmu_change_dir(mmu_page_dir_t * dir)
+; void mmu_change_dir(mmu_dir_t * dir)
 global mmu_change_dir
 mmu_change_dir:
     pusha
@@ -43,7 +43,7 @@ mmu_change_dir:
     popa
     ret
 
-; mmu_page_dir_t * mmu_get_curr_dir()
+; mmu_dir_t * mmu_get_curr_dir()
 global mmu_get_curr_dir
 mmu_get_curr_dir:
     mov eax, cr3

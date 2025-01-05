@@ -3,76 +3,68 @@
 
 #include "defs.h"
 
-#define PAGE_DIR_SIZE   1024
-#define PAGE_TABLE_SIZE 1024
+#define MMU_DIR_SIZE   1024
+#define MMU_TABLE_SIZE 1024
 
-#define MMU_DIR_RW   (MMU_PAGE_DIR_FLAG_PRESENT | MMU_PAGE_DIR_FLAG_READ_WRITE)
-#define MMU_TABLE_RW (MMU_PAGE_TABLE_FLAG_PRESENT | MMU_PAGE_TABLE_FLAG_READ_WRITE)
+#define MMU_DIR_RW   (MMU_DIR_FLAG_PRESENT | MMU_DIR_FLAG_READ_WRITE)
+#define MMU_TABLE_RW (MMU_TABLE_FLAG_PRESENT | MMU_TABLE_FLAG_READ_WRITE)
 
-#define MMU_DIR_RW_USER   (MMU_DIR_RW | MMU_PAGE_DIR_FLAG_USER_SUPERVISOR)
-#define MMU_TABLE_RW_USER (MMU_TABLE_RW | MMU_PAGE_DIR_FLAG_USER_SUPERVISOR)
+#define MMU_DIR_RW_USER   (MMU_DIR_RW | MMU_DIR_FLAG_USER_SUPERVISOR)
+#define MMU_TABLE_RW_USER (MMU_TABLE_RW | MMU_DIR_FLAG_USER_SUPERVISOR)
 
-enum MMU_PAGE_DIR_FLAG {
-    MMU_PAGE_DIR_FLAG_PRESENT         = 0x1,
-    MMU_PAGE_DIR_FLAG_READ_WRITE      = 0x2,
-    MMU_PAGE_DIR_FLAG_USER_SUPERVISOR = 0x4,
-    MMU_PAGE_DIR_FLAG_WRITE_THROUGH   = 0x8,
-    MMU_PAGE_DIR_FLAG_CACHE_DISABLE   = 0x10,
-    MMU_PAGE_DIR_FLAG_ACCESSED        = 0x20,
-    MMU_PAGE_DIR_FLAG_PAGE_SIZE       = 0x80,
+enum MMU_DIR_FLAG {
+    MMU_DIR_FLAG_PRESENT         = 0x1,
+    MMU_DIR_FLAG_READ_WRITE      = 0x2,
+    MMU_DIR_FLAG_USER_SUPERVISOR = 0x4,
+    MMU_DIR_FLAG_WRITE_THROUGH   = 0x8,
+    MMU_DIR_FLAG_CACHE_DISABLE   = 0x10,
+    MMU_DIR_FLAG_ACCESSED        = 0x20,
+    MMU_DIR_FLAG_PAGE_SIZE       = 0x80,
 };
 
-enum MMU_PAGE_TABLE_FLAG {
-    MMU_PAGE_TABLE_FLAG_PRESENT         = 0x1,
-    MMU_PAGE_TABLE_FLAG_READ_WRITE      = 0x2,
-    MMU_PAGE_TABLE_FLAG_USER_SUPERVISOR = 0x4,
-    MMU_PAGE_TABLE_FLAG_WRITE_THROUGH   = 0x8,
-    MMU_PAGE_TABLE_FLAG_CACHE_DISABLE   = 0x10,
-    MMU_PAGE_TABLE_FLAG_ACCESSED        = 0x20,
-    MMU_PAGE_TABLE_FLAG_DIRTY           = 0x40,
-    MMU_PAGE_TABLE_FLAG_PAT             = 0x80,
-    MMU_PAGE_TABLE_FLAG_GLOBAL          = 0x100,
+enum MMU_TABLE_FLAG {
+    MMU_TABLE_FLAG_PRESENT         = 0x1,
+    MMU_TABLE_FLAG_READ_WRITE      = 0x2,
+    MMU_TABLE_FLAG_USER_SUPERVISOR = 0x4,
+    MMU_TABLE_FLAG_WRITE_THROUGH   = 0x8,
+    MMU_TABLE_FLAG_CACHE_DISABLE   = 0x10,
+    MMU_TABLE_FLAG_ACCESSED        = 0x20,
+    MMU_TABLE_FLAG_DIRTY           = 0x40,
+    MMU_TABLE_FLAG_PAT             = 0x80,
+    MMU_TABLE_FLAG_GLOBAL          = 0x100,
 };
 
-typedef uint32_t mmu_page_entry_t;
+typedef uint32_t mmu_entry_t;
 
 typedef struct {
-    mmu_page_entry_t entries[PAGE_DIR_SIZE];
-} __attribute__((packed)) mmu_page_dir_t;
+    mmu_entry_t entries[MMU_DIR_SIZE];
+} __attribute__((packed)) mmu_dir_t;
 
 typedef struct {
-    mmu_page_entry_t entries[PAGE_TABLE_SIZE];
-} __attribute__((packed)) mmu_page_table_t;
+    mmu_entry_t entries[MMU_TABLE_SIZE];
+} __attribute__((packed)) mmu_table_t;
 
-mmu_page_dir_t * mmu_dir_create(void * addr);
-void             mmu_dir_clear(mmu_page_dir_t * dir);
+void mmu_dir_clear(mmu_dir_t * dir);
+void mmu_table_clear(mmu_table_t * table);
 
-mmu_page_table_t * mmu_table_create(void * addr);
-void               mmu_table_clear(mmu_page_table_t * table);
+int  mmu_dir_set_addr(mmu_dir_t * dir, size_t i, uint32_t addr);
+int  mmu_dir_set_flags(mmu_dir_t * dir, size_t i, enum MMU_DIR_FLAG flags);
+void mmu_dir_set(mmu_dir_t * dir, size_t i, uint32_t addr, enum MMU_DIR_FLAG flags);
 
-void mmu_dir_set_table(mmu_page_dir_t * dir, size_t i, uint32_t table_addr);
-void mmu_dir_set_flags(mmu_page_dir_t * dir, size_t i, enum MMU_PAGE_DIR_FLAG flags);
-/// This is in the virtual address space, use mmu_dir_get_paddr for physical address
-mmu_page_table_t * mmu_dir_get_table(mmu_page_dir_t * dir, size_t i);
-void               mmu_dir_set(mmu_page_dir_t * dir, size_t i, uint32_t table_addr, enum MMU_PAGE_DIR_FLAG flags);
+uint32_t          mmu_dir_get_addr(mmu_dir_t * dir, size_t i);
+enum MMU_DIR_FLAG mmu_dir_get_flags(mmu_dir_t * dir, size_t i);
 
-uint32_t               mmu_dir_get_paddr(mmu_page_dir_t * dir, size_t i);
-uint32_t               mmu_dir_get_vaddr(mmu_page_dir_t * dir, size_t i);
-enum MMU_PAGE_DIR_FLAG mmu_dir_get_flags(mmu_page_dir_t * dir, size_t i);
+void mmu_table_set_addr(mmu_table_t * table, size_t i, uint32_t addr);
+void mmu_table_set_flags(mmu_table_t * table, size_t i, enum MMU_TABLE_FLAG flags);
+void mmu_table_set(mmu_table_t * table, size_t i, uint32_t addr, enum MMU_TABLE_FLAG flags);
 
-void mmu_table_set_addr(mmu_page_table_t * table, size_t i, uint32_t page_addr);
-void mmu_table_set_flags(mmu_page_table_t * table, size_t i, enum MMU_PAGE_TABLE_FLAG flags);
-void mmu_table_set(mmu_page_table_t * table, size_t i, uint32_t page_addr, enum MMU_PAGE_TABLE_FLAG flags);
+uint32_t            mmu_table_get_addr(mmu_table_t * table, size_t i);
+enum MMU_TABLE_FLAG mmu_table_get_flags(mmu_table_t * table, size_t i);
 
-uint32_t                 mmu_table_get_addr(mmu_page_table_t * table, size_t i);
-enum MMU_PAGE_TABLE_FLAG mmu_table_get_flags(mmu_page_table_t * table, size_t i);
-
-extern void             mmu_enable_paging(mmu_page_dir_t * dir);
-extern void             mmu_disable_paging();
-extern bool             mmu_paging_enabled();
-extern void             mmu_change_dir(mmu_page_dir_t * dir);
-extern mmu_page_dir_t * mmu_get_curr_dir();
-
-// TODO way in the future, free interior pages when kmalloc free's entire virtual page
+extern void        mmu_enable_paging(mmu_dir_t * dir);
+extern void        mmu_disable_paging();
+extern bool        mmu_paging_enabled();
+extern void        mmu_change_dir(mmu_dir_t * dir);
+extern mmu_dir_t * mmu_get_curr_dir();
 
 #endif // MMU_H

@@ -1,8 +1,10 @@
 #include "memory.h"
 
+#include "defs.h"
 #include "libc/process.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
+#include "paging.h"
 #include "ram.h"
 
 #define MEMORY_TABLE_ENTRY_COUNT ((PAGE_SIZE - 8) / sizeof(memory_table_entry_t)) // 511
@@ -24,7 +26,7 @@ typedef struct {
     memory_table_entry_t entries[MEMORY_TABLE_ENTRY_COUNT];
 } memory_table_t;
 
-mmu_page_dir_t * pdir;
+mmu_dir_t *      pdir;
 size_t           next_page;
 memory_table_t * mtable;
 
@@ -52,7 +54,7 @@ static memory_table_entry_t * next_entry(memory_table_t * table, size_t i);
 static size_t split_entry(memory_table_t * table, size_t i, size_t size);
 static size_t merge_entry(memory_table_t * table, size_t i, size_t count);
 
-void init_malloc(mmu_page_dir_t * dir, size_t first_page) {
+void init_malloc(mmu_dir_t * dir, size_t first_page) {
     // printf("init_malloc(dir=%p page=%u)\n", dir, first_page);
     pdir      = dir;
     next_page = first_page;
@@ -127,17 +129,17 @@ static void * add_page() {
     void * page_vaddr = UINT2PTR(PAGE2ADDR(next_page));
 
     uint8_t flags = mmu_dir_get_flags(pdir, table);
-    if (!(flags & MMU_PAGE_DIR_FLAG_PRESENT)) {
+    if (!(flags & MMU_DIR_FLAG_PRESENT)) {
         uint32_t new_table_page_paddr = ram_page_alloc();
 
-        mmu_page_table_t * last_table = mmu_dir_get_table(pdir, PAGE_DIR_SIZE - 1);
+        mmu_table_t * last_table = VIRTUAL_TABLE(MMU_DIR_SIZE - 1);
         mmu_table_set(last_table, table, new_table_page_paddr, MMU_TABLE_RW);
 
-        mmu_page_table_t * app_table = mmu_dir_get_table(pdir, table);
-        mmu_table_create(app_table);
+        mmu_table_t * app_table = VIRTUAL_TABLE(table);
+        mmu_table_clear(app_table);
     }
 
-    mmu_page_table_t * ptable = mmu_dir_get_table(pdir, table);
+    mmu_table_t * ptable = VIRTUAL_TABLE(table);
     mmu_table_set(ptable, cell, ram_page_paddr, MMU_TABLE_RW);
 
     next_page++;

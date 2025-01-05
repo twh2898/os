@@ -28,9 +28,9 @@ static kernel_t __kernel;
 extern _Noreturn void halt(void);
 
 static process_t * get_current_process();
-static void        map_first_table(mmu_page_table_t * table);
-static void        id_map_range(mmu_page_table_t * table, size_t start, size_t end);
-static void        id_map_page(mmu_page_table_t * table, size_t page);
+static void        map_first_table(mmu_table_t * table);
+static void        id_map_range(mmu_table_t * table, size_t start, size_t end);
+static void        id_map_page(mmu_table_t * table, size_t page);
 static void        cursor();
 static void        irq_install();
 static uint32_t    int_mem_cb(uint16_t int_no, registers_t * regs);
@@ -38,7 +38,7 @@ static uint32_t    int_proc_cb(uint16_t int_no, registers_t * regs);
 static uint32_t    int_tmp_stdio_cb(uint16_t int_no, registers_t * regs);
 static int         kill(size_t argc, char ** argv);
 static int         try_switch(size_t argc, char ** argv);
-static void        map_first_table(mmu_page_table_t * table);
+static void        map_first_table(mmu_table_t * table);
 
 extern void jump_kernel_mode(void * fn);
 
@@ -57,19 +57,21 @@ void kernel_main() {
     ram_init((void *)__kernel.ram_table_addr, &__kernel.ram_table_count);
 
     // Init Page Dir
-    __kernel.cr3          = PADDR_PAGE_DIR;
-    mmu_page_dir_t * pdir = mmu_dir_create((void *)__kernel.cr3);
+    __kernel.cr3     = PADDR_PAGE_DIR;
+    mmu_dir_t * pdir = (mmu_dir_t *)__kernel.cr3;
+    mmu_dir_clear(pdir);
 
     // Init first table
     uint32_t first_table_addr = ram_page_palloc();
     mmu_dir_set(pdir, 0, first_table_addr, MMU_DIR_RW);
 
     // Map first table
-    mmu_page_table_t * first_table = mmu_table_create(UINT2PTR(first_table_addr));
+    mmu_table_t * first_table = UINT2PTR(first_table_addr);
+    mmu_table_clear(first_table);
     map_first_table(first_table);
 
     // Map last table to dir for access to tables
-    mmu_dir_set(pdir, PAGE_DIR_SIZE - 1, __kernel.cr3, MMU_DIR_RW);
+    mmu_dir_set(pdir, MMU_DIR_SIZE - 1, __kernel.cr3, MMU_DIR_RW);
 
     // Enter Paging
     mmu_enable_paging(pdir);
@@ -270,7 +272,7 @@ static int kill(size_t argc, char ** argv) {
     return 0;
 }
 
-static void map_first_table(mmu_page_table_t * table) {
+static void map_first_table(mmu_table_t * table) {
     // null page 0
     mmu_table_set(table, 0, 0, 0);
 
@@ -295,7 +297,7 @@ static void map_first_table(mmu_page_table_t * table) {
     }
 }
 
-static void id_map_range(mmu_page_table_t * table, size_t start, size_t end) {
+static void id_map_range(mmu_table_t * table, size_t start, size_t end) {
     if (end > 1023) {
         PANIC("End is past table limits");
         end = 1023;
@@ -307,6 +309,6 @@ static void id_map_range(mmu_page_table_t * table, size_t start, size_t end) {
     }
 }
 
-static void id_map_page(mmu_page_table_t * table, size_t page) {
+static void id_map_page(mmu_table_t * table, size_t page) {
     mmu_table_set(table, page, page << 12, MMU_TABLE_RW);
 }

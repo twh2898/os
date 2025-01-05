@@ -25,14 +25,14 @@ int command_exec(uint8_t * buff, size_t size, size_t argc, char ** argv) {
 }
 
 static void setup_user_space(size_t size) {
-    mmu_page_dir_t *   dir        = UINT2PTR(VADDR_PAGE_DIR);
-    mmu_page_table_t * last_table = UINT2PTR(VADDR_LAST_PAGE_TABLE);
+    mmu_dir_t *   dir        = UINT2PTR(VADDR_PAGE_DIR);
+    mmu_table_t * last_table = UINT2PTR(VADDR_LAST_PAGE_TABLE);
 
     uint32_t page = ram_page_alloc();
     mmu_dir_set(dir, 1, page, MMU_DIR_RW);
     mmu_table_set(last_table, 1, page, MMU_TABLE_RW);
 
-    mmu_page_table_t * user_table = UINT2PTR(mmu_dir_get_vaddr(dir, 1));
+    mmu_table_t * user_table = UINT2PTR(VADDR_FIRST_PAGE_TABLE + (1 << 12));
 
     size_t page_count = PAGE_ALIGNED(size) >> 12;
     for (size_t i = 0; i < page_count; i++) {
@@ -42,10 +42,10 @@ static void setup_user_space(size_t size) {
 }
 
 static void free_user_space() {
-    mmu_page_dir_t *   dir        = UINT2PTR(VADDR_PAGE_DIR);
-    mmu_page_table_t * last_table = UINT2PTR(VADDR_LAST_PAGE_TABLE);
+    mmu_dir_t *   dir        = UINT2PTR(VADDR_PAGE_DIR);
+    mmu_table_t * last_table = UINT2PTR(VADDR_LAST_PAGE_TABLE);
 
-    mmu_page_table_t * user_table = UINT2PTR(mmu_dir_get_vaddr(dir, 1));
+    mmu_table_t * user_table = UINT2PTR(VADDR_FIRST_PAGE_TABLE + (1 << 12));
     mmu_table_clear(user_table);
 
     mmu_table_set(last_table, 1, 0, 0);

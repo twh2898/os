@@ -10,7 +10,7 @@ void paging_init() {
 }
 
 void * paging_temp_map(uint32_t paddr) {
-    if (!paddr) {
+    if (!paddr || paddr & MASK_FLAGS) {
         return 0;
     }
 
@@ -20,8 +20,8 @@ void * paging_temp_map(uint32_t paddr) {
 
             size_t table_i = ADDR2PAGE(VADDR_TMP_PAGE) + i;
 
-            mmu_page_dir_t *   dir   = mmu_get_curr_dir();
-            mmu_page_table_t * table = mmu_dir_get_table(dir, table_i);
+            mmu_dir_t *   dir   = mmu_get_curr_dir();
+            mmu_table_t * table = VIRTUAL_TABLE(table_i);
             mmu_table_set(table, table_i, paddr, MMU_TABLE_RW_USER);
             return UINT2PTR(PAGE2ADDR(table_i));
         }
@@ -31,7 +31,7 @@ void * paging_temp_map(uint32_t paddr) {
 }
 
 void paging_temp_free(uint32_t paddr) {
-    if (!paddr) {
+    if (!paddr || paddr & MASK_FLAGS) {
         return;
     }
 
@@ -41,8 +41,8 @@ void paging_temp_free(uint32_t paddr) {
 
             size_t table_i = ADDR2PAGE(VADDR_TMP_PAGE) + i;
 
-            mmu_page_dir_t *   dir   = mmu_get_curr_dir();
-            mmu_page_table_t * table = mmu_dir_get_table(dir, table_i);
+            mmu_dir_t *   dir   = mmu_get_curr_dir();
+            mmu_table_t * table = VIRTUAL_TABLE(table_i);
             mmu_table_set(table, table_i, 0, 0);
 
             break;
@@ -62,22 +62,22 @@ size_t paging_temp_available() {
     return free;
 }
 
-int paging_map(uint32_t vaddr, uint32_t paddr, enum MMU_PAGE_TABLE_FLAG flags) {
+int paging_map(uint32_t vaddr, uint32_t paddr, enum MMU_TABLE_FLAG flags) {
     if (vaddr & MASK_FLAGS || paddr & MASK_FLAGS) {
         return -1;
     }
 
     size_t page_i  = ADDR2PAGE(vaddr);
-    size_t dir_i   = page_i / PAGE_DIR_SIZE;
-    size_t table_i = page_i % PAGE_DIR_SIZE;
+    size_t dir_i   = page_i / MMU_DIR_SIZE;
+    size_t table_i = page_i % MMU_DIR_SIZE;
 
-    mmu_page_dir_t * dir = mmu_get_curr_dir();
+    mmu_dir_t * dir = mmu_get_curr_dir();
 
-    if (!(mmu_dir_get_flags(dir, dir_i) & MMU_PAGE_DIR_FLAG_PRESENT)) {
+    if (!(mmu_dir_get_flags(dir, dir_i) & MMU_DIR_FLAG_PRESENT)) {
         return -1;
     }
 
-    mmu_page_table_t * table = mmu_dir_get_table(dir, dir_i);
+    mmu_table_t * table = VIRTUAL_TABLE(dir_i);
 
     mmu_table_set(table, table_i, paddr, flags);
 
@@ -95,16 +95,16 @@ int paging_id_map_range(size_t start, size_t end) {
 }
 
 int paging_id_map_page(size_t page) {
-    size_t dir_i   = page / PAGE_DIR_SIZE;
-    size_t table_i = page % PAGE_DIR_SIZE;
+    size_t dir_i   = page / MMU_DIR_SIZE;
+    size_t table_i = page % MMU_DIR_SIZE;
 
-    mmu_page_dir_t * dir = mmu_get_curr_dir();
+    mmu_dir_t * dir = mmu_get_curr_dir();
 
-    if (!(mmu_dir_get_flags(dir, dir_i) & MMU_PAGE_DIR_FLAG_PRESENT)) {
+    if (!(mmu_dir_get_flags(dir, dir_i) & MMU_DIR_FLAG_PRESENT)) {
         return -1;
     }
 
-    mmu_page_table_t * table = mmu_dir_get_table(dir, dir_i);
+    mmu_table_t * table = VIRTUAL_TABLE(dir_i);
 
     mmu_table_set(table, page, page << 12, MMU_TABLE_RW);
 
