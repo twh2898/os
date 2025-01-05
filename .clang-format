@@ -1,47 +1,47 @@
 BasedOnStyle: Google
-AccessModifierOffset: '-4'
+AccessModifierOffset: -4
 AlignConsecutiveAssignments: Consecutive
 AlignConsecutiveBitFields: AcrossEmptyLines
 AlignConsecutiveDeclarations: Consecutive
-AlignConsecutiveMacros: 'true'
+AlignConsecutiveMacros: Consecutive
 AlignTrailingComments:
   Kind: Always
-AllowAllArgumentsOnNextLine: 'true'
-AllowShortBlocksOnASingleLine: 'false'
+AllowAllArgumentsOnNextLine: true
+AllowShortBlocksOnASingleLine: Never
 AllowShortFunctionsOnASingleLine: Empty
 AllowShortIfStatementsOnASingleLine: Never
 AllowShortLambdasOnASingleLine: Empty
-AlwaysBreakTemplateDeclarations: 'Yes'
-BinPackArguments: 'false'
-BinPackParameters: 'false'
+AlwaysBreakTemplateDeclarations: "Yes"
+BinPackArguments: false
+BinPackParameters: false
 BraceWrapping:
-  AfterEnum: 'false'
-  BeforeCatch: 'true'
-  BeforeElse: 'true'
-  BeforeLambdaBody: 'false'
-  BeforeWhile: 'false'
+  AfterEnum: false
+  BeforeCatch: true
+  BeforeElse: true
+  BeforeLambdaBody: false
+  BeforeWhile: false
 BreakBeforeBinaryOperators: NonAssignment
 BreakBeforeBraces: Custom
-BreakBeforeTernaryOperators: 'false'
+BreakBeforeTernaryOperators: false
 BreakConstructorInitializers: BeforeColon
 BreakInheritanceList: BeforeColon
-BreakStringLiterals: 'false'
-ColumnLimit: '0'
-DerivePointerAlignment: 'false'
-ExperimentalAutoDetectBinPacking: 'true'
-FixNamespaceComments: 'false'
-IndentCaseLabels: 'true'
-IndentWidth: '4'
-# InsertBraces: 'true'
-KeepEmptyLinesAtTheStartOfBlocks: 'true'
+BreakStringLiterals: false
+ColumnLimit: 0
+DerivePointerAlignment: false
+ExperimentalAutoDetectBinPacking: true
+FixNamespaceComments: false
+IndentCaseLabels: true
+IndentWidth: 4
+# InsertBraces: true
+KeepEmptyLinesAtTheStartOfBlocks: true
 Language: Cpp
-MaxEmptyLinesToKeep: '10'
+MaxEmptyLinesToKeep: 1
 NamespaceIndentation: All
-PenaltyBreakComment: '20'
-PenaltyExcessCharacter: '5'
+PenaltyBreakComment: 20
+PenaltyExcessCharacter: 5
 PointerAlignment: Middle
-SortUsingDeclarations: 'false'
-SpaceAfterTemplateKeyword: 'false'
-SpaceBeforeCpp11BracedList: 'true'
-SpacesBeforeTrailingComments: '1'
+SortUsingDeclarations: LexicographicNumeric
+SpaceAfterTemplateKeyword: false
+SpaceBeforeCpp11BracedList: true
+SpacesBeforeTrailingComments: 1
 UseTab: Never

@@ -34,5 +34,4 @@ memory_entry_t * memory_find_entry_size(memory_t * mem, size_t size);
 memory_entry_t * memory_find_entry_ptr(memory_t * mem, void * ptr);
 memory_entry_t * memory_add_entry(memory_t * mem, size_t size);
 
-
 #endif // MEMORY_ALLOC_H
