@@ -128,19 +128,19 @@ static void * add_page() {
 
     void * page_vaddr = UINT2PTR(PAGE2ADDR(next_page));
 
-    uint8_t flags = mmu_dir_get_flags(pdir, table);
-    if (!(flags & MMU_DIR_FLAG_PRESENT)) {
-        uint32_t new_table_page_paddr = ram_page_alloc();
+    // uint8_t flags = mmu_dir_get_flags(pdir, table);
+    // if (!(flags & MMU_DIR_FLAG_PRESENT)) {
+    //     uint32_t new_table_page_paddr = ram_page_alloc();
 
-        mmu_table_t * last_table = VIRTUAL_TABLE(MMU_DIR_SIZE - 1);
-        mmu_table_set(last_table, table, new_table_page_paddr, MMU_TABLE_RW);
+    //     mmu_table_t * last_table = VIRTUAL_TABLE(MMU_DIR_SIZE - 1);
+    //     mmu_table_set(last_table, table, new_table_page_paddr, MMU_TABLE_RW);
 
-        mmu_table_t * app_table = VIRTUAL_TABLE(table);
-        mmu_table_clear(app_table);
-    }
+    //     mmu_table_t * app_table = VIRTUAL_TABLE(table);
+    //     mmu_table_clear(app_table);
+    // }
 
-    mmu_table_t * ptable = VIRTUAL_TABLE(table);
-    mmu_table_set(ptable, cell, ram_page_paddr, MMU_TABLE_RW);
+    // mmu_table_t * ptable = VIRTUAL_TABLE(table);
+    // mmu_table_set(ptable, cell, ram_page_paddr, MMU_TABLE_RW);
 
     next_page++;
     return page_vaddr;

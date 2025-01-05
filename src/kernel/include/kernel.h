@@ -10,7 +10,6 @@ typedef struct _kernel {
     uint32_t   ram_table_addr;
     size_t     ram_table_count;
     uint32_t   cr3;
-    uint32_t   kernel_table_vaddr; // First page table in any page dir maps kernel
     process_t  proc;
     proc_man_t pm;
 } kernel_t;

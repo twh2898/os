@@ -32,15 +32,12 @@ typedef void * v_ptr_t;
 #define VADDR_VGA            PADDR_VGA
 
 // Physical address allocated at runtime
-#define VADDR_RAM_BITMASKS    (VADDR_VGA + PAGE_SIZE)
-#define VADDR_KERNEL_TABLE    (VADDR_RAM_BITMASKS + PAGE_SIZE * 0x200)
-#define VADDR_FREE_MEM_KERNEL (VADDR_KERNEL_TABLE + PAGE_SIZE)
-#define VADDR_ISR_STACK       0x3fffff
-#define VADDR_FREE_MEM_USER   0x400000
+#define VADDR_RAM_BITMASKS (VADDR_VGA + PAGE_SIZE)
+#define VADDR_KERNEL_TABLE (VADDR_RAM_BITMASKS + PAGE_SIZE * 0x200)
+#define VADDR_KERNEL_MEM   (VADDR_KERNEL_TABLE + PAGE_SIZE)
+#define VADDR_ISR_STACK    0x3fffff
+#define VADDR_USER_MEM     0x400000
 
-#define VADDR_USER_STACK        0xffbfffff
-#define VADDR_FIRST_PAGE_TABLE  0xffc00000
-#define VADDR_SECOND_PAGE_TABLE 0xffc01000
-#define VADDR_LAST_PAGE_TABLE   0xfffff000
+#define VADDR_USER_STACK 0xffffffff
 
 #endif // ADDR_H

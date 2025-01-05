@@ -28,7 +28,6 @@ static kernel_t __kernel;
 extern _Noreturn void halt(void);
 
 static process_t * get_current_process();
-static void        map_first_table(mmu_table_t * table);
 static void        id_map_range(mmu_table_t * table, size_t start, size_t end);
 static void        id_map_page(mmu_table_t * table, size_t page);
 static void        cursor();
@@ -88,14 +87,14 @@ void kernel_main() {
 
     // TODO kernel heap with new memory_alloc (needs process or page allocator)
 
-    // init_malloc(pdir, VADDR_FREE_MEM_KERNEL >> 12);
+    // init_malloc(pdir, VADDR_KERNEL_MEM >> 12);
     PANIC("MALLOC ISN'T SETUP YET!"); // need to replace above with new allocator
 
     vga_puts("Welcome to kernel v..\n");
 
     process_create(&__kernel.proc);
 
-    __kernel.proc.next_page = VADDR_FREE_MEM_KERNEL;
+    __kernel.proc.next_page = VADDR_KERNEL_MEM;
 
     __kernel.pm.curr_task  = &__kernel.proc;
     __kernel.pm.idle_task  = &__kernel.proc;
@@ -125,6 +124,14 @@ void kernel_main() {
     jump_kernel_mode(term_run);
 
     PANIC("You shouldn't be here!");
+}
+
+mmu_dir_t * get_kernel_dir() {
+    return (mmu_dir_t *)__kernel.cr3;
+}
+
+mmu_table_t * get_kernel_table() {
+    return (mmu_table_t *)VADDR_KERNEL_TABLE;
 }
 
 static process_t * get_current_process() {
@@ -282,6 +289,9 @@ static void map_first_table(mmu_table_t * table) {
     for (size_t i = 0; i < __kernel.ram_table_count; i++) {
         mmu_table_set(table, ADDR2PAGE(VADDR_RAM_BITMASKS) + i, ram_bitmask_paddr(i), MMU_TABLE_RW);
     }
+
+    // Kernel Table
+    mmu_table_set(table, ADDR2PAGE(VADDR_KERNEL_TABLE), (uint32_t)table, MMU_TABLE_RW);
 }
 
 static void id_map_range(mmu_table_t * table, size_t start, size_t end) {
