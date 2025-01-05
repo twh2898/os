@@ -105,8 +105,9 @@ directory.
 | 0x0009f000 | 0x000b7fff | 0x00019     |               | _temp pages for mapping_                                  |
 | 0x000b8000 | 0x000b8fff | 0x00001     | 0x000b8000    | VGA Memory                                                |
 | 0x000b9000 | 0x002b9fff | 0x00200     |               | ram region bitmasks                                       |
-| 0x002ba000 | x          | x           |               | _free memory for kmalloc (remainder of first page table)_ |
-| x          | 0x003fffff | 0x00146 - x |               | _kernel stack (grows down)_                               |
+| 0x002ba000 | 0x002bafff | 0x00001     |               | First page table (kernel's page) of any page directory    |
+| 0x002bb000 | x          | x           |               | _free memory for kmalloc (remainder of first page table)_ |
+| x          | 0x003fffff | 0x00145 - x |               | _kernel stack (grows down)_                               |
 | 0x00400000 | 0xffbfffff | 0xff800     |               | _free memory for user (second+ page tables)_              |
 | 0xffc00000 | 0xffc00fff | 0x00001     |               | first page table (includes identity map)                  |
 | 0xffc01000 | 0xffffefff | 0x003fe     |               | all page tables from the active directory                 |
