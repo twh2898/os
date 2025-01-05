@@ -139,8 +139,7 @@ static void cursor() {
 }
 
 static void irq_install() {
-    /* Enable interruptions */
-    asm volatile("sti");
+    enable_interrupts();
     /* IRQ0: timer */
     init_timer(1000); // milliseconds
     /* IRQ1: keyboard */
