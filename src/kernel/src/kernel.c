@@ -92,7 +92,8 @@ void kernel_main() {
 
     // TODO kernel heap with new memory_alloc (needs process or page allocator)
 
-    init_malloc(pdir, VADDR_FREE_MEM_KERNEL >> 12);
+    // init_malloc(pdir, VADDR_FREE_MEM_KERNEL >> 12);
+    PANIC("MALLOC ISN'T SETUP YET!"); // need to replace above with new allocator
 
     // check_malloc();
 
