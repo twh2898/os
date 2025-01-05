@@ -46,12 +46,6 @@ int process_grow_stack(process_t * proc);
 
 // Old
 
-process_t * proc_new(void * fn, uint32_t ss0);
-process_t * proc_from_ptr(uint32_t eip, uint32_t esp, uint32_t cr3, uint32_t ss0);
-void        proc_free(process_t * proc);
-
-int proc_add_page(process_t * proc, uint32_t page_i, uint32_t paddr);
-
 extern void set_first_task(process_t * next_proc);
 extern void switch_to_task(process_t * next_proc);
 

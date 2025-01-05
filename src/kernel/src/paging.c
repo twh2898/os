@@ -91,7 +91,7 @@ int paging_id_map_page(size_t page) {
     }
 
     size_t dir_i   = page / MMU_DIR_SIZE;
-    size_t table_i = page % MMU_DIR_SIZE;
+    size_t table_i = page % MMU_TABLE_SIZE;
 
     mmu_dir_t * dir = mmu_get_curr_dir();
 

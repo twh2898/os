@@ -6,8 +6,6 @@
 #include "paging.h"
 #include "ram.h"
 
-static uint32_t make_user_page_dir();
-
 int process_create(process_t * proc) {
     static uint32_t next_pid = 0; // 0 will be the kernel
 
@@ -252,12 +250,4 @@ static void stack_pages(mmu_dir_t * dir, size_t n) {
     // First stack page
     uint32_t stack_page = ram_page_alloc();
     mmu_table_set(stack_table, MMU_TABLE_SIZE - 1, stack_page, MMU_TABLE_RW);
-}
-
-static uint32_t make_user_page_dir() {
-    uint32_t    new_dir_page = ram_page_alloc();
-    mmu_dir_t * dir          = paging_temp_map(new_dir_page);
-    mmu_dir_clear(dir);
-    paging_temp_free(new_dir_page);
-    return new_dir_page;
 }
