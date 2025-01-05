@@ -91,9 +91,11 @@ void kernel_main() {
     // init_malloc(pdir, VADDR_FREE_MEM_KERNEL >> 12);
     PANIC("MALLOC ISN'T SETUP YET!"); // need to replace above with new allocator
 
-    // check_malloc();
-
     vga_puts("Welcome to kernel v..\n");
+
+    process_create(&__kernel.proc);
+
+    __kernel.proc.next_page = VADDR_FREE_MEM_KERNEL;
 
     __kernel.pm.curr_task  = &__kernel.proc;
     __kernel.pm.idle_task  = &__kernel.proc;
@@ -173,8 +175,7 @@ static uint32_t int_mem_cb(uint16_t int_no, registers_t * regs) {
             size_t count = regs->ebx;
 
             process_t * curr_proc = get_current_process();
-
-            // TODO alloc more pages
+            res                   = !process_add_pages(curr_proc, count);
         } break;
     }
 

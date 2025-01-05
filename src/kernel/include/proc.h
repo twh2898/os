@@ -3,29 +3,31 @@
 
 #include <stdint.h>
 
+#include "cpu/isr.h"
 #include "cpu/mmu.h"
-#include "libc/datastruct/array.h"
-
-enum PROCESS_FLAGS {
-    PROCESS_FLAGS_ACTIVE = 0x1,
-    PROCESS_FLAGS_ERROR  = 0x2,
-    PROCESS_FLAGS_DEAD   = 0x4,
-};
 
 typedef void (*signals_master_callback)(int);
 
 typedef struct _process {
-    uint32_t eip;
+    uint32_t pid;
+    uint32_t next_page;
+
     uint32_t esp;
     uint32_t cr3;
     uint32_t ss0;
-    uint16_t pid;
-    arr_t *  pages; // array<uint32_t> pages paddr owned by this procs page dir (not including special or kernel)
+
+    registers_t regs;
 
     signals_master_callback sys_call_callback;
 
     struct _process * next_proc;
 } process_t;
+
+void process_create(process_t * proc);
+
+int process_add_pages(process_t * proc, size_t count);
+
+// Old
 
 process_t * proc_new(void * fn, uint32_t ss0);
 process_t * proc_from_ptr(uint32_t eip, uint32_t esp, uint32_t cr3, uint32_t ss0);
