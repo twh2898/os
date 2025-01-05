@@ -39,14 +39,16 @@ int mmu_dir_set_flags(mmu_dir_t * dir, size_t i, enum MMU_DIR_FLAG flags) {
     return 0;
 }
 
-void mmu_dir_set(mmu_dir_t * dir, size_t i, uint32_t addr, enum MMU_DIR_FLAG flags) {
+int mmu_dir_set(mmu_dir_t * dir, size_t i, uint32_t addr, enum MMU_DIR_FLAG flags) {
     if (!dir || i >= MMU_DIR_SIZE) {
-        return;
+        return -1;
     }
 
     mmu_entry_t entry = (addr & MASK_ADDR) | (flags & MASK_FLAGS);
 
     dir->entries[i] = entry;
+
+    return 0;
 }
 
 uint32_t mmu_dir_get_addr(mmu_dir_t * dir, size_t i) {
@@ -65,9 +67,9 @@ enum MMU_DIR_FLAG mmu_dir_get_flags(mmu_dir_t * dir, size_t i) {
     return dir->entries[i] & MASK_FLAGS;
 }
 
-void mmu_table_set_addr(mmu_table_t * table, size_t i, uint32_t addr) {
+int mmu_table_set_addr(mmu_table_t * table, size_t i, uint32_t addr) {
     if (!table || i >= MMU_TABLE_SIZE) {
-        return;
+        return -1;
     }
 
     mmu_entry_t entry = table->entries[i];
@@ -75,11 +77,13 @@ void mmu_table_set_addr(mmu_table_t * table, size_t i, uint32_t addr) {
     entry |= addr & MASK_ADDR;
 
     table->entries[i] = entry;
+
+    return 0;
 }
 
-void mmu_table_set_flags(mmu_table_t * table, size_t i, enum MMU_TABLE_FLAG flags) {
+int mmu_table_set_flags(mmu_table_t * table, size_t i, enum MMU_TABLE_FLAG flags) {
     if (!table || i >= MMU_TABLE_SIZE) {
-        return;
+        return -1;
     }
 
     mmu_entry_t entry = table->entries[i];
@@ -87,16 +91,20 @@ void mmu_table_set_flags(mmu_table_t * table, size_t i, enum MMU_TABLE_FLAG flag
     entry |= flags & MASK_FLAGS;
 
     table->entries[i] = entry;
+
+    return 0;
 }
 
-void mmu_table_set(mmu_table_t * table, size_t i, uint32_t addr, enum MMU_TABLE_FLAG flags) {
+int mmu_table_set(mmu_table_t * table, size_t i, uint32_t addr, enum MMU_TABLE_FLAG flags) {
     if (!table || i >= MMU_TABLE_SIZE) {
-        return;
+        return -1;
     }
 
     mmu_entry_t entry = (addr & MASK_ADDR) | (flags & MASK_FLAGS);
 
     table->entries[i] = entry;
+
+    return 0;
 }
 
 uint32_t mmu_table_get_addr(mmu_table_t * table, size_t i) {
