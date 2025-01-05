@@ -39,24 +39,23 @@ int process_create(process_t * proc) {
     mmu_dir_set(dir, 0, VADDR_KERNEL_TABLE, MMU_DIR_RW);
 
     // Setup stack table
-    {
-        uint32_t addr = ram_page_alloc();
+    uint32_t table_addr = ram_page_alloc();
 
-        if (!addr) {
-            ram_page_free(proc->cr3);
-            return -1;
-        }
+    if (!table_addr) {
+        paging_temp_free(proc->cr3);
+        ram_page_free(proc->cr3);
+        return -1;
+    }
 
-        mmu_dir_set(dir, MMU_DIR_SIZE - 1, addr, MMU_DIR_RW);
+    mmu_dir_set(dir, MMU_DIR_SIZE - 1, table_addr, MMU_DIR_RW);
 
-        proc->esp              = VADDR_USER_STACK;
-        proc->stack_page_count = 0;
+    proc->esp              = VADDR_USER_STACK;
+    proc->stack_page_count = 0;
 
-        // TODO add first stack page to new table
-        if (process_grow_stack(proc)) {
-            ram_page_free(proc->cr3);
-            return -1;
-        }
+    if (process_grow_stack(proc)) {
+        paging_temp_free(proc->cr3);
+        ram_page_free(proc->cr3);
+        return -1;
     }
 
     paging_temp_free(proc->cr3);
@@ -124,7 +123,7 @@ void * process_add_pages(process_t * proc, size_t count) {
 
         uint32_t page_i  = proc->next_heap_page;
         uint32_t dir_i   = page_i / MMU_DIR_SIZE;
-        uint32_t table_i = page_i % MMU_DIR_SIZE;
+        uint32_t table_i = page_i % MMU_TABLE_SIZE;
 
         mmu_dir_t * dir = paging_temp_map(proc->cr3);
 
@@ -161,79 +160,50 @@ int process_grow_stack(process_t * proc) {
         return -1;
     }
 
-    uint32_t addr = ram_page_alloc();
+    size_t new_stack_page_i = MMU_DIR_SIZE * MMU_TABLE_SIZE - proc->stack_page_count - 2;
 
-    if (!addr) {
+    size_t dir_i   = new_stack_page_i / MMU_DIR_SIZE;
+    size_t table_i = new_stack_page_i % MMU_TABLE_SIZE;
+
+    // Need new table
+    if (!(mmu_dir_get_addr(dir, dir_i) & MMU_DIR_FLAG_PRESENT)) {
+        uint32_t addr = ram_page_alloc();
+
+        if (!addr) {
+            paging_temp_free(proc->cr3);
+            return -1;
+        }
+
+        mmu_dir_set(dir, dir_i, addr, MMU_DIR_RW);
+    }
+
+    uint32_t      table_addr = mmu_dir_get_addr(dir, dir_i);
+    mmu_table_t * table      = paging_temp_map(table_addr);
+
+    if (!table) {
         paging_temp_free(proc->cr3);
         return -1;
     }
 
-    mmu_dir_set(dir, MMU_DIR_SIZE - 1, addr, MMU_DIR_RW);
+    uint32_t addr = ram_page_alloc();
 
-    proc->esp              = 0xffffffff;
-    proc->stack_page_count = 0;
+    if (!addr) {
+        paging_temp_free(table_addr);
+        paging_temp_free(proc->cr3);
+        return -1;
+    }
 
-    // TODO add first stack page to new table
+    mmu_table_set(table, table_i, addr, MMU_TABLE_RW);
 
+    proc->stack_page_count++;
+
+    paging_temp_free(table_addr);
     paging_temp_free(proc->cr3);
-
-    // TODO find table
-
-    // TODO make one if needed
-
-    // TODO add page
 
     return 0;
 }
 
 // Old
-
-process_t * proc_new(void * fn, uint32_t ss0) {
-    process_t * proc = impl_kmalloc(sizeof(process_t));
-    if (!proc) {
-        return 0;
-    }
-
-    mmu_dir_t * curr_dir       = mmu_get_curr_dir();
-    uint32_t    proc_dir_paddr = make_user_page_dir();
-
-    // TODO setup stack
-
-    // proc->eip = PTR2UINT(fn);
-    // proc->esp       = esp;
-    proc->cr3 = proc_dir_paddr;
-    proc->ss0 = ss0;
-    proc->pid = 0;
-    // proc->pages     = arr_new(3, sizeof(void *));
-    proc->next_proc = 0;
-    return proc;
-}
-
-process_t * proc_from_ptr(uint32_t eip, uint32_t cr3, uint32_t esp, uint32_t ss0) {
-    process_t * proc = impl_kmalloc(sizeof(process_t));
-    if (proc) {
-        // proc->eip       = eip;
-        proc->esp = esp;
-        proc->cr3 = cr3;
-        proc->ss0 = ss0;
-        proc->pid = 0;
-        // proc->pages     = arr_new(3, sizeof(void *));
-        proc->next_proc = 0;
-    }
-    return proc;
-}
-
-void proc_free(process_t * proc) {
-    // if (proc) {
-    //     for (size_t i = 0; i < arr_size(proc->pages); i++) {
-    //         void * paddr;
-    //         arr_get(proc->pages, i, &paddr);
-    //         ram_page_free(PTR2UINT(paddr));
-    //     }
-    //     arr_free(proc->pages);
-    //     impl_kfree(proc);
-    // }
-}
 
 proc_man_t * proc_man_new() {
     proc_man_t * pm = impl_kmalloc(sizeof(proc_man_t));
