@@ -78,8 +78,8 @@ int process_free(process_t * proc) {
             continue;
         }
 
-        uint32_t      addr  = mmu_dir_get_addr(dir, i);
-        mmu_table_t * table = paging_temp_map(addr);
+        uint32_t      table_addr = mmu_dir_get_addr(dir, i);
+        mmu_table_t * table      = paging_temp_map(table_addr);
 
         if (!table) {
             paging_temp_free(proc->cr3);
@@ -93,10 +93,12 @@ int process_free(process_t * proc) {
             }
         }
 
-        paging_temp_free(addr);
+        paging_temp_free(table_addr);
+        ram_page_free(table_addr);
     }
 
     paging_temp_free(proc->cr3);
+    ram_page_free(proc->cr3);
 
     return 0;
 }

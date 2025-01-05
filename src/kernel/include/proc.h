@@ -24,7 +24,25 @@ typedef struct _process {
     struct _process * next_proc;
 } process_t;
 
+/**
+ * @brief Create a new process and it's page directory.ADDR2PAGE
+ *
+ * This function does not fill ss0, regs, sys_call_callback or next_proc and
+ * sets them to 0.
+ *
+ * @param proc pointer to the process object
+ * @return int 0 for success
+ */
 int process_create(process_t * proc);
+
+/**
+ * @brief Free pages used by `process` including it's page directory.
+ *
+ * This does not free the first table which is the kernel's table.
+ *
+ * @param proc pointer to the process object
+ * @return int 0 for success
+ */
 int process_free(process_t * proc);
 
 /**
