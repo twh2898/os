@@ -39,7 +39,7 @@ TEST(PagingStatic, paging_init) {
     EXPECT_EQ(1, kmemset_fake.call_count);
     EXPECT_NE(nullptr, kmemset_fake.arg0_val);
     EXPECT_EQ(0, kmemset_fake.arg1_val);
-    EXPECT_EQ(100, kmemset_fake.arg2_val);
+    EXPECT_EQ(200, kmemset_fake.arg2_val);
 
     EXPECT_EQ(25, paging_temp_available());
 }
@@ -62,7 +62,7 @@ TEST_F(Paging, paging_temp_map) {
     EXPECT_NE(nullptr, paging_temp_map(0x1000));
     EXPECT_EQ(24, paging_temp_available());
 
-    EXPECT_EQ(1, mmu_get_curr_dir_fake.call_count);
+    EXPECT_EQ(0, mmu_get_curr_dir_fake.call_count);
 
     EXPECT_EQ(1, mmu_table_set_fake.call_count);
     EXPECT_EQ(TEMP_TABLE(0), mmu_table_set_fake.arg0_val);
@@ -75,6 +75,24 @@ TEST_F(Paging, paging_temp_map) {
     }
 
     EXPECT_EQ(nullptr, paging_temp_map(0x27000));
+
+    SetUp();
+
+    void * a = paging_temp_map(0x1000);
+    EXPECT_NE(nullptr, a);
+    EXPECT_EQ(24, paging_temp_available());
+
+    void * b = paging_temp_map(0x1000);
+    EXPECT_EQ(a, b);
+    EXPECT_EQ(24, paging_temp_available());
+
+    EXPECT_EQ(1, mmu_table_set_fake.call_count);
+
+    paging_temp_free(0x1000);
+    EXPECT_EQ(24, paging_temp_available());
+
+    paging_temp_free(0x1000);
+    EXPECT_EQ(25, paging_temp_available());
 }
 
 TEST_F(Paging, paging_temp_free) {
@@ -82,34 +100,21 @@ TEST_F(Paging, paging_temp_free) {
 
     setup_fakes();
 
-    mmu_get_curr_dir_fake.return_val = &dir;
-
     paging_temp_free(0x2000);
-
     EXPECT_EQ(24, paging_temp_available());
 
     paging_temp_free(0x1000);
-
     EXPECT_EQ(25, paging_temp_available());
-
-    EXPECT_EQ(1, mmu_get_curr_dir_fake.call_count);
-
-    EXPECT_EQ(1, mmu_table_set_fake.call_count);
-    EXPECT_EQ(TEMP_TABLE(0), mmu_table_set_fake.arg0_val);
-    EXPECT_EQ(FIRST_PAGE, mmu_table_set_fake.arg1_val);
-    EXPECT_EQ(0, mmu_table_set_fake.arg2_val);
-    EXPECT_EQ(0, mmu_table_set_fake.arg3_val);
+    EXPECT_EQ(0, mmu_table_set_fake.call_count);
 }
 
 TEST_F(Paging, paging_temp_available) {
     EXPECT_EQ(25, paging_temp_available());
 
     paging_temp_map(0x1000);
-
     EXPECT_EQ(24, paging_temp_available());
 
     paging_temp_free(0x1000);
-
     EXPECT_EQ(25, paging_temp_available());
 
     for (size_t i = 0; i < 25; i++) {

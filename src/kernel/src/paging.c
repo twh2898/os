@@ -3,7 +3,12 @@
 #include "libc/string.h"
 #include "ram.h"
 
-static uint32_t temp_pages[VADDR_TMP_PAGE_COUNT];
+typedef struct {
+    uint32_t addr;
+    size_t   count;
+} page_user_t;
+
+static page_user_t temp_pages[VADDR_TMP_PAGE_COUNT];
 
 void paging_init() {
     kmemset(temp_pages, 0, sizeof(temp_pages));
@@ -14,13 +19,25 @@ void * paging_temp_map(uint32_t paddr) {
         return 0;
     }
 
+    // Return one if already exists
     for (size_t i = 0; i < VADDR_TMP_PAGE_COUNT; i++) {
-        if (!temp_pages[i]) {
-            temp_pages[i] = paddr;
+        if (temp_pages[i].addr == paddr) {
+            temp_pages[i].count++;
+            size_t table_i = ADDR2PAGE(VADDR_TMP_PAGE) + i;
+            return UINT2PTR(PAGE2ADDR(table_i));
+        }
+    }
+
+    // Find a free temp page to use
+    for (size_t i = 0; i < VADDR_TMP_PAGE_COUNT; i++) {
+        if (temp_pages[i].count < 1) {
+            temp_pages[i].addr  = paddr;
+            temp_pages[i].count = 1;
 
             size_t table_i = ADDR2PAGE(VADDR_TMP_PAGE) + i;
 
-            mmu_dir_t *   dir   = mmu_get_curr_dir();
+            // TODO use temp page to access page table
+            mmu_dir_t *   dir   = (mmu_dir_t *)VADDR_PAGE_DIR;
             mmu_table_t * table = VIRTUAL_TABLE(table_i);
             mmu_table_set(table, table_i, paddr, MMU_TABLE_RW_USER);
             return UINT2PTR(PAGE2ADDR(table_i));
@@ -36,14 +53,12 @@ void paging_temp_free(uint32_t paddr) {
     }
 
     for (size_t i = 0; i < VADDR_TMP_PAGE_COUNT; i++) {
-        if (temp_pages[i] == paddr) {
-            temp_pages[i] = 0;
+        if (temp_pages[i].addr == paddr) {
+            if (temp_pages[i].count < 1) {
+                return;
+            }
 
-            size_t table_i = ADDR2PAGE(VADDR_TMP_PAGE) + i;
-
-            mmu_dir_t *   dir   = mmu_get_curr_dir();
-            mmu_table_t * table = VIRTUAL_TABLE(table_i);
-            mmu_table_set(table, table_i, 0, 0);
+            temp_pages[i].count--;
 
             break;
         }
@@ -54,7 +69,7 @@ size_t paging_temp_available() {
     size_t free = 0;
 
     for (size_t i = 0; i < VADDR_TMP_PAGE_COUNT; i++) {
-        if (!temp_pages[i]) {
+        if (temp_pages[i].count < 1) {
             free++;
         }
     }
