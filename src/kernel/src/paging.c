@@ -36,7 +36,6 @@ void * paging_temp_map(uint32_t paddr) {
 
             size_t table_i = ADDR2PAGE(VADDR_TMP_PAGE) + i;
 
-            // TODO use temp page to access page table
             mmu_dir_t *   dir   = (mmu_dir_t *)VADDR_PAGE_DIR;
             mmu_table_t * table = VIRTUAL_TABLE(table_i);
             mmu_table_set(table, table_i, paddr, MMU_TABLE_RW_USER);
