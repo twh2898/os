@@ -46,11 +46,7 @@ void kernel_main() {
     init_vga(UINT2PTR(PADDR_VGA));
     vga_clear();
 
-    if (kernel_init(&__kernel) != 0) {
-        vga_color(VGA_RED_ON_WHITE);
-        vga_puts("KERNEL INIT FAILED");
-        halt();
-    }
+    kmemset(&__kernel, 0, sizeof(kernel_t));
 
     isr_install();
 
@@ -100,6 +96,12 @@ void kernel_main() {
 
     vga_puts("Welcome to kernel v..\n");
 
+    __kernel.pm.curr_task  = &__kernel.proc;
+    __kernel.pm.idle_task  = &__kernel.proc;
+    __kernel.pm.task_begin = &__kernel.proc;
+
+    __kernel.proc.next_proc = __kernel.pm.idle_task;
+
     term_init();
     commands_init();
 
@@ -122,22 +124,6 @@ void kernel_main() {
     jump_kernel_mode(term_run);
 
     PANIC("You shouldn't be here!");
-}
-
-int kernel_init(kernel_t * kernel) {
-    if (!kernel) {
-        return -1;
-    }
-
-    kmemset(kernel, 0, sizeof(kernel_t));
-
-    kernel->pm.curr_task  = &kernel->proc;
-    kernel->pm.idle_task  = &kernel->proc;
-    kernel->pm.task_begin = &kernel->proc;
-
-    kernel->proc.next_proc = kernel->pm.idle_task;
-
-    return 0;
 }
 
 static process_t * get_current_process() {

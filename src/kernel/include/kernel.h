@@ -14,6 +14,4 @@ typedef struct _kernel {
     proc_man_t pm;
 } kernel_t;
 
-int kernel_init(kernel_t * kernel);
-
 #endif // KERNEL_H
