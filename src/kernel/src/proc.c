@@ -1,4 +1,4 @@
-#include "process.h"
+#include "proc.h"
 
 #include "cpu/mmu.h"
 #include "libc/string.h"
@@ -205,51 +205,51 @@ int process_grow_stack(process_t * proc) {
 
 // Old
 
-proc_man_t * proc_man_new() {
-    proc_man_t * pm = impl_kmalloc(sizeof(proc_man_t));
-    if (!pm) {
-        return 0;
-    }
+// proc_man_t * proc_man_new() {
+//     proc_man_t * pm = impl_kmalloc(sizeof(proc_man_t));
+//     if (!pm) {
+//         return 0;
+//     }
 
-    pm->idle_task  = 0;
-    pm->task_begin = 0;
-    pm->curr_task  = 0;
+//     pm->idle_task  = 0;
+//     pm->task_begin = 0;
+//     pm->curr_task  = 0;
 
-    return pm;
-}
+//     return pm;
+// }
 
-void proc_man_set_idle(proc_man_t * pm, process_t * proc) {
-}
+// void proc_man_set_idle(proc_man_t * pm, process_t * proc) {
+// }
 
-void proc_man_set_new_idle(proc_man_t * pm, uint32_t eip, uint32_t esp, uint32_t cr3, uint32_t ss0) {
-    if (!pm || !eip || !esp || !cr3) {
-        return;
-    }
+// void proc_man_set_new_idle(proc_man_t * pm, uint32_t eip, uint32_t esp, uint32_t cr3, uint32_t ss0) {
+//     if (!pm || !eip || !esp || !cr3) {
+//         return;
+//     }
 
-    process_t * idle_proc = impl_kmalloc(sizeof(process_t));
-    // idle_proc->eip        = eip;
-    idle_proc->esp = esp;
-    idle_proc->cr3 = cr3;
-    idle_proc->ss0 = ss0;
+//     process_t * idle_proc = impl_kmalloc(sizeof(process_t));
+//     // idle_proc->eip        = eip;
+//     idle_proc->esp = esp;
+//     idle_proc->cr3 = cr3;
+//     idle_proc->ss0 = ss0;
 
-    pm->idle_task = idle_proc;
-}
+//     pm->idle_task = idle_proc;
+// }
 
-int proc_man_task_from_ptr(void * fn) {
-    process_t * new_proc = impl_kmalloc(sizeof(process_t));
-}
+// int proc_man_task_from_ptr(void * fn) {
+//     process_t * new_proc = impl_kmalloc(sizeof(process_t));
+// }
 
-void proc_man_switch_to_idle(proc_man_t * pm) {
-}
+// void proc_man_switch_to_idle(proc_man_t * pm) {
+// }
 
-static void stack_pages(mmu_dir_t * dir, size_t n) {
-    // Page table for stack
-    uint32_t stack_table_page = ram_page_alloc();
-    mmu_dir_set(dir, MMU_DIR_SIZE - 2, stack_table_page, MMU_DIR_RW);
-    mmu_table_t * stack_table = UINT2PTR(stack_table_page);
-    mmu_table_clear(stack_table);
+// static void stack_pages(mmu_dir_t * dir, size_t n) {
+//     // Page table for stack
+//     uint32_t stack_table_page = ram_page_alloc();
+//     mmu_dir_set(dir, MMU_DIR_SIZE - 2, stack_table_page, MMU_DIR_RW);
+//     mmu_table_t * stack_table = UINT2PTR(stack_table_page);
+//     mmu_table_clear(stack_table);
 
-    // First stack page
-    uint32_t stack_page = ram_page_alloc();
-    mmu_table_set(stack_table, MMU_TABLE_SIZE - 1, stack_page, MMU_TABLE_RW);
-}
+//     // First stack page
+//     uint32_t stack_page = ram_page_alloc();
+//     mmu_table_set(stack_table, MMU_TABLE_SIZE - 1, stack_page, MMU_TABLE_RW);
+// }

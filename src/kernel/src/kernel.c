@@ -19,7 +19,7 @@
 #include "libc/string.h"
 #include "libk/defs.h"
 #include "memory.h"
-#include "process.h"
+#include "proc.h"
 #include "ram.h"
 #include "term.h"
 
