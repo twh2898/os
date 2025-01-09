@@ -1,5 +1,18 @@
 # Process
 
+The process tracks and manages the following information.
+
+- Process Id
+- Heap Pages
+- Stack Pages
+- Page Directory + Tables
+- Segment Selector
+- Stack Pointer
+- Registers
+- Signal callbacks
+- Link to next process
+- *TBD Stats about process
+
 ## Creating a Process
 
 Each process needs a page directory, heap and stack.
