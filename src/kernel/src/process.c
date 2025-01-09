@@ -1,4 +1,4 @@
-#include "proc.h"
+#include "process.h"
 
 #include "cpu/mmu.h"
 #include "libc/string.h"

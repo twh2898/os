@@ -1,5 +1,5 @@
-#ifndef PROC_H
-#define PROC_H
+#ifndef KERNEL_PROCESS_H
+#define KERNEL_PROCESS_H
 
 #include <stdint.h>
 
@@ -80,4 +80,4 @@ void proc_man_set_new_idle(proc_man_t * pm, uint32_t eip, uint32_t esp, uint32_t
 int  proc_man_task_from_ptr(void * fn);
 void proc_man_switch_to_idle(proc_man_t * pm);
 
-#endif // PROC_H
+#endif // KERNEL_PROCESS_H

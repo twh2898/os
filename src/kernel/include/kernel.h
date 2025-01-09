@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "proc.h"
+#include "process.h"
 
 typedef struct _kernel {
     uint32_t   ram_table_addr;
