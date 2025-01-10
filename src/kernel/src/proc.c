@@ -160,13 +160,13 @@ int process_grow_stack(process_t * proc) {
         return -1;
     }
 
-    size_t new_stack_page_i = MMU_DIR_SIZE * MMU_TABLE_SIZE - proc->stack_page_count - 2;
+    size_t new_stack_page_i = MMU_DIR_SIZE * MMU_TABLE_SIZE - proc->stack_page_count - 1;
 
     size_t dir_i   = new_stack_page_i / MMU_DIR_SIZE;
     size_t table_i = new_stack_page_i % MMU_TABLE_SIZE;
 
     // Need new table
-    if (!(mmu_dir_get_addr(dir, dir_i) & MMU_DIR_FLAG_PRESENT)) {
+    if (!(mmu_dir_get_flags(dir, dir_i) & MMU_DIR_FLAG_PRESENT)) {
         uint32_t addr = ram_page_alloc();
 
         if (!addr) {
