@@ -19,6 +19,7 @@ int process_create(process_t * proc) {
     proc->next_heap_page = VADDR_USER_MEM;
 
     proc->cr3 = ram_page_alloc();
+    proc->ss0 = 0x10;
 
     if (!proc->cr3) {
         return -1;

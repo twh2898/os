@@ -99,6 +99,7 @@ TEST_F(Process, process_create) {
     EXPECT_EQ(0x400000, proc.cr3);
     EXPECT_EQ(VADDR_USER_STACK, proc.esp);
     EXPECT_EQ(1, proc.stack_page_count);
+    EXPECT_EQ(0x10, proc.ss0);
 
     EXPECT_EQ(3, paging_temp_free_fake.call_count);
     EXPECT_EQ(0x400000, paging_temp_free_fake.arg0_val);
