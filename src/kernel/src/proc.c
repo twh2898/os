@@ -2,7 +2,6 @@
 
 #include "cpu/mmu.h"
 #include "libc/string.h"
-#include "memory.h"
 #include "paging.h"
 #include "ram.h"
 

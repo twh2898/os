@@ -18,7 +18,6 @@
 #include "libc/stdio.h"
 #include "libc/string.h"
 #include "libk/defs.h"
-#include "memory.h"
 #include "proc.h"
 #include "ram.h"
 #include "term.h"

@@ -7,7 +7,6 @@
 #include "libc/process.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
-#include "memory.h"
 
 #define ERROR(MSG)                                \
     {                                             \
@@ -181,92 +180,92 @@ void set_command_lookup(command_cb_t lookup) {
 }
 
 static void exec_buff() {
-    // Skip any leading whitespace
-    char * line     = command_buff;
-    size_t line_len = kstrlen(command_buff);
-    while (line_len > 0 && is_ws(*line)) {
-        line++;
-        line_len--;
-    }
+    // // Skip any leading whitespace
+    // char * line     = command_buff;
+    // size_t line_len = kstrlen(command_buff);
+    // while (line_len > 0 && is_ws(*line)) {
+    //     line++;
+    //     line_len--;
+    // }
 
-    // Trim trailing whitespace
-    while (line_len > 1 && is_ws(line[line_len - 1])) {
-        line_len--;
-    }
+    // // Trim trailing whitespace
+    // while (line_len > 1 && is_ws(line[line_len - 1])) {
+    //     line_len--;
+    // }
 
-    if (debug)
-        printf("Trimmed line length %u starting at +%u\n", line_len, (line - command_buff));
+    // if (debug)
+    //     printf("Trimmed line length %u starting at +%u\n", line_len, (line - command_buff));
 
-    // Terminate trimmed line
-    line[line_len] = 0;
+    // // Terminate trimmed line
+    // line[line_len] = 0;
 
-    // Find the length of the first non whitespace word
-    int first_len = 0;
-    while (first_len < line_len && !is_ws(line[first_len])) first_len++;
+    // // Find the length of the first non whitespace word
+    // int first_len = 0;
+    // while (first_len < line_len && !is_ws(line[first_len])) first_len++;
 
-    // Prepare command and args
-    size_t  argc;
-    char ** argv = parse_args(line, &argc);
-    if (!argc || !argv) {
-        FATAL("SYNTAX ERROR!\n");
-        term_last_ret = 1;
-        return;
-    }
+    // // Prepare command and args
+    // size_t  argc;
+    // char ** argv = parse_args(line, &argc);
+    // if (!argc || !argv) {
+    //     FATAL("SYNTAX ERROR!\n");
+    //     term_last_ret = 1;
+    //     return;
+    // }
 
-    bool         found   = false;
-    command_cb_t command = 0;
+    // bool         found   = false;
+    // command_cb_t command = 0;
 
-    // Check against all commands
-    for (size_t i = 0; i < n_commands && !found; i++) {
-        size_t command_len = kstrlen(commands[i].command);
+    // // Check against all commands
+    // for (size_t i = 0; i < n_commands && !found; i++) {
+    //     size_t command_len = kstrlen(commands[i].command);
 
-        // Check length of command vs first word
-        if (first_len < command_len) {
-            if (debug)
-                printf("Command too short %u < %u\n", first_len, command_len);
-            continue;
-        }
+    //     // Check length of command vs first word
+    //     if (first_len < command_len) {
+    //         if (debug)
+    //             printf("Command too short %u < %u\n", first_len, command_len);
+    //         continue;
+    //     }
 
-        if (first_len > command_len) {
-            if (debug)
-                printf("Command too long %u > %u\n", first_len, command_len);
-            continue;
-        }
+    //     if (first_len > command_len) {
+    //         if (debug)
+    //             printf("Command too long %u > %u\n", first_len, command_len);
+    //         continue;
+    //     }
 
-        // Check command string
-        int match = kmemcmp(argv[0], commands[i].command, command_len);
-        if (match != 0) {
-            if (debug)
-                printf("Command does not match %s\n", commands[i].command);
-            continue;
-        }
+    //     // Check command string
+    //     int match = kmemcmp(argv[0], commands[i].command, command_len);
+    //     if (match != 0) {
+    //         if (debug)
+    //             printf("Command does not match %s\n", commands[i].command);
+    //         continue;
+    //     }
 
-        // Command is a match, parse arguments
-        found   = true;
-        command = commands[i].cb;
-    }
+    //     // Command is a match, parse arguments
+    //     found   = true;
+    //     command = commands[i].cb;
+    // }
 
-    if (found) {
-        // Execute the command with parsed args
-        term_last_ret = command(argc, argv);
-    }
+    // if (found) {
+    //     // Execute the command with parsed args
+    //     term_last_ret = command(argc, argv);
+    // }
 
-    // Try command lookup
-    else if (command_lookup) {
-        term_last_ret = command_lookup(argc, argv);
-    }
+    // // Try command lookup
+    // else if (command_lookup) {
+    //     term_last_ret = command_lookup(argc, argv);
+    // }
 
-    // No match was found
-    else {
-        printf("Unknown command '%s'\n", line);
-        term_last_ret = 1;
-    }
+    // // No match was found
+    // else {
+    //     printf("Unknown command '%s'\n", line);
+    //     term_last_ret = 1;
+    // }
 
-    // Free parsed args
-    for (size_t i = 0; i < argc; i++) {
-        impl_kfree(argv[i]);
-    }
-    impl_kfree(argv);
+    // // Free parsed args
+    // for (size_t i = 0; i < argc; i++) {
+    //     impl_kfree(argv[i]);
+    // }
+    // impl_kfree(argv);
 }
 
 static bool is_ws(char c) {
@@ -326,7 +325,7 @@ static char ** parse_args(const char * line, size_t * out_len) {
     }
 
     *out_len      = len;
-    char ** args  = impl_kmalloc(sizeof(char *) * len);
+    // char ** args  = impl_kmalloc(sizeof(char *) * len);
     size_t  arg_i = 0;
 
     while (*line) {
@@ -353,9 +352,9 @@ static char ** parse_args(const char * line, size_t * out_len) {
 
             line++;
 
-            args[arg_i] = impl_kmalloc(sizeof(char) * next);
-            kmemcpy(args[arg_i], line, next - 1);
-            args[arg_i][next - 1] = 0;
+            // args[arg_i] = impl_kmalloc(sizeof(char) * next);
+            // kmemcpy(args[arg_i], line, next - 1);
+            // args[arg_i][next - 1] = 0;
             arg_i++;
 
             line += next;
@@ -367,9 +366,9 @@ static char ** parse_args(const char * line, size_t * out_len) {
         while (*line && !is_ws(*line)) line++;
 
         size_t word_len = line - start;
-        args[arg_i]     = impl_kmalloc(sizeof(char) * word_len + 1);
-        kmemcpy(args[arg_i], start, word_len);
-        args[arg_i][word_len] = 0;
+        // args[arg_i]     = impl_kmalloc(sizeof(char) * word_len + 1);
+        // kmemcpy(args[arg_i], start, word_len);
+        // args[arg_i][word_len] = 0;
         arg_i++;
     }
 
@@ -382,5 +381,5 @@ static char ** parse_args(const char * line, size_t * out_len) {
         return 0;
     }
 
-    return args;
+    // return args;
 }
