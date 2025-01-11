@@ -75,7 +75,20 @@ void kernel_main() {
     init_gdt();
     init_tss();
 
-    // TODO isr stack
+    // Kernel process used for memory allocation
+    process_from_vars(&__kernel.proc, PADDR_PAGE_DIR, VADDR_KERNEL_MEM, VADDR_ISR_STACK);
+    if (process_grow_stack(&__kernel.proc)) {
+        PANIC("FAILED TO CREATE ISR STACK");
+    }
+
+    // Add isr stack to kernel's TSS
+    set_kernel_stack(VADDR_ISR_STACK);
+
+    // Setup kernel process as idle process
+    __kernel.pm.idle_task            = &__kernel.proc;
+    __kernel.pm.idle_task->next_proc = __kernel.pm.idle_task;
+    __kernel.pm.curr_task            = __kernel.pm.idle_task;
+    __kernel.pm.task_begin           = __kernel.pm.idle_task;
 
     isr_install();
     irq_install();
@@ -85,18 +98,7 @@ void kernel_main() {
     system_interrupt_register(SYS_INT_FAMILY_PROC, int_proc_cb);
     system_interrupt_register(SYS_INT_FAMILY_STDIO, int_tmp_stdio_cb);
 
-    // Kernel process used for memory allocation
-    process_from_vars(&__kernel.proc, PADDR_PAGE_DIR, VADDR_KERNEL_MEM, VADDR_ISR_STACK);
-    if (process_grow_stack(&__kernel.proc)) {
-        PANIC("FAILED TO CREATE ISR STACK");
-    }
-
-    // Setup kernel process as idle process
-    __kernel.pm.idle_task            = &__kernel.proc;
-    __kernel.pm.idle_task->next_proc = __kernel.pm.idle_task;
-    __kernel.pm.curr_task            = __kernel.pm.idle_task;
-    __kernel.pm.task_begin           = __kernel.pm.idle_task;
-
+    // Init kernel memory after system calls are registered
     memory_init(&__kernel.kernel_memory, _page_alloc);
 
     vga_puts("Welcome to kernel v..\n");
