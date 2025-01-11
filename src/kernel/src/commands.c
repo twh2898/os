@@ -12,6 +12,7 @@
 #include "drivers/timer.h"
 #include "drivers/vga.h"
 #include "exec.h"
+#include "libc/memory.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
 #include "ram.h"
@@ -334,98 +335,98 @@ static int stat_cmd(size_t argc, char ** argv) {
     return 0;
 }
 
-// static int fs_read_cmd(size_t argc, char ** argv) {
-//     if (argc != 2) {
-//         printf("Usage: %s <filename>\n", argv[0]);
-//         return 1;
-//     }
+static int fs_read_cmd(size_t argc, char ** argv) {
+    if (argc != 2) {
+        printf("Usage: %s <filename>\n", argv[0]);
+        return 1;
+    }
 
-//     char * filename = argv[1];
+    char * filename = argv[1];
 
-//     if (!tar) {
-//         puts("Filesystem not mounted\n");
-//         return 1;
-//     }
+    if (!tar) {
+        puts("Filesystem not mounted\n");
+        return 1;
+    }
 
-//     tar_stat_t stat;
-//     if (!tar_stat_file(tar, filename, &stat)) {
-//         puts("Failed to find file\n");
-//         return 1;
-//     }
+    tar_stat_t stat;
+    if (!tar_stat_file(tar, filename, &stat)) {
+        puts("Failed to find file\n");
+        return 1;
+    }
 
-//     ls_print_file(&stat);
-//     uint8_t * buff = impl_kmalloc(stat.size);
-//     if (!buff)
-//         return 1;
+    ls_print_file(&stat);
+    uint8_t * buff = kmalloc(stat.size);
+    if (!buff)
+        return 1;
 
-//     tar_fs_file_t * file = tar_file_open(tar, filename);
-//     if (!file) {
-//         impl_kfree(buff);
-//         return 1;
-//     }
+    tar_fs_file_t * file = tar_file_open(tar, filename);
+    if (!file) {
+        kfree(buff);
+        return 1;
+    }
 
-//     if (!tar_file_read(file, buff, stat.size)) {
-//         tar_file_close(file);
-//         impl_kfree(buff);
-//         return 1;
-//     }
-//     print_hexblock(buff, stat.size, 0);
+    if (!tar_file_read(file, buff, stat.size)) {
+        tar_file_close(file);
+        kfree(buff);
+        return 1;
+    }
+    print_hexblock(buff, stat.size, 0);
 
-//     if (!disk || !buff)
-//         return 0;
+    if (!disk || !buff)
+        return 0;
 
-//     tar_file_close(file);
-//     impl_kfree(buff);
+    tar_file_close(file);
+    kfree(buff);
 
-//     return 0;
-// }
+    return 0;
+}
 
-// static int fs_cat_cmd(size_t argc, char ** argv) {
-//     if (argc != 2) {
-//         printf("Usage: %s <filename>\n", argv[0]);
-//         return 1;
-//     }
+static int fs_cat_cmd(size_t argc, char ** argv) {
+    if (argc != 2) {
+        printf("Usage: %s <filename>\n", argv[0]);
+        return 1;
+    }
 
-//     char * filename = argv[1];
+    char * filename = argv[1];
 
-//     if (!tar) {
-//         puts("Filesystem not mounted\n");
-//         return 1;
-//     }
+    if (!tar) {
+        puts("Filesystem not mounted\n");
+        return 1;
+    }
 
-//     tar_stat_t stat;
-//     if (!tar_stat_file(tar, filename, &stat)) {
-//         puts("Failed to find file\n");
-//         return 1;
-//     }
+    tar_stat_t stat;
+    if (!tar_stat_file(tar, filename, &stat)) {
+        puts("Failed to find file\n");
+        return 1;
+    }
 
-//     uint8_t * buff = impl_kmalloc(stat.size);
-//     if (!buff)
-//         return 1;
+    uint8_t * buff = kmalloc(stat.size);
+    if (!buff)
+        return 1;
 
-//     tar_fs_file_t * file = tar_file_open(tar, filename);
-//     if (!file) {
-//         impl_kfree(buff);
-//         return 1;
-//     }
+    tar_fs_file_t * file = tar_file_open(tar, filename);
+    if (!file) {
+        kfree(buff);
+        return 1;
+    }
 
-//     if (!tar_file_read(file, buff, stat.size)) {
-//         tar_file_close(file);
-//         impl_kfree(buff);
-//         return 1;
-//     }
-//     for (size_t i = 0; i < stat.size; i++) {
-//         putc(buff[i]);
-//     }
+    if (!tar_file_read(file, buff, stat.size)) {
+        tar_file_close(file);
+        kfree(buff);
+        return 1;
+    }
+    for (size_t i = 0; i < stat.size; i++) {
+        putc(buff[i]);
+    }
 
-//     if (!disk || !buff)
-//         return 0;
+    if (!disk || !buff)
+        return 0;
 
-//     tar_file_close(file);
-//     impl_kfree(buff);
+    tar_file_close(file);
+    kfree(buff);
 
-//     return 0;
-// }
+    return 0;
+}
 
 // static int status_cmd(size_t argc, char ** argv) {
 //     // ata_status();
@@ -505,49 +506,49 @@ static int disk_size_cmd(size_t argc, char ** argv) {
     return 0;
 }
 
-// static int command_lookup(size_t argc, char ** argv) {
-//     char * filename = argv[0];
+static int command_lookup(size_t argc, char ** argv) {
+    char * filename = argv[0];
 
-//     if (!tar) {
-//         puts("Filesystem not mounted\n");
-//         return 1;
-//     }
+    if (!tar) {
+        puts("Filesystem not mounted\n");
+        return 1;
+    }
 
-//     tar_stat_t stat;
-//     if (!tar_stat_file(tar, filename, &stat)) {
-//         puts("Failed to find file\n");
-//         return 1;
-//     }
+    tar_stat_t stat;
+    if (!tar_stat_file(tar, filename, &stat)) {
+        puts("Failed to find file\n");
+        return 1;
+    }
 
-//     uint8_t * buff = impl_kmalloc(stat.size);
-//     if (!buff)
-//         return 1;
+    uint8_t * buff = kmalloc(stat.size);
+    if (!buff)
+        return 1;
 
-//     tar_fs_file_t * file = tar_file_open(tar, filename);
-//     if (!file) {
-//         impl_kfree(buff);
-//         return 1;
-//     }
+    tar_fs_file_t * file = tar_file_open(tar, filename);
+    if (!file) {
+        kfree(buff);
+        return 1;
+    }
 
-//     if (!tar_file_read(file, buff, stat.size)) {
-//         tar_file_close(file);
-//         impl_kfree(buff);
-//         return 1;
-//     }
+    if (!tar_file_read(file, buff, stat.size)) {
+        tar_file_close(file);
+        kfree(buff);
+        return 1;
+    }
 
-//     int res = command_exec(buff, stat.size, argc, argv);
+    int res = command_exec(buff, stat.size, argc, argv);
 
-//     if (!disk || !buff)
-//         return 0;
+    if (!disk || !buff)
+        return 0;
 
-//     tar_file_close(file);
-//     impl_kfree(buff);
+    tar_file_close(file);
+    kfree(buff);
 
-//     return res;
-// }
+    return res;
+}
 
 void commands_init() {
-    // set_command_lookup(command_lookup);
+    set_command_lookup(command_lookup);
 
     term_command_add("clear", clear_cmd);
     term_command_add("echo", echo_cmd);
@@ -564,8 +565,8 @@ void commands_init() {
     term_command_add("ls", ls_cmd);
     term_command_add("stat", stat_cmd);
     // term_command_add("status", status_cmd);
-    // term_command_add("read", fs_read_cmd);
-    // term_command_add("cat", fs_cat_cmd);
+    term_command_add("read", fs_read_cmd);
+    term_command_add("cat", fs_cat_cmd);
     // term_command_add("read", disk_read_cmd);
     term_command_add("write", disk_write_cmd);
     term_command_add("size", disk_size_cmd);

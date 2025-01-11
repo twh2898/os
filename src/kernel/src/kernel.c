@@ -103,10 +103,10 @@ void kernel_main() {
 
     vga_puts("Welcome to kernel v..\n");
 
-    // term_init();
-    // commands_init();
+    term_init();
+    commands_init();
 
-    // term_command_add("exit", kill);
+    term_command_add("exit", kill);
 
     ramdisk_create(4096);
 
@@ -115,7 +115,7 @@ void kernel_main() {
     // switch_to_task(proc);
 
     // jump_usermode(term_run);
-    // jump_kernel_mode(term_run);
+    jump_kernel_mode(term_run);
 
     PANIC("You shouldn't be here!");
 }
