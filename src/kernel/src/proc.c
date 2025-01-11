@@ -5,16 +5,33 @@
 #include "paging.h"
 #include "ram.h"
 
-int process_create(process_t * proc) {
-    static uint32_t next_pid = 0; // 0 will be the kernel
+static uint32_t next_pid();
 
+int process_from_vars(process_t * proc, uint32_t cr3, uint32_t heap, uint32_t stack) {
     if (!proc) {
         return -1;
     }
 
     kmemset(proc, 0, sizeof(process_t));
 
-    proc->pid            = next_pid++;
+    proc->pid              = next_pid();
+    proc->next_heap_page   = ADDR2PAGE(heap);
+    proc->stack_page_count = 0;
+    proc->esp              = stack;
+    proc->cr3              = cr3;
+    proc->ss0              = 0x10;
+
+    return 0;
+}
+
+int process_create(process_t * proc) {
+    if (!proc) {
+        return -1;
+    }
+
+    kmemset(proc, 0, sizeof(process_t));
+
+    proc->pid            = next_pid();
     proc->next_heap_page = VADDR_USER_MEM;
 
     proc->cr3 = ram_page_alloc();
@@ -108,17 +125,13 @@ void * process_add_pages(process_t * proc, size_t count) {
         return 0;
     }
 
-    uint32_t first_addr = 0;
+    void * ptr = UINT2PTR(PAGE2ADDR(proc->next_heap_page));
 
     for (size_t i = 0; i < count; i++) {
         uint32_t addr = ram_page_alloc();
 
         if (!addr) {
             return 0;
-        }
-
-        if (i == 0) {
-            first_addr = addr;
         }
 
         uint32_t page_i  = proc->next_heap_page;
@@ -142,11 +155,13 @@ void * process_add_pages(process_t * proc, size_t count) {
 
         mmu_table_set(table, table_i, addr, MMU_TABLE_RW);
 
+        proc->next_heap_page++;
+
         paging_temp_free(PTR2UINT(table));
         paging_temp_free(PTR2UINT(dir));
     }
 
-    return UINT2PTR(first_addr);
+    return ptr;
 }
 
 int process_grow_stack(process_t * proc) {
@@ -253,3 +268,8 @@ int process_grow_stack(process_t * proc) {
 //     uint32_t stack_page = ram_page_alloc();
 //     mmu_table_set(stack_table, MMU_TABLE_SIZE - 1, stack_page, MMU_TABLE_RW);
 // }
+
+static uint32_t next_pid() {
+    static uint32_t pid = 0;
+    return pid++;
+}

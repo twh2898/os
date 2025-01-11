@@ -56,13 +56,27 @@ protected:
     }
 };
 
+TEST_F(Process, process_from_vars) {
+    EXPECT_NE(0, process_from_vars(0, 0, 0, 0));
+
+    EXPECT_EQ(0, process_from_vars(&proc, 1, 0x2000, 3));
+    EXPECT_EQ(0, ram_page_alloc_fake.call_count);
+
+    EXPECT_EQ(0, proc.pid);
+    EXPECT_EQ(0x2, proc.next_heap_page);
+    EXPECT_EQ(0, proc.stack_page_count);
+    EXPECT_EQ(3, proc.esp);
+    EXPECT_EQ(1, proc.cr3);
+    EXPECT_EQ(0x10, proc.ss0);
+}
+
 TEST_F(Process, process_create) {
     // Invalid Parameters
     EXPECT_NE(0, process_create(0));
 
     // Fail ram_page_alloc
     EXPECT_NE(0, process_create(&proc));
-    EXPECT_EQ(0, proc.pid);
+    EXPECT_EQ(1, proc.pid);
 
     uint32_t page_ret_seq[2] = {0x400000, 0};
 
@@ -70,7 +84,7 @@ TEST_F(Process, process_create) {
 
     // paging_temp_map fails
     EXPECT_NE(0, process_create(&proc));
-    EXPECT_EQ(1, proc.pid);
+    EXPECT_EQ(2, proc.pid);
     EXPECT_EQ(1, ram_page_free_fake.call_count);
 
     SetUp();
@@ -80,7 +94,7 @@ TEST_F(Process, process_create) {
 
     // Second ram page alloc fails
     EXPECT_NE(0, process_create(&proc));
-    EXPECT_EQ(2, proc.pid);
+    EXPECT_EQ(3, proc.pid);
     EXPECT_EQ(1, paging_temp_free_fake.call_count);
     EXPECT_EQ(1, ram_page_free_fake.call_count);
     EXPECT_EQ(paging_temp_map_fake.call_count, paging_temp_free_fake.call_count);
@@ -94,7 +108,7 @@ TEST_F(Process, process_create) {
 
     // Success
     EXPECT_EQ(0, process_create(&proc));
-    EXPECT_EQ(3, proc.pid);
+    EXPECT_EQ(4, proc.pid);
     EXPECT_EQ(VADDR_USER_MEM, proc.next_heap_page);
     EXPECT_EQ(0x400000, proc.cr3);
     EXPECT_EQ(VADDR_USER_STACK, proc.esp);
