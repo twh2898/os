@@ -13,6 +13,8 @@ typedef struct _process {
     uint32_t next_heap_page;
     uint32_t stack_page_count;
 
+    // TODO heap & stack limits
+
     uint32_t esp;
     uint32_t cr3;
     uint32_t ss0;
