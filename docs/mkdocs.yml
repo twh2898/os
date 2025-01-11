@@ -1,0 +1,63 @@
+site_name: OS
+# nav:
+#   - Home: README.md
+#   - Design: design/index.md
+
+theme:
+  name: material
+  icon:
+    logo: fontawesome/solid/computer-mouse
+  features:
+    - content.tabs.link
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.tabs
+    # - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.path
+    - navigation.prune
+    - navigation.indexes
+    # - toc.integrate
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    # - header.autohide
+    - navigation.footer
+    - content.code.copy
+    - content.code.select
+    - content.code.annotate
+
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: green
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: green
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+plugins:
+  - search
+markdown_extensions:
+  - pymdownx.superfences
+  - pymdownx.tilde # enable strikethrough
+  - pymdownx.tabbed:
+      alternate_style: true
+  - toc:
+      permalink: true
+  - pymdownx.highlight:
+      anchor_linenums: false
+      line_spans: __span
+      pygments_lang_class: true
+  - def_list
+  - pymdownx.tasklist:
+      custom_checkbox: true
