@@ -324,9 +324,9 @@ static char ** parse_args(const char * line, size_t * out_len) {
         return 0;
     }
 
-    *out_len      = len;
+    *out_len = len;
     // char ** args  = impl_kmalloc(sizeof(char *) * len);
-    size_t  arg_i = 0;
+    size_t arg_i = 0;
 
     while (*line) {
         if (arg_i > len) {
