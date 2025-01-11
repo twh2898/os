@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "cpu/mmu.h"
 #include "memory_alloc.h"
 #include "proc.h"
 

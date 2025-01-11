@@ -1,10 +1,10 @@
 #ifndef KERNEL_PROCESS_H
 #define KERNEL_PROCESS_H
 
+#include <stddef.h>
 #include <stdint.h>
 
 #include "cpu/isr.h"
-#include "cpu/mmu.h"
 
 typedef void (*signals_master_callback)(int);
 
