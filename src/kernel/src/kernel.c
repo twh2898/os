@@ -18,6 +18,7 @@
 #include "libc/stdio.h"
 #include "libc/string.h"
 #include "libk/defs.h"
+#include "libk/sys_call.h"
 #include "proc.h"
 #include "ram.h"
 #include "term.h"
@@ -84,43 +85,32 @@ void kernel_main() {
     system_interrupt_register(SYS_INT_FAMILY_PROC, int_proc_cb);
     system_interrupt_register(SYS_INT_FAMILY_STDIO, int_tmp_stdio_cb);
 
-    // TODO kernel heap with new memory_alloc (needs process or page allocator)
+    // Kernel process used for memory allocation
+    process_from_vars(&__kernel.proc, PADDR_PAGE_DIR, VADDR_KERNEL_MEM, VADDR_ISR_STACK);
 
-    // init_malloc(pdir, VADDR_KERNEL_MEM >> 12);
-    PANIC("MALLOC ISN'T SETUP YET!"); // need to replace above with new allocator
+    // Setup kernel process as idle process
+    __kernel.pm.idle_task            = &__kernel.proc;
+    __kernel.pm.idle_task->next_proc = __kernel.pm.idle_task;
+    __kernel.pm.curr_task            = __kernel.pm.idle_task;
+    __kernel.pm.task_begin           = __kernel.pm.idle_task;
+
+    memory_init(&__kernel.kernel_memory, _page_alloc);
 
     vga_puts("Welcome to kernel v..\n");
 
-    process_create(&__kernel.proc);
+    // term_init();
+    // commands_init();
 
-    __kernel.proc.next_heap_page = VADDR_KERNEL_MEM;
-
-    __kernel.pm.curr_task  = &__kernel.proc;
-    __kernel.pm.idle_task  = &__kernel.proc;
-    __kernel.pm.task_begin = &__kernel.proc;
-
-    __kernel.proc.next_proc = __kernel.pm.idle_task;
-
-    term_init();
-    commands_init();
-
-    term_command_add("exit", kill);
+    // term_command_add("exit", kill);
 
     ramdisk_create(4096);
-
-    // process_t * idle_task = proc_new(term_run, 0x10);
-
-    // proc_man_t * pm = proc_man_new();
-    // proc_man_set_idle(pm, idle_task);
-
-    // proc = proc_new(try_switch, 0x10);
 
     // set_first_task(proc);
 
     // switch_to_task(proc);
 
     // jump_usermode(term_run);
-    jump_kernel_mode(term_run);
+    // jump_kernel_mode(term_run);
 
     PANIC("You shouldn't be here!");
 }

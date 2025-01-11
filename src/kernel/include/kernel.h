@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "memory_alloc.h"
 #include "proc.h"
 
 typedef struct _kernel {
@@ -12,6 +13,7 @@ typedef struct _kernel {
     uint32_t   cr3;
     process_t  proc;
     proc_man_t pm;
+    memory_t   kernel_memory;
 } kernel_t;
 
 /**
