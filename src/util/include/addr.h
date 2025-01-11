@@ -37,7 +37,6 @@ typedef void * v_ptr_t;
 #define VADDR_KERNEL_MEM   (VADDR_KERNEL_TABLE + PAGE_SIZE)
 #define VADDR_ISR_STACK    0x3fffff
 #define VADDR_USER_MEM     0x400000
-
-#define VADDR_USER_STACK 0xffffffff
+#define VADDR_USER_STACK   0xffffffff
 
 #endif // ADDR_H
