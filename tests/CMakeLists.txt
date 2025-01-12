@@ -30,7 +30,7 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     setup_target_for_coverage_gcovr_html(
         NAME ${PROJECT_NAME}_coverage
         EXECUTABLE ctest
-        DEPENDENCIES test_vga
+        DEPENDENCIES ${PROJECT_NAME}_all
         BASE_DIRECTORY ../
         EXCLUDE ${PROJECT_SOURCE_DIR}/*
     )
