@@ -20,6 +20,18 @@ protected:
         memset(&dir, 0, sizeof(dir));
         memset(&proc, 0, sizeof(proc));
     }
+
+    void expect_temp_balanced() {
+        EXPECT_EQ(paging_temp_map_fake.call_count, paging_temp_free_fake.call_count);
+    }
+
+    /**
+     * @brief  Used when a pageing_temp_map fails (where there is nothing to
+     * free for the last call).
+     */
+    void expect_temp_balanced_with_fail() {
+        EXPECT_EQ(paging_temp_map_fake.call_count, paging_temp_free_fake.call_count + 1);
+    }
 };
 
 TEST_F(Process, process_create) {
@@ -29,6 +41,7 @@ TEST_F(Process, process_create) {
     // Fail ram_page_alloc
     EXPECT_NE(0, process_create(&proc));
     EXPECT_EQ(1, proc.pid);
+    expect_temp_balanced();
 
     uint32_t page_ret_seq[2] = {0x400000, 0};
 
@@ -38,6 +51,7 @@ TEST_F(Process, process_create) {
     EXPECT_NE(0, process_create(&proc));
     EXPECT_EQ(2, proc.pid);
     EXPECT_EQ(1, ram_page_free_fake.call_count);
+    expect_temp_balanced_with_fail();
 
     SetUp();
 
@@ -49,7 +63,7 @@ TEST_F(Process, process_create) {
     EXPECT_EQ(3, proc.pid);
     EXPECT_EQ(1, paging_temp_free_fake.call_count);
     EXPECT_EQ(1, ram_page_free_fake.call_count);
-    EXPECT_EQ(paging_temp_map_fake.call_count, paging_temp_free_fake.call_count);
+    expect_temp_balanced();
 
     // TODO process_grow_stack fails
 
@@ -75,7 +89,7 @@ TEST_F(Process, process_create) {
     EXPECT_EQ(&dir, mmu_dir_clear_fake.arg0_val);
 
     EXPECT_EQ(3, mmu_dir_set_fake.call_count);
-    EXPECT_EQ(paging_temp_map_fake.call_count, paging_temp_free_fake.call_count);
+    expect_temp_balanced();
 }
 
 TEST_F(Process, process_free) {
@@ -86,6 +100,7 @@ TEST_F(Process, process_free) {
 
     // paging_temp_map fails
     EXPECT_NE(0, process_free(&proc));
+    expect_temp_balanced_with_fail();
 
     SetUp();
 
@@ -100,12 +115,13 @@ TEST_F(Process, process_free) {
     EXPECT_EQ(1, mmu_dir_get_addr_fake.call_count);
     EXPECT_EQ(2, paging_temp_map_fake.call_count);
     EXPECT_EQ(1, paging_temp_free_fake.call_count);
+    expect_temp_balanced_with_fail();
 
     SetUp();
 
     // TODO Success
 
-    EXPECT_EQ(paging_temp_map_fake.call_count, paging_temp_free_fake.call_count);
+    expect_temp_balanced();
 }
 
 TEST_F(Process, process_add_pages) {
@@ -113,15 +129,18 @@ TEST_F(Process, process_add_pages) {
     EXPECT_EQ(0, process_add_pages(0, 0));
     EXPECT_EQ(0, process_add_pages(0, 1));
     EXPECT_EQ(0, process_add_pages(&proc, 0));
+    expect_temp_balanced();
 
     // ram_page_alloc fails
     EXPECT_EQ(0, process_add_pages(&proc, 1));
     EXPECT_EQ(0, proc.pid);
+    expect_temp_balanced();
 
     ram_page_alloc_fake.return_val = 0x400000;
 
     // paging_temp_map fails
     EXPECT_EQ(0, process_add_pages(&proc, 1));
+    expect_temp_balanced_with_fail();
 
     SetUp();
 
@@ -133,12 +152,13 @@ TEST_F(Process, process_add_pages) {
     EXPECT_EQ(0, process_add_pages(&proc, 1));
     EXPECT_EQ(1, paging_temp_free_fake.call_count);
     EXPECT_EQ(1, ram_page_free_fake.call_count);
+    expect_temp_balanced_with_fail();
 
     SetUp();
 
     // TODO Success
 
-    EXPECT_EQ(paging_temp_map_fake.call_count, paging_temp_free_fake.call_count);
+    expect_temp_balanced();
 }
 
 TEST_F(Process, process_grow_stack) {
@@ -147,6 +167,7 @@ TEST_F(Process, process_grow_stack) {
 
     // paging_temp_map fails
     EXPECT_NE(0, process_grow_stack(&proc));
+    expect_temp_balanced_with_fail();
 
     SetUp();
 
@@ -156,7 +177,7 @@ TEST_F(Process, process_grow_stack) {
     EXPECT_NE(0, process_grow_stack(&proc));
     EXPECT_EQ(1, ram_page_alloc_fake.call_count);
     EXPECT_EQ(1, paging_temp_free_fake.call_count);
-    EXPECT_EQ(paging_temp_map_fake.call_count, paging_temp_free_fake.call_count);
+    expect_temp_balanced();
 
     SetUp();
 
@@ -168,6 +189,7 @@ TEST_F(Process, process_grow_stack) {
     // second paging_temp_map fails
     EXPECT_NE(0, process_grow_stack(&proc));
     EXPECT_EQ(1, paging_temp_free_fake.call_count);
+    expect_temp_balanced_with_fail();
 
     SetUp();
 
@@ -177,7 +199,7 @@ TEST_F(Process, process_grow_stack) {
     // second ram_page_alloc fails
     EXPECT_NE(0, process_grow_stack(&proc));
     EXPECT_EQ(2, paging_temp_free_fake.call_count);
-    EXPECT_EQ(paging_temp_map_fake.call_count, paging_temp_free_fake.call_count);
+    expect_temp_balanced();
 
     SetUp();
 
@@ -202,7 +224,7 @@ TEST_F(Process, process_grow_stack) {
 
     EXPECT_EQ(2, paging_temp_free_fake.call_count);
 
-    EXPECT_EQ(paging_temp_map_fake.call_count, paging_temp_free_fake.call_count);
+    expect_temp_balanced();
 
     // call a second time and check mmu_table_set gets new second arg
     EXPECT_EQ(0, process_grow_stack(&proc));
@@ -212,6 +234,7 @@ TEST_F(Process, process_grow_stack) {
     EXPECT_EQ(MMU_TABLE_SIZE - 2, mmu_table_set_fake.arg1_val);
     EXPECT_EQ(0x400000, mmu_table_set_fake.arg2_val);
     EXPECT_EQ(MMU_TABLE_RW, mmu_table_set_fake.arg3_val);
+    expect_temp_balanced();
 
     SetUp();
 
@@ -230,8 +253,7 @@ TEST_F(Process, process_grow_stack) {
     EXPECT_EQ(MMU_TABLE_SIZE - 1, mmu_table_set_fake.arg1_val);
     EXPECT_EQ(0x400000, mmu_table_set_fake.arg2_val);
     EXPECT_EQ(MMU_TABLE_RW, mmu_table_set_fake.arg3_val);
-
-    EXPECT_EQ(paging_temp_map_fake.call_count, paging_temp_free_fake.call_count);
+    expect_temp_balanced();
 
     SetUp();
 
@@ -259,6 +281,5 @@ TEST_F(Process, process_grow_stack) {
     EXPECT_EQ(2, paging_temp_free_fake.call_count);
 
     EXPECT_EQ(MMU_DIR_SIZE - 2, mmu_dir_get_flags_fake.arg1_val);
-
-    EXPECT_EQ(paging_temp_map_fake.call_count, paging_temp_free_fake.call_count);
+    expect_temp_balanced();
 }
