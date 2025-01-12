@@ -2,14 +2,13 @@
 #include <cstring>
 #include <string>
 
-#include "test_header.h"
+#include "test_common.h"
 
 extern "C" {
 #include "libc/memory.h"
 #include "memory_alloc.h"
 
 FAKE_VALUE_FUNC(void *, _page_alloc, size_t);
-FAKE_VALUE_FUNC(void *, kmemset, void *, uint8_t, size_t);
 FAKE_VALUE_FUNC(int, memory_init, memory_t *, memory_alloc_pages_t);
 FAKE_VALUE_FUNC(void *, memory_alloc, memory_t *, size_t);
 FAKE_VALUE_FUNC(void *, memory_realloc, memory_t *, void *, size_t);
@@ -23,8 +22,9 @@ void * custom_malloc(memory_t * memory, size_t size) {
 class LibC : public ::testing::Test {
 protected:
     void SetUp() override {
+        init_mocks();
+
         RESET_FAKE(_page_alloc);
-        RESET_FAKE(kmemset);
         RESET_FAKE(memory_init);
         RESET_FAKE(memory_alloc);
         RESET_FAKE(memory_realloc);

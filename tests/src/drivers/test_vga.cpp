@@ -4,7 +4,7 @@
 #include <functional>
 #include <vector>
 
-#include "test_header.h"
+#include "test_common.h"
 
 extern "C" {
 #include "drivers/vga.h"
@@ -15,11 +15,6 @@ FAKE_VOID_FUNC(port_byte_out, uint16_t, uint8_t);
 FAKE_VOID_FUNC(port_word_out, uint16_t, uint16_t);
 FAKE_VALUE_FUNC(uint8_t, port_byte_in, uint16_t);
 FAKE_VALUE_FUNC(uint16_t, port_word_in, uint16_t);
-FAKE_VALUE_FUNC(void *, kmemmove, void *, void *, size_t);
-
-void * kmemmove_custom(void * dest, void * src, size_t n) {
-    return memmove(dest, src, n);
-}
 }
 
 class VGA : public testing::Test {
@@ -27,12 +22,12 @@ protected:
     std::array<char, 80 * 25 * 2> buff;
 
     void SetUp() override {
+        init_mocks();
+
         RESET_FAKE(port_byte_out);
         RESET_FAKE(port_byte_in);
         RESET_FAKE(port_word_out);
         RESET_FAKE(port_word_in);
-        RESET_FAKE(kmemmove);
-        kmemmove_fake.custom_fake = kmemmove_custom;
 
         buff.fill(0);
         init_vga(buff.data());

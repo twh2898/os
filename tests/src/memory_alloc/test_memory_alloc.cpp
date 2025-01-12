@@ -1,7 +1,7 @@
 #include <array>
 #include <cstdlib>
 
-#include "test_header.h"
+#include "test_common.h"
 
 #define PAGE_SIZE 4096
 

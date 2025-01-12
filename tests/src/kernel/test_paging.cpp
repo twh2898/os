@@ -1,30 +1,17 @@
 #include <cstdlib>
 
-#include "test_header.h"
+#include "test_common.h"
 
 extern "C" {
 #include "paging.h"
 
 mmu_dir_t dir;
-
-FAKE_VALUE_FUNC(void *, kmemset, void *, uint8_t, size_t);
-FAKE_VALUE_FUNC(mmu_dir_t *, mmu_get_curr_dir);
-FAKE_VALUE_FUNC(enum MMU_DIR_FLAG, mmu_dir_get_flags, mmu_dir_t *, size_t);
-FAKE_VALUE_FUNC(int, mmu_table_set, mmu_table_t *, size_t, uint32_t, enum MMU_TABLE_FLAG);
-
-void * custom_kmemset(void * ptr, uint8_t val, size_t size) {
-    return memset(ptr, val, size);
-}
 }
 
 void setup_fakes() {
-    RESET_FAKE(kmemset);
-    RESET_FAKE(mmu_get_curr_dir);
-    RESET_FAKE(mmu_dir_get_flags);
-    RESET_FAKE(mmu_table_set);
+    init_mocks();
 
-    kmemset_fake.custom_fake         = custom_kmemset;
-    mmu_get_curr_dir_fake.return_val = &dir;
+    mmu_get_curr_dir_fake.return_val = (uint32_t)&dir;
     mmu_table_set_fake.return_val    = 0;
 }
 

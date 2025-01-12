@@ -4,7 +4,6 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/src/**",
-                "${workspaceFolder}/tests/include",
                 "${workspaceFolder}/tests/src/**",
                 "${workspaceFolder}/tests/build/_deps/fff-src"
             ],

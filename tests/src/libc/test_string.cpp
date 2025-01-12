@@ -1,6 +1,6 @@
 #include <cstdlib>
 
-#include "test_header.h"
+#include "test_common.h"
 
 extern "C" {
 #include "libc/memory.h"

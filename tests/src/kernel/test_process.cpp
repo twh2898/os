@@ -1,6 +1,6 @@
 #include <cstdlib>
 
-#include "test_header.h"
+#include "test_common.h"
 
 extern "C" {
 #define _Noreturn
@@ -11,46 +11,17 @@ extern "C" {
 mmu_dir_t dir;
 process_t proc;
 
-FAKE_VALUE_FUNC(void *, kmemset, void *, uint8_t, size_t);
-
-FAKE_VALUE_FUNC(uint32_t, ram_page_alloc);
-FAKE_VOID_FUNC(ram_page_free, uint32_t);
-
 FAKE_VALUE_FUNC(void *, paging_temp_map, uint32_t);
 FAKE_VOID_FUNC(paging_temp_free, uint32_t);
-
-FAKE_VOID_FUNC(mmu_dir_clear, mmu_dir_t *);
-
-FAKE_VALUE_FUNC(int, mmu_dir_set, mmu_dir_t *, size_t, uint32_t, enum MMU_DIR_FLAG);
-FAKE_VALUE_FUNC(enum MMU_DIR_FLAG, mmu_dir_get_flags, mmu_dir_t *, size_t);
-FAKE_VALUE_FUNC(uint32_t, mmu_dir_get_addr, mmu_dir_t *, size_t);
-
-FAKE_VALUE_FUNC(int, mmu_table_set, mmu_table_t *, size_t, uint32_t, enum MMU_TABLE_FLAG);
-FAKE_VALUE_FUNC(enum MMU_TABLE_FLAG, mmu_table_get_flags, mmu_table_t *, size_t);
-FAKE_VALUE_FUNC(uint32_t, mmu_table_get_addr, mmu_table_t *, size_t);
-
-void * custom_kmemset(void * ptr, uint8_t val, size_t size) {
-    return memset(ptr, val, size);
-}
 }
 
 class Process : public ::testing::Test {
 protected:
     void SetUp() override {
-        RESET_FAKE(kmemset);
-        RESET_FAKE(ram_page_alloc);
-        RESET_FAKE(ram_page_free);
+        init_mocks();
+
         RESET_FAKE(paging_temp_map);
         RESET_FAKE(paging_temp_free);
-        RESET_FAKE(mmu_dir_clear);
-        RESET_FAKE(mmu_dir_set);
-        RESET_FAKE(mmu_dir_get_flags);
-        RESET_FAKE(mmu_dir_get_addr);
-        RESET_FAKE(mmu_table_set);
-        RESET_FAKE(mmu_table_get_flags);
-        RESET_FAKE(mmu_table_get_addr);
-
-        kmemset_fake.custom_fake = custom_kmemset;
 
         memset(&dir, 0, sizeof(dir));
         memset(&proc, 0, sizeof(proc));

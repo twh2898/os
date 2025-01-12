@@ -1,7 +1,7 @@
 #include <cstdlib>
 #include <vector>
 
-#include "test_header.h"
+#include "test_common.h"
 
 extern "C" {
 #include <string.h>
@@ -12,17 +12,16 @@ extern "C" {
 extern "C" {
 FAKE_VALUE_FUNC(void *, kmalloc, size_t);
 FAKE_VOID_FUNC(kfree, void *);
-FAKE_VALUE_FUNC(void *, kmemcpy, void *, const void *, size_t);
 }
 
 static void setup_fakes() {
+    init_mocks();
+
     RESET_FAKE(kmalloc);
     RESET_FAKE(kfree);
-    RESET_FAKE(kmemcpy);
 
     kmalloc_fake.custom_fake = malloc;
     kfree_fake.custom_fake   = free;
-    kmemcpy_fake.custom_fake = memcpy;
 }
 
 TEST(CircularBufferStatic, cb_new) {

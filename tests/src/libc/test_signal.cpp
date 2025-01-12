@@ -2,7 +2,7 @@
 #include <cstring>
 #include <string>
 
-#include "test_header.h"
+#include "test_common.h"
 
 extern "C" {
 #include "libc/signal.h"
