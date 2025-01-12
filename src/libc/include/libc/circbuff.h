@@ -1,5 +1,5 @@
-#ifndef CIRCBUFF_H
-#define CIRCBUFF_H
+#ifndef LIBC_CIRCBUFF_H
+#define LIBC_CIRCBUFF_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -130,4 +130,4 @@ size_t circbuff_remove(circbuff_t * cbuff, size_t count);
  */
 size_t circbuff_clear(circbuff_t * cbuff);
 
-#endif // CIRCBUFF_H
+#endif // LIBC_CIRCBUFF_H

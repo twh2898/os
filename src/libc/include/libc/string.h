@@ -1,5 +1,5 @@
-#ifndef STRING_H
-#define STRING_H
+#ifndef LIBC_STRING_H
+#define LIBC_STRING_H
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -17,4 +17,4 @@ char * kstrtok(char * str, const char * delim);
 
 int katoi(const char * str);
 
-#endif // STRING_H
+#endif // LIBC_STRING_H

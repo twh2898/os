@@ -1,5 +1,5 @@
-#ifndef STDIO_H
-#define STDIO_H
+#ifndef LIBC_STDIO_H
+#define LIBC_STDIO_H
 
 #include <stdarg.h>
 #include <stdbool.h>
@@ -25,4 +25,4 @@ size_t print_hexblock(const uint8_t * data, size_t count, size_t addr_offset);
 
 #endif
 
-#endif // STDIO_H
+#endif // LIBC_STDIO_H
