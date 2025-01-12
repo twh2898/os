@@ -7,7 +7,6 @@
 extern "C" {
 #include "libc/signal.h"
 
-FAKE_VOID_FUNC(_register_signals, void *);
 FAKE_VOID_FUNC(callback);
 }
 

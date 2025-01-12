@@ -4,6 +4,7 @@ file(GLOB_RECURSE SOURCE_LIST ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c)
 file(GLOB_RECURSE HEADER_LIST ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h)
 
 add_library(${TARGET} STATIC ${SOURCE_LIST} ${HEADER_LIST})
+target_compile_definitions(${TARGET} PRIVATE TESTING)
 target_include_directories(${TARGET}
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include

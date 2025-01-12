@@ -7,16 +7,12 @@
 extern "C" {
 #include "libc/memory.h"
 #include "memory_alloc.h"
-
-FAKE_VALUE_FUNC(void *, _page_alloc, size_t);
 }
 
 class LibC : public ::testing::Test {
 protected:
     void SetUp() override {
         init_mocks();
-
-        RESET_FAKE(_page_alloc);
     }
 };
 

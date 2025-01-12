@@ -11,9 +11,6 @@
 #define NO_RETURN _Noreturn
 #endif
 
-// void * _malloc(size_t size);
-// void * _realloc(void * ptr, size_t size);
-// void   _free(void * ptr);
 void * _page_alloc(size_t count);
 
 NO_RETURN void _proc_exit(uint8_t code);

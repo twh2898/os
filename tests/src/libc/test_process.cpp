@@ -6,32 +6,12 @@
 
 extern "C" {
 #include "libc/process.h"
-
-FAKE_VOID_FUNC(_proc_exit, uint8_t);
-FAKE_VOID_FUNC(_proc_abort, uint8_t, const char *);
-FAKE_VOID_FUNC(_proc_panic, const char *, const char *, unsigned int);
-
-void * custom_malloc(size_t size) {
-    return malloc(size);
-}
-
-void * custom_realloc(void * ptr, size_t size) {
-    return realloc(ptr, size);
-}
-
-void custom_free(void * ptr) {
-    free(ptr);
-}
 }
 
 class LibC : public ::testing::Test {
 protected:
     void SetUp() override {
         init_mocks();
-
-        RESET_FAKE(_proc_exit);
-        RESET_FAKE(_proc_abort);
-        RESET_FAKE(_proc_panic);
     }
 };
 
