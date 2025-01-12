@@ -43,7 +43,7 @@ mmu_paging_enabled:
 
     ret
 
-; void mmu_change_dir(mmu_dir_t * dir);
+; void mmu_change_dir(uint32_t addr);
 global mmu_change_dir
 mmu_change_dir:
     push eax
@@ -57,7 +57,7 @@ mmu_change_dir:
 
     ret
 
-; mmu_dir_t * mmu_get_curr_dir();
+; uint32_t mmu_get_curr_dir();
 global mmu_get_curr_dir
 mmu_get_curr_dir:
     mov eax, cr3
