@@ -4,8 +4,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "cpu/isr.h"
-
 typedef void (*signals_master_callback)(int);
 
 typedef struct _process {
@@ -17,28 +15,12 @@ typedef struct _process {
 
     uint32_t esp;
     uint32_t cr3;
-    uint32_t ss0;
-
-    registers_t regs;
+    uint32_t esp0;
 
     signals_master_callback sys_call_callback;
 
     struct _process * next_proc;
 } process_t;
-
-/**
- * @brief Setup a process without creating a new page directory.
- *
- * If this process is being used to manage a stack, the user must call `process_grow_stack`
- * after process_from_vars to allocate the first stack page.
- *
- * @param proc pointer to the process object
- * @param cr3 physical address of the page directory
- * @param heap virtual address of the heap, must be page aligned
- * @param stack virtual address of the stack
- * @return int 0 for success
- */
-int process_from_vars(process_t * proc, uint32_t cr3, uint32_t heap, uint32_t stack);
 
 /**
  * @brief Create a new process and it's page directory.ADDR2PAGE

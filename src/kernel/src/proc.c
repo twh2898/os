@@ -7,23 +7,6 @@
 
 static uint32_t next_pid();
 
-int process_from_vars(process_t * proc, uint32_t cr3, uint32_t heap, uint32_t stack) {
-    if (!proc) {
-        return -1;
-    }
-
-    kmemset(proc, 0, sizeof(process_t));
-
-    proc->pid              = next_pid();
-    proc->next_heap_page   = ADDR2PAGE(heap);
-    proc->stack_page_count = 0;
-    proc->esp              = stack;
-    proc->cr3              = cr3;
-    proc->ss0              = 0x10;
-
-    return 0;
-}
-
 int process_create(process_t * proc) {
     if (!proc) {
         return -1;
@@ -35,7 +18,6 @@ int process_create(process_t * proc) {
     proc->next_heap_page = VADDR_USER_MEM;
 
     proc->cr3 = ram_page_alloc();
-    proc->ss0 = 0x10;
 
     if (!proc->cr3) {
         return -1;
@@ -65,6 +47,7 @@ int process_create(process_t * proc) {
     mmu_dir_set(dir, MMU_DIR_SIZE - 1, table_addr, MMU_DIR_RW);
 
     proc->esp              = VADDR_USER_STACK;
+    proc->esp0             = proc->esp;
     proc->stack_page_count = 0;
 
     if (process_grow_stack(proc)) {
@@ -270,6 +253,6 @@ int process_grow_stack(process_t * proc) {
 // }
 
 static uint32_t next_pid() {
-    static uint32_t pid = 0;
+    static uint32_t pid = 1; // 0 is reserved for kernel
     return pid++;
 }
