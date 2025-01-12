@@ -12,8 +12,8 @@ extern "C" {
 // no sort
 
 // Copy definition from string.h to make vscode happy with fff
-extern void * memcpy(void * __restrict __dest, const void * __restrict __src, size_t __n) __THROW __nonnull((1, 2));
-extern void * memset(void * __s, int __c, size_t __n) __THROW __nonnull((1));
+extern void * memcpy(void *, const void *, size_t);
+extern void * memset(void *, int, size_t);
 
 #include "cpu/mmu.mock.h"
 #include "cpu/ports.mock.h"
