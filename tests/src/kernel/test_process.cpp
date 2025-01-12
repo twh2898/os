@@ -10,18 +10,12 @@ extern "C" {
 
 mmu_dir_t dir;
 process_t proc;
-
-FAKE_VALUE_FUNC(void *, paging_temp_map, uint32_t);
-FAKE_VOID_FUNC(paging_temp_free, uint32_t);
 }
 
 class Process : public ::testing::Test {
 protected:
     void SetUp() override {
         init_mocks();
-
-        RESET_FAKE(paging_temp_map);
-        RESET_FAKE(paging_temp_free);
 
         memset(&dir, 0, sizeof(dir));
         memset(&proc, 0, sizeof(proc));
