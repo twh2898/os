@@ -25,7 +25,7 @@ DECLARE_FAKE_VALUE_FUNC(bool, mmu_paging_enabled);
 DECLARE_FAKE_VOID_FUNC(mmu_change_dir, uint32_t);
 DECLARE_FAKE_VALUE_FUNC(uint32_t, mmu_get_curr_dir);
 
-void reset_mmu_mock(void);
+void reset_cpu_mmu_mock(void);
 
 #ifdef __cplusplus
 } // extern "C"

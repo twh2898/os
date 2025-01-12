@@ -16,6 +16,7 @@ extern void * memcpy(void * __restrict __dest, const void * __restrict __src, si
 extern void * memset(void * __s, int __c, size_t __n) __THROW __nonnull((1));
 
 #include "cpu/mmu.mock.h"
+#include "cpu/ports.mock.h"
 #include "libc/string.mock.h"
 #include "ram.mock.h"
 

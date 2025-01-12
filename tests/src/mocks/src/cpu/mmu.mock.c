@@ -18,7 +18,7 @@ DEFINE_FAKE_VALUE_FUNC(bool, mmu_paging_enabled);
 DEFINE_FAKE_VOID_FUNC(mmu_change_dir, uint32_t);
 DEFINE_FAKE_VALUE_FUNC(uint32_t, mmu_get_curr_dir);
 
-void reset_mmu_mock() {
+void reset_cpu_mmu_mock() {
     RESET_FAKE(mmu_dir_clear);
     RESET_FAKE(mmu_table_clear);
     RESET_FAKE(mmu_dir_set_addr);

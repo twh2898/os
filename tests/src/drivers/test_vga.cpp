@@ -11,10 +11,6 @@ extern "C" {
 }
 
 extern "C" {
-FAKE_VOID_FUNC(port_byte_out, uint16_t, uint8_t);
-FAKE_VOID_FUNC(port_word_out, uint16_t, uint16_t);
-FAKE_VALUE_FUNC(uint8_t, port_byte_in, uint16_t);
-FAKE_VALUE_FUNC(uint16_t, port_word_in, uint16_t);
 }
 
 class VGA : public testing::Test {
@@ -23,11 +19,6 @@ protected:
 
     void SetUp() override {
         init_mocks();
-
-        RESET_FAKE(port_byte_out);
-        RESET_FAKE(port_byte_in);
-        RESET_FAKE(port_word_out);
-        RESET_FAKE(port_word_in);
 
         buff.fill(0);
         init_vga(buff.data());
