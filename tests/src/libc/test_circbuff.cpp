@@ -32,6 +32,8 @@ void custom_kfree(void * ptr) {
 }
 
 static void setup_fakes() {
+    init_mocks();
+
     RESET_FAKE(kmalloc);
     RESET_FAKE(kcalloc);
     RESET_FAKE(krealloc);

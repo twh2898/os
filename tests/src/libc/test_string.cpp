@@ -33,6 +33,8 @@ void custom_kfree(void * ptr) {
 class String : public testing::Test {
 protected:
     void SetUp() override {
+        init_mocks();
+
         RESET_FAKE(kmalloc);
         RESET_FAKE(kcalloc);
         RESET_FAKE(krealloc);

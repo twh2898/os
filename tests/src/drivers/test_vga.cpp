@@ -10,9 +10,6 @@ extern "C" {
 #include "drivers/vga.h"
 }
 
-extern "C" {
-}
-
 class VGA : public testing::Test {
 protected:
     std::array<char, 80 * 25 * 2> buff;

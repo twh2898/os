@@ -27,6 +27,8 @@ void custom_free(void * ptr) {
 class LibC : public ::testing::Test {
 protected:
     void SetUp() override {
+        init_mocks();
+
         RESET_FAKE(_proc_exit);
         RESET_FAKE(_proc_abort);
         RESET_FAKE(_proc_panic);

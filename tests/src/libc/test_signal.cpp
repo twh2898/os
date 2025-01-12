@@ -15,6 +15,8 @@ FAKE_VOID_FUNC(callback);
 typedef void (*signal_callback_t)(int);
 
 TEST(Signal, register_signal) {
+    init_mocks();
+
     RESET_FAKE(kmalloc);
     RESET_FAKE(_register_signals);
     RESET_FAKE(callback);

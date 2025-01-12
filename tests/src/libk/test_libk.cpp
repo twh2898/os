@@ -1,14 +1,10 @@
+#include <string>
+
+#include "test_common.h"
+
 extern "C" {
 #include "libk/sys_call.h"
 }
-
-#include <gtest/gtest.h>
-
-#include <string>
-
-#include "fff.h"
-
-DEFINE_FFF_GLOBALS;
 
 extern "C" {
 FAKE_VALUE_FUNC(uint32_t, send_interrupt, uint32_t, uint32_t, uint32_t);
@@ -18,6 +14,8 @@ FAKE_VALUE_FUNC(uint32_t, send_interrupt_noret, uint32_t, uint32_t, uint32_t, ui
 class LibK : public ::testing::Test {
 protected:
     void SetUp() override {
+        init_mocks();
+
         RESET_FAKE(send_interrupt);
         RESET_FAKE(send_interrupt_noret);
     }

@@ -28,6 +28,8 @@ protected:
     memory_t mem;
 
     void SetUp() override {
+        init_mocks();
+
         RESET_FAKE(alloc_page);
 
         pages.fill(0);
