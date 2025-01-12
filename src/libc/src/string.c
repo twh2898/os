@@ -52,7 +52,7 @@ void * kmemmove(void * dest, const void * src, size_t n) {
     return dest;
 }
 
-void * kmemset(void * ptr, uint8_t value, size_t n) {
+void * kmemset(void * ptr, int value, size_t n) {
     if (!ptr)
         return 0;
     uint8_t * buf = (uint8_t *)ptr;
@@ -62,17 +62,17 @@ void * kmemset(void * ptr, uint8_t value, size_t n) {
     return ptr;
 }
 
-int kstrlen(const char * str) {
+size_t kstrlen(const char * str) {
     if (!str)
-        return -1;
+        return 0;
     size_t count = 0;
     while (*str++) count++;
     return count;
 }
 
-int knstrlen(const char * str, int max) {
+size_t knstrlen(const char * str, int max) {
     if (!str || max < 0)
-        return -1;
+        return 0;
     size_t count = 0;
     while (*str++ && count < max) count++;
     return count;
@@ -88,18 +88,18 @@ int kstrcmp(const char * lhs, const char * rhs) {
     return kmemcmp(lhs, rhs, lhs_len);
 }
 
-int kstrfind(const char * str, size_t start, char c) {
+char * kstrfind(const char * str, int c) {
     if (!str)
-        return -1;
+        return 0;
     size_t len = kstrlen(str);
-    for (size_t i = start; i < len; i++) {
-        if (str[i] == c)
-            return (int)i;
+    for (size_t i = 0; i < len; i++) {
+        if (str[i] == (char)c)
+            return (char *)(str + i);
     }
-    return -1;
+    return 0;
 }
 
-static char * find_one(char * str, char * delim) {
+static char * find_one(const char * str, const char * delim) {
     if (!str || !delim)
         return 0;
 
@@ -109,14 +109,14 @@ static char * find_one(char * str, char * delim) {
     for (size_t i = 0; i < len; i++) {
         for (size_t d = 0; d < d_len; d++) {
             if (str[i] == delim[d]) {
-                return str + i;
+                return (char *)(str + i);
             }
         }
     }
-    return str;
+    return (char *)str;
 }
 
-static char * find_not_one(char * str, char * delim) {
+static char * find_not_one(const char * str, const char * delim) {
     if (!str || !delim)
         return 0;
 
@@ -126,15 +126,15 @@ static char * find_not_one(char * str, char * delim) {
     for (size_t i = 0; i < len; i++) {
         for (size_t d = 0; d < d_len; d++) {
             if (str[i] != delim[d]) {
-                return str + i;
+                return (char *)(str + i);
             }
         }
     }
-    return str;
+    return (char *)str;
 }
 
 // TODO Untested, idk if this actually works
-char * kstrtok(char * str, char * delim) {
+char * kstrtok(char * str, const char * delim) {
     if (!str || !delim)
         return 0;
 

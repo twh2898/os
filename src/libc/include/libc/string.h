@@ -3,18 +3,17 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdint.h>
 
 int    kmemcmp(const void * lhs, const void * rhs, size_t n);
 void * kmemcpy(void * dest, const void * src, size_t n);
 void * kmemmove(void * dest, const void * src, size_t n);
-void * kmemset(void * dest, uint8_t value, size_t n);
+void * kmemset(void * dest, int value, size_t n);
 
-int    kstrlen(const char * str);
-int    knstrlen(const char * str, int max);
+size_t kstrlen(const char * str);
+size_t knstrlen(const char * str, int max);
 int    kstrcmp(const char * lhs, const char * rhs);
-int    kstrfind(const char * str, size_t start, char c);
-char * kstrtok(char * str, char * delim);
+char * kstrfind(const char * str, int c);
+char * kstrtok(char * str, const char * delim);
 
 int katoi(const char * str);
 

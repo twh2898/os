@@ -160,14 +160,14 @@ TEST_F(String, kmemset) {
 }
 
 TEST_F(String, kstrlen) {
-    EXPECT_EQ(-1, kstrlen(0));
+    EXPECT_EQ(0, kstrlen(0));
     EXPECT_EQ(0, kstrlen(""));
     EXPECT_EQ(1, kstrlen("1"));
     EXPECT_EQ(3, kstrlen(" a "));
 }
 
 TEST_F(String, knstrlen) {
-    EXPECT_EQ(-1, knstrlen(0, 1));
+    EXPECT_EQ(0, knstrlen(0, 1));
     EXPECT_EQ(0, knstrlen("", 1));
     EXPECT_EQ(0, knstrlen("1", 0));
     EXPECT_EQ(1, knstrlen("1", 1));
@@ -191,23 +191,15 @@ TEST_F(String, kstrcmp) {
 }
 
 TEST_F(String, kstrfind) {
-    EXPECT_EQ(-1, kstrfind(0, 0, 0));
+    EXPECT_EQ(0, kstrfind(0, 0));
 
     const char * str = "abc";
 
-    EXPECT_EQ(-1, kstrfind(str, 0, 'd'));
+    EXPECT_EQ(0, kstrfind(str, 'd'));
 
-    EXPECT_EQ(0, kstrfind(str, 0, 'a'));
-    EXPECT_EQ(1, kstrfind(str, 0, 'b'));
-    EXPECT_EQ(2, kstrfind(str, 0, 'c'));
-
-    EXPECT_EQ(-1, kstrfind(str, 1, 'a'));
-    EXPECT_EQ(1, kstrfind(str, 1, 'b'));
-    EXPECT_EQ(2, kstrfind(str, 1, 'c'));
-
-    EXPECT_EQ(-1, kstrfind(str, 2, 'a'));
-    EXPECT_EQ(-1, kstrfind(str, 2, 'b'));
-    EXPECT_EQ(2, kstrfind(str, 2, 'c'));
+    EXPECT_EQ(str, kstrfind(str, 'a'));
+    EXPECT_EQ(str + 1, kstrfind(str, 'b'));
+    EXPECT_EQ(str + 2, kstrfind(str, 'c'));
 }
 
 // TODO kstrtok
