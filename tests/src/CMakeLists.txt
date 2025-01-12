@@ -15,7 +15,7 @@ function(unit_test)
         ${test_files}
         ${target_files}
     )
-    target_link_libraries(${target} PRIVATE gtest gtest_main fff mocks)
+    target_link_libraries(${target} PRIVATE gtest gtest_main fff mocks gcov)
     target_compile_definitions(${target} PUBLIC TEST_USER_OWN_TR1_TUPLE=1 TESTING)
 
     add_test(
