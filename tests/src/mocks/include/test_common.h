@@ -19,6 +19,7 @@ extern void * memset(void * __s, int __c, size_t __n) __THROW __nonnull((1));
 #include "cpu/ports.mock.h"
 #include "libc/memory.mock.h"
 #include "libc/string.mock.h"
+#include "memory_alloc.mock.h"
 #include "ram.mock.h"
 
 void init_mocks(void);

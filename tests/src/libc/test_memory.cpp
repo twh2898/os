@@ -9,14 +9,6 @@ extern "C" {
 #include "memory_alloc.h"
 
 FAKE_VALUE_FUNC(void *, _page_alloc, size_t);
-FAKE_VALUE_FUNC(int, memory_init, memory_t *, memory_alloc_pages_t);
-FAKE_VALUE_FUNC(void *, memory_alloc, memory_t *, size_t);
-FAKE_VALUE_FUNC(void *, memory_realloc, memory_t *, void *, size_t);
-FAKE_VALUE_FUNC(int, memory_free, memory_t *, void *);
-
-void * custom_malloc(memory_t * memory, size_t size) {
-    return malloc(size);
-}
 }
 
 class LibC : public ::testing::Test {
@@ -25,10 +17,6 @@ protected:
         init_mocks();
 
         RESET_FAKE(_page_alloc);
-        RESET_FAKE(memory_init);
-        RESET_FAKE(memory_alloc);
-        RESET_FAKE(memory_realloc);
-        RESET_FAKE(memory_free);
     }
 };
 
