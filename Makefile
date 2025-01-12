@@ -47,10 +47,10 @@ dump-kernel:
 	$(GDB) -ex "target remote localhost:1234" -ex "b *0x7e00" -ex "c" -ex "dump binary memory dump_kernel.bin 0x0 0x19000" -ex "kill" -ex "quit"
 
 test:
-	make -C tests
+	make -C tests test
 
 test_cov:
-	make -C tests_cov
+	make -C tests test_cov
 
 lint:
 	@find src tests/src -name '*.c' -or -name '*.h' -or -name '*.cpp' -or -name '*.hpp' | xargs clang-format --dry-run --Werror --sort-includes
