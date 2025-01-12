@@ -1,6 +1,9 @@
 #ifndef MMU_H
 #define MMU_H
 
+#include <stdbool.h>
+#include <stdint.h>
+
 #include "defs.h"
 
 #define MMU_DIR_SIZE   1024
