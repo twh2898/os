@@ -150,14 +150,47 @@ TEST_F(Paging, paging_remove_pages) {
 }
 
 TEST_F(Paging, paging_add_table) {
+    // Invalid parameters
+    EXPECT_NE(0, paging_add_table(MMU_DIR_SIZE));
+
+    mmu_get_curr_dir_fake.return_val = 0;
+
+    // paging_temp_map fails
+    EXPECT_NE(0, paging_add_table(MMU_DIR_SIZE - 1));
+    EXPECT_BALANCED();
+
+    SetUp();
+
+    // ram_page_alloc fails
+    EXPECT_NE(0, paging_add_table(1));
+    EXPECT_EQ(1, ram_page_alloc_fake.call_count);
+    EXPECT_BALANCED();
+
+    SetUp();
+
+    ram_page_alloc_fake.return_val = 0x1000;
+
+    // needs table
+    EXPECT_EQ(0, paging_add_table(1));
+    EXPECT_EQ(1, ram_page_alloc_fake.call_count);
+    EXPECT_EQ(1, mmu_dir_set_fake.call_count);
+    EXPECT_BALANCED();
+
+    mmu_dir_get_flags_fake.return_val = MMU_DIR_FLAG_PRESENT;
+
+    // table present
+    EXPECT_EQ(0, paging_add_table(1));
+    EXPECT_EQ(1, ram_page_alloc_fake.call_count);
+    EXPECT_BALANCED();
 }
 
 TEST_F(Paging, paging_remove_table) {
     // Invalid parameters
     EXPECT_NE(0, paging_remove_table(MMU_DIR_SIZE));
 
-    // paging_temp_map fails
     mmu_get_curr_dir_fake.return_val = 0;
+
+    // paging_temp_map fails
     EXPECT_NE(0, paging_remove_table(MMU_DIR_SIZE - 1));
     EXPECT_BALANCED();
 
