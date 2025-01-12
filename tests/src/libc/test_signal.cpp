@@ -7,7 +7,6 @@
 extern "C" {
 #include "libc/signal.h"
 
-FAKE_VALUE_FUNC(void *, kmalloc, size_t);
 FAKE_VOID_FUNC(_register_signals, void *);
 FAKE_VOID_FUNC(callback);
 }
@@ -17,7 +16,6 @@ typedef void (*signal_callback_t)(int);
 TEST(Signal, register_signal) {
     init_mocks();
 
-    RESET_FAKE(kmalloc);
     RESET_FAKE(_register_signals);
     RESET_FAKE(callback);
 

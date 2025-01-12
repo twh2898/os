@@ -1,7 +1,25 @@
+#include <memory.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "libc/memory.mock.h"
 #include "libc/string.mock.h"
+
+// libc/memory.h
+
+DEFINE_FAKE_VALUE_FUNC(void *, kmalloc, size_t);
+DEFINE_FAKE_VALUE_FUNC(void *, krealloc, void *, size_t);
+DEFINE_FAKE_VOID_FUNC(kfree, void *);
+
+void reset_libc_memory_mock(void) {
+    RESET_FAKE(kmalloc);
+    RESET_FAKE(krealloc);
+    RESET_FAKE(kfree);
+
+    kmalloc_fake.custom_fake  = malloc;
+    krealloc_fake.custom_fake = realloc;
+    kfree_fake.custom_fake    = free;
+}
 
 // libc/string.h
 

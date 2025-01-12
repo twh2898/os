@@ -9,19 +9,8 @@ extern "C" {
 #include "libc/datastruct/circular_buffer.h"
 }
 
-extern "C" {
-FAKE_VALUE_FUNC(void *, kmalloc, size_t);
-FAKE_VOID_FUNC(kfree, void *);
-}
-
 static void setup_fakes() {
     init_mocks();
-
-    RESET_FAKE(kmalloc);
-    RESET_FAKE(kfree);
-
-    kmalloc_fake.custom_fake = malloc;
-    kfree_fake.custom_fake   = free;
 }
 
 TEST(CircularBufferStatic, cb_new) {

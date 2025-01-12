@@ -42,21 +42,6 @@ TEST_F(LibC, kmalloc) {
     EXPECT_NE(nullptr, memory_init_fake.arg0_val);
 }
 
-TEST_F(LibC, kcalloc) {
-    char buff[12];
-    memory_alloc_fake.return_val = buff;
-
-    void * ptr = kcalloc(12, 0);
-    EXPECT_EQ(1, memory_alloc_fake.call_count);
-    EXPECT_NE(nullptr, memory_alloc_fake.arg0_val);
-    EXPECT_EQ(12, memory_alloc_fake.arg1_val);
-
-    EXPECT_EQ(1, kmemset_fake.call_count);
-    EXPECT_EQ(buff, kmemset_fake.arg0_val);
-    EXPECT_EQ(0, kmemset_fake.arg1_val);
-    EXPECT_EQ(12, kmemset_fake.arg2_val);
-}
-
 TEST_F(LibC, krealloc) {
     char buff[12];
 

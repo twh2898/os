@@ -9,22 +9,8 @@ extern "C" {
 #include "libc/datastruct/array.h"
 }
 
-extern "C" {
-FAKE_VALUE_FUNC(void *, kmalloc, size_t);
-FAKE_VALUE_FUNC(void *, krealloc, void *, size_t);
-FAKE_VOID_FUNC(kfree, void *);
-}
-
 static void setup_fakes() {
     init_mocks();
-
-    RESET_FAKE(kmalloc);
-    RESET_FAKE(krealloc);
-    RESET_FAKE(kfree);
-
-    kmalloc_fake.custom_fake  = malloc;
-    krealloc_fake.custom_fake = realloc;
-    kfree_fake.custom_fake    = free;
 }
 
 TEST(ArrayStatic, arr_new) {

@@ -18,12 +18,6 @@ void * kmalloc(size_t size) {
     return memory_alloc(&__memory, size);
 }
 
-void * kcalloc(size_t size, uint8_t value) {
-    void * ptr = kmalloc(size);
-    kmemset(ptr, value, size);
-    return ptr;
-}
-
 void * krealloc(void * ptr, size_t size) {
     if (!__memory.first) {
         init();

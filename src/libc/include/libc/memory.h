@@ -5,7 +5,6 @@
 #include <stdint.h>
 
 void * kmalloc(size_t size);
-void * kcalloc(size_t size, uint8_t value);
 void * krealloc(void * ptr, size_t size);
 void   kfree(void * ptr);
 
