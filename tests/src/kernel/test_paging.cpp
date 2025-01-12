@@ -4,15 +4,14 @@
 
 extern "C" {
 #include "paging.h"
-
-mmu_dir_t dir;
 }
+
+#define EXPECT_BALANCED() EXPECT_EQ(25, paging_temp_available())
 
 void setup_fakes() {
     init_mocks();
 
-    mmu_get_curr_dir_fake.return_val = (uint32_t)&dir;
-    mmu_table_set_fake.return_val    = 0;
+    mmu_get_curr_dir_fake.return_val = 0x1000;
 }
 
 TEST(PagingStatic, paging_init) {
@@ -33,8 +32,17 @@ protected:
     void SetUp() override {
         setup_fakes();
 
-        memset(&dir, 0, sizeof(dir));
+        paging_init();
+    }
 
+    void fill_temp_pages() {
+        size_t i = 1;
+        while (paging_temp_available()) {
+            paging_temp_map(i++ << 12);
+        }
+    }
+
+    void clear_temp_pages() {
         paging_init();
     }
 };
@@ -145,4 +153,27 @@ TEST_F(Paging, paging_add_table) {
 }
 
 TEST_F(Paging, paging_remove_table) {
+    // Invalid parameters
+    EXPECT_NE(0, paging_remove_table(MMU_DIR_SIZE));
+
+    // paging_temp_map fails
+    mmu_get_curr_dir_fake.return_val = 0;
+    EXPECT_NE(0, paging_remove_table(MMU_DIR_SIZE - 1));
+    EXPECT_BALANCED();
+
+    SetUp();
+
+    // mmu_dir_get_flags not present
+    EXPECT_EQ(0, paging_remove_table(0));
+    EXPECT_EQ(0, mmu_dir_get_addr_fake.call_count);
+    EXPECT_BALANCED();
+
+    mmu_dir_get_flags_fake.return_val = MMU_DIR_FLAG_PRESENT;
+
+    // mmu_dir_get_flags is present
+    EXPECT_EQ(0, paging_remove_table(0));
+    EXPECT_EQ(1, mmu_dir_get_addr_fake.call_count);
+    EXPECT_EQ(1, mmu_dir_set_fake.call_count);
+    EXPECT_EQ(1, ram_page_free_fake.call_count);
+    EXPECT_BALANCED();
 }

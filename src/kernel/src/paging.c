@@ -212,7 +212,7 @@ int paging_remove_pages(size_t start, size_t end) {
 }
 
 int paging_add_table(size_t dir_i) {
-    if (dir_i > MMU_DIR_SIZE) {
+    if (dir_i >= MMU_DIR_SIZE) {
         return -1;
     }
 
@@ -241,7 +241,7 @@ int paging_add_table(size_t dir_i) {
 }
 
 int paging_remove_table(size_t dir_i) {
-    if (dir_i > MMU_DIR_SIZE) {
+    if (dir_i >= MMU_DIR_SIZE) {
         return -1;
     }
 
