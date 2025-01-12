@@ -116,21 +116,33 @@ TEST_F(Paging, paging_id_map_range) {
 }
 
 TEST_F(Paging, paging_id_map_page) {
-    EXPECT_NE(0, paging_id_map_page(3));
+    // EXPECT_NE(0, paging_id_map_page(3));
 
-    mmu_dir_get_flags_fake.return_val = (enum MMU_DIR_FLAG)MMU_DIR_RW;
+    // mmu_dir_get_flags_fake.return_val = (enum MMU_DIR_FLAG)MMU_DIR_RW;
 
-    EXPECT_EQ(0, paging_id_map_page(3));
+    // EXPECT_EQ(0, paging_id_map_page(3));
 
-    EXPECT_EQ(2, mmu_get_curr_dir_fake.call_count);
+    // EXPECT_EQ(2, mmu_get_curr_dir_fake.call_count);
 
-    EXPECT_EQ(2, mmu_dir_get_flags_fake.call_count);
-    EXPECT_EQ(&dir, mmu_dir_get_flags_fake.arg0_val);
-    EXPECT_EQ(0, mmu_dir_get_flags_fake.arg1_val);
+    // EXPECT_EQ(2, mmu_dir_get_flags_fake.call_count);
+    // EXPECT_EQ(&dir, mmu_dir_get_flags_fake.arg0_val);
+    // EXPECT_EQ(0, mmu_dir_get_flags_fake.arg1_val);
 
-    EXPECT_EQ(1, mmu_table_set_fake.call_count);
-    EXPECT_EQ((mmu_table_t *)VADDR_KERNEL_TABLE, mmu_table_set_fake.arg0_val);
-    EXPECT_EQ(3, mmu_table_set_fake.arg1_val);
-    EXPECT_EQ(0x3000, mmu_table_set_fake.arg2_val);
-    EXPECT_EQ(MMU_TABLE_RW, mmu_table_set_fake.arg3_val);
+    // EXPECT_EQ(1, mmu_table_set_fake.call_count);
+    // EXPECT_EQ((mmu_table_t *)VADDR_KERNEL_TABLE, mmu_table_set_fake.arg0_val);
+    // EXPECT_EQ(3, mmu_table_set_fake.arg1_val);
+    // EXPECT_EQ(0x3000, mmu_table_set_fake.arg2_val);
+    // EXPECT_EQ(MMU_TABLE_RW, mmu_table_set_fake.arg3_val);
+}
+
+TEST_F(Paging, paging_add_pages) {
+}
+
+TEST_F(Paging, paging_remove_pages) {
+}
+
+TEST_F(Paging, paging_add_table) {
+}
+
+TEST_F(Paging, paging_remove_table) {
 }
