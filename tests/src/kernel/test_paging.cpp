@@ -144,9 +144,63 @@ TEST_F(Paging, paging_id_map_page) {
 }
 
 TEST_F(Paging, paging_add_pages) {
+    // Start is after end
+    EXPECT_EQ(0, paging_add_pages(2, 1));
+
+    mmu_get_curr_dir_fake.return_val = 0;
+
+    // paging_temp_map fails
+    EXPECT_NE(0, paging_add_pages(1, 2));
+    EXPECT_BALANCED();
+
+    SetUp();
+
+    mmu_dir_get_flags_fake.return_val = MMU_DIR_FLAG_PRESENT;
+
+    // End past dir
+    EXPECT_NE(0, paging_add_pages(1, MMU_DIR_SIZE * MMU_TABLE_SIZE));
+    EXPECT_BALANCED();
+
+    SetUp();
+
+    // paging_add_table fails
+    EXPECT_NE(0, paging_add_pages(1, 2));
+    EXPECT_BALANCED();
+
+    SetUp();
+
+    mmu_dir_get_flags_fake.return_val = MMU_DIR_FLAG_PRESENT; // skip add tables loop
+
+    // ram_page_alloc fails
+    EXPECT_NE(0, paging_add_pages(1, 2));
+    EXPECT_EQ(1, ram_page_alloc_fake.call_count);
+    EXPECT_BALANCED();
+
+    ram_page_alloc_fake.return_val = 0x2000;
+
+    // pageing_temp_map fails
+    EXPECT_NE(0, paging_add_pages(1, 2));
+    EXPECT_EQ(2, ram_page_alloc_fake.call_count);
+    EXPECT_EQ(1, ram_page_free_fake.call_count);
+    EXPECT_BALANCED();
+
+    SetUp();
+
+    mmu_dir_get_flags_fake.return_val = MMU_DIR_FLAG_PRESENT; // skip add tables loop
+    ram_page_alloc_fake.return_val    = 0x2000;
+    mmu_dir_get_addr_fake.return_val  = 0x3000;
+
+    // success
+    EXPECT_EQ(0, paging_add_pages(1, 2));
+    EXPECT_EQ(2, ram_page_alloc_fake.call_count);
+    EXPECT_EQ(0, ram_page_free_fake.call_count);
+    EXPECT_EQ(4, mmu_table_set_fake.call_count); // Includes calls to paging_temp_map
+    EXPECT_BALANCED();
 }
 
 TEST_F(Paging, paging_remove_pages) {
+    // Start is after end
+    EXPECT_EQ(0, paging_remove_pages(2, 1));
 }
 
 TEST_F(Paging, paging_add_table) {
