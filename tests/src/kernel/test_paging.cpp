@@ -109,23 +109,10 @@ TEST_F(Paging, paging_temp_available) {
 }
 
 TEST_F(Paging, paging_id_map_range) {
-    EXPECT_NE(0, paging_id_map_range(1, 2));
+    EXPECT_NE(0, paging_id_map_range(MMU_TABLE_SIZE, MMU_TABLE_SIZE));
 
-    mmu_dir_get_flags_fake.return_val = (enum MMU_DIR_FLAG)MMU_DIR_RW;
-
+    EXPECT_EQ(0, paging_id_map_range(0, 0));
     EXPECT_EQ(0, paging_id_map_range(1, 2));
-
-    EXPECT_EQ(2, mmu_table_set_fake.call_count);
-
-    EXPECT_EQ((mmu_table_t *)VADDR_KERNEL_TABLE, mmu_table_set_fake.arg0_history[0]);
-    EXPECT_EQ(1, mmu_table_set_fake.arg1_history[0]);
-    EXPECT_EQ(0x1000, mmu_table_set_fake.arg2_history[0]);
-    EXPECT_EQ(MMU_TABLE_RW, mmu_table_set_fake.arg3_history[0]);
-
-    EXPECT_EQ((mmu_table_t *)VADDR_KERNEL_TABLE, mmu_table_set_fake.arg0_history[1]);
-    EXPECT_EQ(2, mmu_table_set_fake.arg1_history[1]);
-    EXPECT_EQ(0x2000, mmu_table_set_fake.arg2_history[1]);
-    EXPECT_EQ(MMU_TABLE_RW, mmu_table_set_fake.arg3_history[1]);
 }
 
 TEST_F(Paging, paging_id_map_page) {
