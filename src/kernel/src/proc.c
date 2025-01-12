@@ -47,7 +47,7 @@ int process_create(process_t * proc) {
     mmu_dir_set(dir, MMU_DIR_SIZE - 1, table_addr, MMU_DIR_RW);
 
     proc->esp              = VADDR_USER_STACK;
-    proc->esp0             = proc->esp;
+    proc->esp0             = VADDR_ISR_STACK;
     proc->stack_page_count = 0;
 
     if (process_grow_stack(proc)) {

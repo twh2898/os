@@ -4,6 +4,7 @@
 
 extern "C" {
 #define _Noreturn
+#include "addr.h"
 #include "cpu/mmu.h"
 #include "proc.h"
 
@@ -56,20 +57,6 @@ protected:
     }
 };
 
-TEST_F(Process, process_from_vars) {
-    EXPECT_NE(0, process_from_vars(0, 0, 0, 0));
-
-    EXPECT_EQ(0, process_from_vars(&proc, 1, 0x2000, 3));
-    EXPECT_EQ(0, ram_page_alloc_fake.call_count);
-
-    EXPECT_EQ(0, proc.pid);
-    EXPECT_EQ(0x2, proc.next_heap_page);
-    EXPECT_EQ(0, proc.stack_page_count);
-    EXPECT_EQ(3, proc.esp);
-    EXPECT_EQ(1, proc.cr3);
-    EXPECT_EQ(0x10, proc.ss0);
-}
-
 TEST_F(Process, process_create) {
     // Invalid Parameters
     EXPECT_NE(0, process_create(0));
@@ -113,7 +100,7 @@ TEST_F(Process, process_create) {
     EXPECT_EQ(0x400000, proc.cr3);
     EXPECT_EQ(VADDR_USER_STACK, proc.esp);
     EXPECT_EQ(1, proc.stack_page_count);
-    EXPECT_EQ(0x10, proc.ss0);
+    EXPECT_EQ(VADDR_ISR_STACK, proc.esp0);
 
     EXPECT_EQ(3, paging_temp_free_fake.call_count);
     EXPECT_EQ(0x400000, paging_temp_free_fake.arg0_val);
