@@ -33,6 +33,10 @@ jobs:
         working-directory: build
         run: ctest -V
 
+      - name: Test with Coverage
+        working-directory: build
+        run: make os_test_coverage
+
   lint:
     runs-on: ubuntu-latest
 
