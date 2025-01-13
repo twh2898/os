@@ -53,8 +53,9 @@ size_t itoa(int32_t n, char * str) {
 
     *str = 0;
 
-    if (is_neg)
+    if (is_neg) {
         len++;
+    }
 
     return len;
 }
@@ -88,8 +89,9 @@ size_t ltoa(int64_t n, char * str) {
 
     *str = 0;
 
-    if (is_neg)
+    if (is_neg) {
         len++;
+    }
 
     return len;
 }
@@ -221,8 +223,9 @@ size_t vprintf(const char * fmt, va_list params) {
             bool   lead_zero  = !left_align && fmt[1] == '0';
             bool   is_long    = false;
 
-            if (left_align || lead_zero)
+            if (left_align || lead_zero) {
                 fmt++;
+            }
 
         start_format:
             fmt++;
@@ -237,10 +240,12 @@ size_t vprintf(const char * fmt, va_list params) {
                 case '7':
                 case '8':
                 case '9':
-                    if (!fill_fract)
+                    if (!fill_fract) {
                         width = width * 10 + (*fmt - '0');
-                    else
+                    }
+                    else {
                         fract = fract * 10 + (*fmt - '0');
+                    }
                     goto start_format;
                 case '.':
                     fill_fract = true;
@@ -325,8 +330,9 @@ size_t vprintf(const char * fmt, va_list params) {
                     o_len += count;
                     o_len += putc('.');
                     float rem = arg - (float)lhs;
-                    if (!fract)
+                    if (!fract) {
                         fract = 6;
+                    }
                     size_t f_count = 0;
                     while ((!width || count++ < width) && f_count++ < fract) {
                         rem *= 10;
@@ -363,26 +369,33 @@ size_t print_hexblock(const uint8_t * data, size_t count, size_t addr_offset) {
     while (count) {
         o_len += printf("0x%04X ", line * step + addr_offset);
         size_t to_write = step;
-        if (count < to_write)
+        if (count < to_write) {
             to_write = count;
+        }
         for (size_t i = 0; i < to_write; i++) {
             o_len += printf("%02X ", data[line * step + i]);
         }
         size_t space = step - to_write;
-        while (space--) o_len += puts("   ");
+        while (space--) {
+            o_len += puts("   ");
+        }
 
         o_len += puts("| ");
         for (size_t i = 0; i < to_write; i++) {
             char c = data[line * step + i];
-            if (c < 32)
+            if (c < 32) {
                 c = '.';
+            }
             o_len += putc(c);
         }
         space = step - to_write;
-        while (space--) o_len += putc(' ');
+        while (space--) {
+            o_len += putc(' ');
+        }
         o_len += puts(" |\n");
-        if (count <= step)
+        if (count <= step) {
             break;
+        }
         count -= step;
         line++;
     }
@@ -390,14 +403,16 @@ size_t print_hexblock(const uint8_t * data, size_t count, size_t addr_offset) {
 }
 
 static size_t int_width(int32_t n, uint8_t base) {
-    if (n < 0)
+    if (n < 0) {
         n = -n;
+    }
     return uint_width(n, base);
 }
 
 static size_t long_int_width(int64_t n, uint8_t base) {
-    if (n < 0)
+    if (n < 0) {
         n = -n;
+    }
     return long_uint_width(n, base);
 }
 
@@ -420,10 +435,12 @@ static size_t long_uint_width(uint64_t n, uint8_t base) {
 }
 
 static char digit(uint32_t num, uint8_t base, bool upper) {
-    if (num < 10)
+    if (num < 10) {
         return num + '0';
-    else
+    }
+    else {
         return (num - 10) + (upper ? 'A' : 'a');
+    }
 }
 
 static size_t pad(char c, size_t len) {

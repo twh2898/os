@@ -89,14 +89,16 @@ enum RAM_TYPE ram_upper_type(uint16_t i) {
 }
 
 uint32_t ram_bitmask_paddr(size_t region_index) {
-    if (region_index <= REGION_TABLE_SIZE)
+    if (region_index <= REGION_TABLE_SIZE) {
         return region_table->entries[region_index].addr_flags & MASK_ADDR;
+    }
     return 0;
 }
 
 uint32_t ram_bitmask_vaddr(size_t region_index) {
-    if (region_index <= REGION_TABLE_SIZE)
+    if (region_index <= REGION_TABLE_SIZE) {
         return VADDR_RAM_BITMASKS + region_index * PAGE_SIZE;
+    }
     return 0;
 }
 
@@ -105,8 +107,9 @@ uint32_t ram_page_alloc() {
         uint8_t flag = region_table->entries[i].addr_flags & MASK_FLAGS;
         if (flag & REGION_TABLE_FLAG_PRESENT && region_table->entries[i].free_count) {
             uint16_t bit = find_free_bit(i);
-            if (!bit)
+            if (!bit) {
                 PANIC("Could not find free bit in page with free count");
+            }
 
             set_bitmask(i, bit, false);
             region_table->entries[i].free_count--;
@@ -123,8 +126,9 @@ uint32_t ram_page_palloc() {
         uint8_t flag = region_table->entries[i].addr_flags & MASK_FLAGS;
         if (flag & REGION_TABLE_FLAG_PRESENT && region_table->entries[i].free_count) {
             uint16_t bit = find_free_bit(i);
-            if (!bit)
+            if (!bit) {
                 PANIC("Could not find free bit in page with free count");
+            }
 
             set_bitmask_early(i, bit, false);
             region_table->entries[i].free_count--;
@@ -139,12 +143,14 @@ uint32_t ram_page_palloc() {
 void ram_page_free(uint32_t addr) {
     size_t                 region_index = find_addr_entry(addr);
     region_table_entry_t * region       = &region_table->entries[region_index];
-    if (!region)
+    if (!region) {
         return;
+    }
 
     uint16_t bit = find_addr_bit(region_index, addr);
-    if (!bit)
+    if (!bit) {
         return;
+    }
 
     set_bitmask(region_index, bit, true);
     region->free_count++;
@@ -183,8 +189,9 @@ static size_t build_table() {
     for (size_t i = 0; i < ram_upper_count(); i++) {
         uint32_t addr = (uint32_t)ram_upper_start(i);
         if (ram_upper_usable(i) && addr > 0x9fbff) {
-            if (addr & MASK_FLAGS)
+            if (addr & MASK_FLAGS) {
                 addr += PAGE_SIZE;
+            }
             found_free = true;
             first_area = i;
             break;
@@ -204,8 +211,9 @@ static size_t build_table() {
 
     size_t table_index = 0;
     for (size_t i = first_area; i < ram_upper_count(); i++) {
-        if (!ram_upper_usable(i))
+        if (!ram_upper_usable(i)) {
             continue;
+        }
 
         uint32_t start = (uint32_t)ram_upper_start(i);
         uint32_t end   = (uint32_t)ram_upper_end(i) & MASK_ADDR;
@@ -214,16 +222,19 @@ static size_t build_table() {
         start &= MASK_ADDR;
 
         size_t region_count = len / REGION_MAX_SIZE;
-        if (len % REGION_MAX_SIZE)
+        if (len % REGION_MAX_SIZE) {
             region_count++;
+        }
 
         for (size_t r = 0; r < region_count; r++) {
-            if (table_index >= REGION_TABLE_SIZE)
+            if (table_index >= REGION_TABLE_SIZE) {
                 PANIC("Region table overflow");
+            }
 
             size_t region_len = len;
-            if (region_len > REGION_MAX_SIZE)
+            if (region_len > REGION_MAX_SIZE) {
                 region_len = REGION_MAX_SIZE;
+            }
             start &= MASK_ADDR;
             size_t region_end = (start + region_len);
 
@@ -246,8 +257,9 @@ static size_t build_table() {
 }
 
 static void create_bitmask(size_t region_index) {
-    if (region_index > REGION_TABLE_SIZE)
+    if (region_index > REGION_TABLE_SIZE) {
         return;
+    }
 
     region_table_entry_t * region = &region_table->entries[region_index];
 
@@ -269,8 +281,9 @@ static void create_bitmask(size_t region_index) {
 }
 
 static void set_bitmask_early(size_t region_index, uint16_t bit, bool free) {
-    if (region_index > REGION_TABLE_SIZE)
+    if (region_index > REGION_TABLE_SIZE) {
         return;
+    }
 
     size_t byte = bit / 8;
     bit         = bit % 8;
@@ -287,8 +300,9 @@ static void set_bitmask_early(size_t region_index, uint16_t bit, bool free) {
 // END THIS IS IN PHYSICAL ADDRESS SPACE NOT VIRTUAL
 
 static void set_bitmask(size_t region_index, uint16_t bit, bool free) {
-    if (region_index > REGION_TABLE_SIZE)
+    if (region_index > REGION_TABLE_SIZE) {
         return;
+    }
 
     uint8_t * bitmask = UINT2PTR(ram_bitmask_vaddr(region_index));
     size_t    byte    = bit / 8;
@@ -303,8 +317,9 @@ static void set_bitmask(size_t region_index, uint16_t bit, bool free) {
 }
 
 static bool get_bitmask(size_t region_index, uint16_t bit) {
-    if (region_index > REGION_TABLE_SIZE)
+    if (region_index > REGION_TABLE_SIZE) {
         return false;
+    }
 
     uint8_t * bitmask = UINT2PTR(ram_bitmask_vaddr(region_index));
     size_t    byte    = bit / 8;
@@ -316,32 +331,37 @@ static bool get_bitmask(size_t region_index, uint16_t bit) {
 
 // Returns 0 on failure, 0 is always invalid
 static uint16_t find_free_bit(size_t region_index) {
-    if (region_index > REGION_TABLE_SIZE)
+    if (region_index > REGION_TABLE_SIZE) {
         return 0;
+    }
 
     region_table_entry_t * region = &region_table->entries[region_index];
-    if (region->free_count == 0)
+    if (region->free_count == 0) {
         return 0;
+    }
 
     for (uint16_t i = 1; i < region->page_count; i++) {
-        if (get_bitmask(region_index, i))
+        if (get_bitmask(region_index, i)) {
             return i;
+        }
     }
 
     return 0;
 }
 
 static size_t find_addr_entry(uint32_t addr) {
-    if (addr & MASK_FLAGS)
+    if (addr & MASK_FLAGS) {
         return 0;
+    }
 
     for (size_t i = 0; i < REGION_TABLE_SIZE; i++) {
         if (region_table->entries[i].addr_flags & REGION_TABLE_FLAG_PRESENT) {
             uint32_t region_start = ram_bitmask_paddr(i);
             uint32_t region_end   = region_start + region_table->entries[i].page_count * PAGE_SIZE;
 
-            if (addr >= region_start && addr <= region_end)
+            if (addr >= region_start && addr <= region_end) {
                 &region_table->entries[i];
+            }
         }
     }
 
@@ -350,18 +370,21 @@ static size_t find_addr_entry(uint32_t addr) {
 
 // Returns 0 for error, 0 is always invalid
 static size_t find_addr_bit(size_t region_index, uint32_t addr) {
-    if (region_index > REGION_TABLE_SIZE)
+    if (region_index > REGION_TABLE_SIZE) {
         return 0;
+    }
 
     region_table_entry_t * region = &region_table->entries[region_index];
-    if (addr & MASK_FLAGS || !(region->addr_flags & REGION_TABLE_FLAG_PRESENT))
+    if (addr & MASK_FLAGS || !(region->addr_flags & REGION_TABLE_FLAG_PRESENT)) {
         return 0;
+    }
 
     uint32_t region_start = region->addr_flags & MASK_ADDR;
     uint32_t region_end   = region_start + region->page_count * PAGE_SIZE;
 
-    if (addr <= region_start || addr >= region_end)
+    if (addr <= region_start || addr >= region_end) {
         return 0;
+    }
 
     return (addr - region_start) / PAGE_SIZE;
 }

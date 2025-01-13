@@ -104,18 +104,21 @@ void disk_close(disk_t * disk) {
 }
 
 size_t disk_size(disk_t * disk) {
-    if (!disk)
+    if (!disk) {
         return 0;
+    }
     return disk->size;
 }
 
 size_t disk_read(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
-    if (!disk || !buff)
+    if (!disk || !buff) {
         return 0;
+    }
 
     size_t steps = count / disk->buff_size;
-    if (count % disk->buff_size)
+    if (count % disk->buff_size) {
         steps++;
+    }
 
     size_t o_len = 0;
     for (size_t i = 0; i < steps; i++) {
@@ -126,12 +129,14 @@ size_t disk_read(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
 }
 
 size_t disk_write(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
-    if (!disk || !buff)
+    if (!disk || !buff) {
         return 0;
+    }
 
     size_t steps = count / disk->buff_size;
-    if (count % disk->buff_size)
+    if (count % disk->buff_size) {
         steps++;
+    }
 
     size_t o_len = 0;
     for (size_t i = 0; i < steps; i++) {
@@ -142,20 +147,24 @@ size_t disk_write(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
 }
 
 static size_t disk_ata_read(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
-    if (!disk || !buff)
+    if (!disk || !buff) {
         return 0;
+    }
 
-    if (count > disk->buff_size)
+    if (count > disk->buff_size) {
         count = disk->buff_size;
+    }
 
-    if (disk->size - pos < count)
+    if (disk->size - pos < count) {
         count = disk->size - pos;
+    }
 
     size_t lba          = pos / ATA_SECTOR_BYTES;
     size_t sect_to_read = count / ATA_SECTOR_BYTES;
 
-    if (count % ATA_SECTOR_BYTES)
+    if (count % ATA_SECTOR_BYTES) {
         sect_to_read++;
+    }
 
     if (ata_sect_read(disk->device.ata, disk->buff, sect_to_read, lba)
         != sect_to_read) {
@@ -168,21 +177,25 @@ static size_t disk_ata_read(disk_t * disk, uint8_t * buff, size_t count, size_t 
 }
 
 static size_t disk_ata_write(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
-    if (!disk || !buff)
+    if (!disk || !buff) {
         return 0;
+    }
 
-    if (count > disk->buff_size)
+    if (count > disk->buff_size) {
         count = disk->buff_size;
+    }
 
-    if (disk->size - pos < count)
+    if (disk->size - pos < count) {
         count = disk->size - pos;
+    }
 
     size_t lba           = pos / ATA_SECTOR_BYTES;
     size_t sect_to_write = count / ATA_SECTOR_BYTES;
 
     if (count % ATA_SECTOR_BYTES) {
-        if (!ata_sect_read(disk->device.ata, disk->buff, 1, lba))
+        if (!ata_sect_read(disk->device.ata, disk->buff, 1, lba)) {
             return 0;
+        }
         sect_to_write++;
     }
 
@@ -197,28 +210,34 @@ static size_t disk_ata_write(disk_t * disk, uint8_t * buff, size_t count, size_t
 }
 
 static size_t disk_rdisk_read(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
-    if (!disk || !buff)
+    if (!disk || !buff) {
         return 0;
+    }
 
-    if (count > disk->buff_size)
+    if (count > disk->buff_size) {
         count = disk->buff_size;
+    }
 
-    if (disk->size - pos < count)
+    if (disk->size - pos < count) {
         count = disk->size - pos;
+    }
 
     size_t o_len = ramdisk_read(disk->device.rdisk, buff, count, pos);
     return o_len;
 }
 
 static size_t disk_rdisk_write(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
-    if (!disk || !buff)
+    if (!disk || !buff) {
         return 0;
+    }
 
-    if (count > disk->buff_size)
+    if (count > disk->buff_size) {
         count = disk->buff_size;
+    }
 
-    if (disk->size - pos < count)
+    if (disk->size - pos < count) {
         count = disk->size - pos;
+    }
 
     size_t o_len = ramdisk_write(disk->device.rdisk, buff, count, pos);
     return o_len;

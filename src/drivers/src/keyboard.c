@@ -30,13 +30,16 @@ static void keyboard_callback(registers_t * regs) {
         bool             press = keycode < 0x80;
 
         if (press) {
-            if (keycode == last_code)
+            if (keycode == last_code) {
                 event = KEY_EVENT_REPEAT;
+            }
             else {
-                if (keycode == KEY_LSHIFT)
+                if (keycode == KEY_LSHIFT) {
                     lshift = true;
-                if (keycode == KEY_RSHIFT)
+                }
+                if (keycode == KEY_RSHIFT) {
                     lshift = true;
+                }
             }
             last_code = keycode;
         }
@@ -46,23 +49,29 @@ static void keyboard_callback(registers_t * regs) {
             event     = KEY_EVENT_RELEASE;
             last_code = 0;
 
-            if (keycode == KEY_LSHIFT)
+            if (keycode == KEY_LSHIFT) {
                 lshift = false;
-            if (keycode == KEY_RSHIFT)
+            }
+            if (keycode == KEY_RSHIFT) {
                 lshift = false;
+            }
         }
 
         char c = keyboard_char(keycode, lshift || rshift);
 
         keyboard_mod_t mods = 0;
-        if (lctrl || rctrl)
+        if (lctrl || rctrl) {
             mods |= KEY_MOD_CTRL;
-        if (lalt || ralt)
+        }
+        if (lalt || ralt) {
             mods |= KEY_MOD_ALT;
-        if (lshift || rshift)
+        }
+        if (lshift || rshift) {
             mods |= KEY_MOD_SHIFT;
-        if (lsuper || rsuper)
+        }
+        if (lsuper || rsuper) {
             mods |= KEY_MOD_SUPER;
+        }
 
         _cb(keycode, c, event, mods);
     }
@@ -101,8 +110,9 @@ void print_letter(uint8_t scancode) {
                 printf("key up ");
                 print_letter(scancode - 0x80);
             }
-            else
+            else {
                 printf("Unknown key up");
+            }
             break;
         case 0x0:
             break;

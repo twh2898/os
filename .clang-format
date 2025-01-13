@@ -32,7 +32,7 @@ ExperimentalAutoDetectBinPacking: true
 FixNamespaceComments: false
 IndentCaseLabels: true
 IndentWidth: 4
-# InsertBraces: true
+InsertBraces: true
 KeepEmptyLinesAtTheStartOfBlocks: true
 Language: Cpp
 MaxEmptyLinesToKeep: 1

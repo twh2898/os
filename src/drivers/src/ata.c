@@ -124,13 +124,15 @@ struct _ata {
 };
 
 static void ata_callback(registers_t * regs) {
-    if (debug)
+    if (debug) {
         puts("disk callback\n");
+    }
 }
 
 ata_t * ata_open(uint8_t id) {
-    if (id > 0)
+    if (id > 0) {
         return 0;
+    }
 
     ata_t * disk = kmalloc(sizeof(ata_t));
     if (disk) {
@@ -155,58 +157,75 @@ void init_ata() {
 }
 
 size_t ata_size(ata_t * disk) {
-    if (!disk)
+    if (!disk) {
         return 0;
+    }
     return disk->sect_count * ATA_SECTOR_BYTES;
 }
 
 size_t ata_sector_count(ata_t * disk) {
-    if (!disk)
+    if (!disk) {
         return 0;
+    }
     return disk->sect_count;
 }
 
 bool ata_status(ata_t * disk) {
-    if (!disk)
+    if (!disk) {
         return false;
+    }
 
     uint8_t status = port_byte_in(disk->ct_base + ATA_CTL_ALT_STATUS);
     if (debug) {
         printf("Status is %02X\n", status);
-        if (status & ATA_STATUS_FLAG_ERR)
+        if (status & ATA_STATUS_FLAG_ERR) {
             puts("ERR ");
-        if (status & ATA_STATUS_FLAG_DRQ)
+        }
+        if (status & ATA_STATUS_FLAG_DRQ) {
             puts("DRQ ");
-        if (status & ATA_STATUS_FLAG_SRV)
+        }
+        if (status & ATA_STATUS_FLAG_SRV) {
             puts("SRV ");
-        if (status & ATA_STATUS_FLAG_DF)
+        }
+        if (status & ATA_STATUS_FLAG_DF) {
             puts("DF ");
-        if (status & ATA_STATUS_FLAG_RDY)
+        }
+        if (status & ATA_STATUS_FLAG_RDY) {
             puts("RDY ");
-        if (status & ATA_STATUS_FLAG_BSY)
+        }
+        if (status & ATA_STATUS_FLAG_BSY) {
             puts("BSY ");
+        }
         putc('\n');
     }
 
     if (status & ATA_STATUS_FLAG_ERR) {
         if (debug) {
             uint8_t error = port_byte_in(disk->io_base + ATA_IO_ERROR);
-            if (error & ATA_ERROR_FLAG_AMNF)
+            if (error & ATA_ERROR_FLAG_AMNF) {
                 puts("ERROR: AMNF - Address mark not found\n");
-            if (error & ATA_ERROR_FLAG_TKZNK)
+            }
+            if (error & ATA_ERROR_FLAG_TKZNK) {
                 puts("ERROR: TKZNK - Track zero not found\n");
-            if (error & ATA_ERROR_FLAG_ABRT)
+            }
+            if (error & ATA_ERROR_FLAG_ABRT) {
                 puts("ERROR: ABRT - Aborted command\n");
-            if (error & ATA_ERROR_FLAG_MCR)
+            }
+            if (error & ATA_ERROR_FLAG_MCR) {
                 puts("ERROR: MCR - Media change request\n");
-            if (error & ATA_ERROR_FLAG_IDNF)
+            }
+            if (error & ATA_ERROR_FLAG_IDNF) {
                 puts("ERROR: IDNF - ID not found\n");
-            if (error & ATA_ERROR_FLAG_MC)
+            }
+            if (error & ATA_ERROR_FLAG_MC) {
                 puts("ERROR: MC - Media changed\n");
-            if (error & ATA_ERROR_FLAG_UNC)
+            }
+            if (error & ATA_ERROR_FLAG_UNC) {
                 puts("ERROR: UNC - Uncorrectable data error\n");
-            if (error & ATA_ERROR_FLAG_BBK)
+            }
+            if (error & ATA_ERROR_FLAG_BBK) {
                 puts("ERROR: BBK - Bad block detected\n");
+            }
         }
         return true;
     }
@@ -215,12 +234,14 @@ bool ata_status(ata_t * disk) {
 }
 
 size_t ata_sect_read(ata_t * disk, uint8_t * buff, size_t sect_count, uint32_t lba) {
-    if (!disk || !buff || !sect_count)
+    if (!disk || !buff || !sect_count) {
         return 0;
+    }
 
     // read max 256 sectors at a time
-    if (sect_count > 256)
+    if (sect_count > 256) {
         sect_count = 256;
+    }
 
     if (lba > disk->sect_count) {
         return 0;
@@ -274,12 +295,14 @@ size_t ata_sect_read(ata_t * disk, uint8_t * buff, size_t sect_count, uint32_t l
 }
 
 size_t ata_sect_write(ata_t * disk, uint8_t * buff, size_t sect_count, uint32_t lba) {
-    if (!disk || !buff || !sect_count)
+    if (!disk || !buff || !sect_count) {
         return 0;
+    }
 
     // write max 256 sectors at a time
-    if (sect_count > 256)
+    if (sect_count > 256) {
         sect_count = 256;
+    }
 
     if (lba > disk->sect_count) {
         return 0;
@@ -334,8 +357,9 @@ size_t ata_sect_write(ata_t * disk, uint8_t * buff, size_t sect_count, uint32_t 
 }
 
 static bool ata_identify(ata_t * disk) {
-    if (!disk)
+    if (!disk) {
         return false;
+    }
 
     START_TIMEOUT
     port_byte_out(disk->io_base + ATA_IO_DRIVE_HEAD, 0xA0);
@@ -352,12 +376,14 @@ static bool ata_identify(ata_t * disk) {
         return false;
     }
 
-    if (debug)
+    if (debug) {
         puts("Polling");
+    }
     size_t retry = 0;
     while (status & ATA_STATUS_FLAG_BSY) {
-        if (debug)
+        if (debug) {
             putc('.');
+        }
         status = port_byte_in(disk->io_base + ATA_IO_STATUS);
         TEST_TIMEOUT
         if (retry++ > MAX_RETRY) {
@@ -365,22 +391,26 @@ static bool ata_identify(ata_t * disk) {
             return 0;
         }
     }
-    if (debug)
+    if (debug) {
         putc('\n');
+    }
 
     if (port_byte_in(disk->io_base + ATA_IO_LBA_MID) || port_byte_in(disk->io_base + ATA_IO_LBA_HIGH)) {
         puts("Disk does not support ATA\n");
         return false;
     }
-    if (debug)
+    if (debug) {
         puts("Drive is ATA\n");
+    }
 
-    if (debug)
+    if (debug) {
         puts("Polling");
+    }
     retry = 0;
     while (!(status & (ATA_STATUS_FLAG_DRQ | ATA_STATUS_FLAG_ERR))) {
-        if (debug)
+        if (debug) {
             putc('.');
+        }
         status = port_byte_in(disk->io_base + ATA_IO_STATUS);
         TEST_TIMEOUT
         if (retry++ > MAX_RETRY) {
@@ -388,8 +418,9 @@ static bool ata_identify(ata_t * disk) {
             return 0;
         }
     }
-    if (debug)
+    if (debug) {
         putc('\n');
+    }
 
     if (status & ATA_STATUS_FLAG_ERR) {
         puts("Disk initialized with errors\n");
@@ -397,8 +428,9 @@ static bool ata_identify(ata_t * disk) {
     }
 
     if (status & ATA_STATUS_FLAG_DRQ) {
-        if (debug)
+        if (debug) {
             puts("Disk is ready\n");
+        }
     }
 
     uint16_t data[ATA_SECTOR_WORDS];
@@ -420,32 +452,36 @@ static bool ata_identify(ata_t * disk) {
 
     bool has_lba = (data[83] & (1 << 10));
     if (has_lba) {
-        if (debug)
+        if (debug) {
             printf("Drive has LBA48 Mode\n");
+        }
     }
 
     uint32_t size28 = data[61];
     size28          = size28 << 16;
     size28 |= data[60];
 
-    if (debug)
+    if (debug) {
         printf("LDA28 has %u sectors\n", size28);
+    }
 
     uint64_t size48 = data[100];
     size48          = (size48 << 16) | data[101];
     size48          = (size48 << 16) | data[102];
     size48          = (size48 << 16) | data[103];
 
-    if (debug)
+    if (debug) {
         printf("LDA48 has %u sectors\n", size48);
+    }
 
     disk->sect_count = size28;
     return true;
 }
 
 static void software_reset(ata_t * disk) {
-    if (!disk)
+    if (!disk) {
         return;
+    }
 
     START_TIMEOUT
     port_byte_out(disk->ct_base + ATA_CTL_CONTROL, ATA_CONTROL_FLAG_SRST);

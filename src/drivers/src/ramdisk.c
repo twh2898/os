@@ -14,14 +14,17 @@ static ramdisk_t devices[RAMDISK_MAX];
 static int       device_count = 0;
 
 int ramdisk_create(size_t size) {
-    if (device_count < 0)
+    if (device_count < 0) {
         PANIC("NEGATIVE DEVICE COUNT");
-    if (device_count == RAMDISK_MAX)
+    }
+    if (device_count == RAMDISK_MAX) {
         PANIC("TOO MANY RAM DISK DEVICES");
+    }
 
     void * data = kmalloc(size);
-    if (!data)
+    if (!data) {
         PANIC("RAMDISK OUT OF MEMORY");
+    }
 
     devices[device_count].id   = device_count;
     devices[device_count].size = size;
@@ -31,8 +34,9 @@ int ramdisk_create(size_t size) {
 }
 
 ramdisk_t * ramdisk_open(int id) {
-    if (id < 0 || id >= device_count)
+    if (id < 0 || id >= device_count) {
         return 0;
+    }
     return &devices[id];
 }
 
@@ -45,16 +49,18 @@ size_t ramdisk_size(ramdisk_t * rdisk) {
 }
 
 size_t ramdisk_read(ramdisk_t * rdisk, uint8_t * buff, size_t count, size_t pos) {
-    if (rdisk->size - pos < count)
+    if (rdisk->size - pos < count) {
         count = rdisk->size - pos;
+    }
 
     kmemcpy(rdisk->data + pos, buff, count);
     return count;
 }
 
 size_t ramdisk_write(ramdisk_t * rdisk, uint8_t * buff, size_t count, size_t pos) {
-    if (rdisk->size - pos < count)
+    if (rdisk->size - pos < count) {
         count = rdisk->size - pos;
+    }
 
     kmemcpy(buff, rdisk->data + pos, count);
     return count;

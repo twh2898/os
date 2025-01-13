@@ -30,30 +30,36 @@ static int clear_cmd(size_t argc, char ** argv) {
 
 static int echo_cmd(size_t argc, char ** argv) {
     bool next_line = true;
-    if (argc > 1 && kmemcmp(argv[1], "-n", 2) == 0)
+    if (argc > 1 && kmemcmp(argv[1], "-n", 2) == 0) {
         next_line = false;
-
-    size_t i = 1;
-    if (!next_line)
-        i++;
-    for (; i < argc; i++) {
-        puts(argv[i]);
-        if (i < argc)
-            putc(' ');
     }
 
-    if (next_line)
+    size_t i = 1;
+    if (!next_line) {
+        i++;
+    }
+    for (; i < argc; i++) {
+        puts(argv[i]);
+        if (i < argc) {
+            putc(' ');
+        }
+    }
+
+    if (next_line) {
         putc('\n');
+    }
 
     return 0;
 }
 
 static int debug_cmd(size_t argc, char ** argv) {
     debug = !debug;
-    if (debug)
+    if (debug) {
         puts("Enable debug\n");
-    else
+    }
+    else {
         puts("Disabling debug\n");
+    }
     return 0;
 }
 
@@ -69,20 +75,25 @@ static int atoi_cmd(size_t argc, char ** argv) {
 }
 
 static uint8_t hex_digit(char c) {
-    if (c >= '0' && c <= '9')
+    if (c >= '0' && c <= '9') {
         return c - '0';
-    else if (c >= 'a' && c <= 'f')
+    }
+    else if (c >= 'a' && c <= 'f') {
         return 10 + c - 'a';
-    else if (c >= 'A' && c <= 'F')
+    }
+    else if (c >= 'A' && c <= 'F') {
         return 10 + c - 'A';
-    else
+    }
+    else {
         return 0;
+    }
 }
 
 static uint16_t parse_byte(const char * str) {
     size_t len = kstrlen(str);
-    if (len < 1 || len > 4)
+    if (len < 1 || len > 4) {
         return 1;
+    }
 
     uint16_t res = 0;
     while (*str) {
@@ -305,8 +316,9 @@ static int ls_cmd(size_t argc, char ** argv) {
 
     tar_stat_t stat;
     for (size_t i = 0; i < file_count; i++) {
-        if (!tar_stat_file_i(tar, i, &stat))
+        if (!tar_stat_file_i(tar, i, &stat)) {
             return 1;
+        }
         ls_print_file(&stat);
     }
 
@@ -356,8 +368,9 @@ static int fs_read_cmd(size_t argc, char ** argv) {
 
     ls_print_file(&stat);
     uint8_t * buff = kmalloc(stat.size);
-    if (!buff)
+    if (!buff) {
         return 1;
+    }
 
     tar_fs_file_t * file = tar_file_open(tar, filename);
     if (!file) {
@@ -372,8 +385,9 @@ static int fs_read_cmd(size_t argc, char ** argv) {
     }
     print_hexblock(buff, stat.size, 0);
 
-    if (!disk || !buff)
+    if (!disk || !buff) {
         return 0;
+    }
 
     tar_file_close(file);
     kfree(buff);
@@ -401,8 +415,9 @@ static int fs_cat_cmd(size_t argc, char ** argv) {
     }
 
     uint8_t * buff = kmalloc(stat.size);
-    if (!buff)
+    if (!buff) {
         return 1;
+    }
 
     tar_fs_file_t * file = tar_file_open(tar, filename);
     if (!file) {
@@ -419,8 +434,9 @@ static int fs_cat_cmd(size_t argc, char ** argv) {
         putc(buff[i]);
     }
 
-    if (!disk || !buff)
+    if (!disk || !buff) {
         return 0;
+    }
 
     tar_file_close(file);
     kfree(buff);
@@ -452,12 +468,14 @@ static int disk_read_cmd(size_t argc, char ** argv) {
 
     char   data[513];
     size_t steps = count / 512;
-    if (count % 512)
+    if (count % 512) {
         steps++;
+    }
     for (size_t i = 0; i < steps; i++) {
         size_t to_read = count;
-        if (to_read > 512)
+        if (to_read > 512) {
             to_read = 512;
+        }
         size_t read = disk_read(disk, data, to_read, pos);
         data[read]  = 0;
         print_hexblock(data, read, 512 * i);
@@ -479,15 +497,19 @@ static int disk_write_cmd(size_t argc, char ** argv) {
 
     char data[512] = {0};
     for (size_t i = 0; i < 512; i++) {
-        if ((i >> 4) < 10)
+        if ((i >> 4) < 10) {
             data[i * 2] = (i >> 4) + '0';
-        else
+        }
+        else {
             data[i * 2] = (i >> 4) + 'a' - 10;
+        }
 
-        if ((i & 0xf) < 10)
+        if ((i & 0xf) < 10) {
             data[i * 2 + 1] = (i & 0xf) + '0';
-        else
+        }
+        else {
             data[i * 2 + 1] = (i & 0xf) + 'a' - 10;
+        }
     }
     disk_write(disk, data, 512, 0);
     return 0;
@@ -521,8 +543,9 @@ static int command_lookup(size_t argc, char ** argv) {
     }
 
     uint8_t * buff = kmalloc(stat.size);
-    if (!buff)
+    if (!buff) {
         return 1;
+    }
 
     tar_fs_file_t * file = tar_file_open(tar, filename);
     if (!file) {
@@ -538,8 +561,9 @@ static int command_lookup(size_t argc, char ** argv) {
 
     int res = command_exec(buff, stat.size, argc, argv);
 
-    if (!disk || !buff)
+    if (!disk || !buff) {
         return 0;
+    }
 
     tar_file_close(file);
     kfree(buff);

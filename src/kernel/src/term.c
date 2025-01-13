@@ -74,8 +74,9 @@ static void key_cb(uint8_t code, char c, keyboard_event_t event, keyboard_mod_t 
         // kprintf("Circbuff char %x at len %d / %d\n", c, circbuff_len(keybuff), circbuff_buff_size(keybuff));
         // dump_buff();
 
-        if (code == KEY_ENTER)
+        if (code == KEY_ENTER) {
             command_ready++;
+        }
 
         vga_putc(c);
     }
@@ -102,8 +103,9 @@ void term_init() {
 }
 
 void term_update() {
-    if (!command_ready)
+    if (!command_ready) {
         return;
+    }
 
     command_ready--;
 
@@ -163,8 +165,9 @@ void term_run() {
 }
 
 bool term_command_add(const char * command, command_cb_t cb) {
-    if (!command || !cb)
+    if (!command || !cb) {
         return false;
+    }
 
     if (n_commands > MAX_COMMANDS) {
         ERROR("TERMINAL COMMAND REGISTER OVERFLOW!\n");
@@ -194,15 +197,18 @@ static void exec_buff() {
         line_len--;
     }
 
-    if (debug)
+    if (debug) {
         printf("Trimmed line length %u starting at +%u\n", line_len, (line - command_buff));
+    }
 
     // Terminate trimmed line
     line[line_len] = 0;
 
     // Find the length of the first non whitespace word
     int first_len = 0;
-    while (first_len < line_len && !is_ws(line[first_len])) first_len++;
+    while (first_len < line_len && !is_ws(line[first_len])) {
+        first_len++;
+    }
 
     // Prepare command and args
     size_t  argc;
@@ -222,22 +228,25 @@ static void exec_buff() {
 
         // Check length of command vs first word
         if (first_len < command_len) {
-            if (debug)
+            if (debug) {
                 printf("Command too short %u < %u\n", first_len, command_len);
+            }
             continue;
         }
 
         if (first_len > command_len) {
-            if (debug)
+            if (debug) {
                 printf("Command too long %u > %u\n", first_len, command_len);
+            }
             continue;
         }
 
         // Check command string
         int match = kmemcmp(argv[0], commands[i].command, command_len);
         if (match != 0) {
-            if (debug)
+            if (debug) {
                 printf("Command does not match %s\n", commands[i].command);
+            }
             continue;
         }
 
@@ -274,51 +283,61 @@ static bool is_ws(char c) {
 }
 
 static int take_quote(const char * str) {
-    if (!str || *str != '"')
+    if (!str || *str != '"') {
         return -1;
+    }
 
     size_t len = kstrlen(str);
     for (size_t i = 1; i < len; i++) {
-        if (str[i] == '"' && str[i - 1] != '\\')
+        if (str[i] == '"' && str[i - 1] != '\\') {
             return i;
+        }
     }
 
     return -1;
 }
 
 static int count_args(const char * line) {
-    if (!line)
+    if (!line) {
         return -1;
+    }
 
     int n = 0;
     while (*line) {
         // Skip whitespace
-        while (*line && is_ws(*line)) line++;
+        while (*line && is_ws(*line)) {
+            line++;
+        }
 
         // end of string
-        if (*line == 0)
+        if (*line == 0) {
             break;
+        }
 
         // Handle quote
         if (*line == '"') {
             int next = take_quote(line);
-            if (next < 1)
+            if (next < 1) {
                 return -1;
+            }
             n++;
             line += 2 + next;
             continue;
         }
 
         // handle word
-        while (*line && !is_ws(*line)) line++;
+        while (*line && !is_ws(*line)) {
+            line++;
+        }
         n++;
     }
     return n;
 }
 
 static char ** parse_args(const char * line, size_t * out_len) {
-    if (!line || !out_len)
+    if (!line || !out_len) {
         return 0;
+    }
 
     int len = count_args(line);
     if (len < 1) {
@@ -339,17 +358,21 @@ static char ** parse_args(const char * line, size_t * out_len) {
             return 0;
         }
         // Skip whitespace
-        while (*line && is_ws(*line)) line++;
+        while (*line && is_ws(*line)) {
+            line++;
+        }
 
         // end of string
-        if (*line == 0)
+        if (*line == 0) {
             break;
+        }
 
         // Handle quote
         if (*line == '"') {
             int next = take_quote(line);
-            if (next < 1)
+            if (next < 1) {
                 return 0;
+            }
 
             line++;
 
@@ -364,7 +387,9 @@ static char ** parse_args(const char * line, size_t * out_len) {
 
         const char * start = line;
         // handle word
-        while (*line && !is_ws(*line)) line++;
+        while (*line && !is_ws(*line)) {
+            line++;
+        }
 
         size_t word_len = line - start;
         args[arg_i]     = kmalloc(sizeof(char) * word_len + 1);

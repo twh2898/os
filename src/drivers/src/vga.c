@@ -68,8 +68,9 @@ int vga_cursor_col() {
 }
 
 void vga_cursor(int row, int col) {
-    if (row < 0 || col < 0 || row >= VGA_ROWS || col >= VGA_COLS)
+    if (row < 0 || col < 0 || row >= VGA_ROWS || col >= VGA_COLS) {
         return;
+    }
 
     index = vga_index(row, col);
     update_cursor();
@@ -104,8 +105,9 @@ size_t vga_putc(char c) {
         ret     = 0;
     }
     else if (c == '\b') {
-        if (index > 0)
+        if (index > 0) {
             index--;
+        }
         vga_put(index, ' ', RESET);
     }
     else {
@@ -123,8 +125,9 @@ size_t vga_putc(char c) {
 }
 
 size_t vga_puts(const char * str) {
-    if (!str)
+    if (!str) {
         return 0;
+    }
 
     size_t len = 0;
     while (*str != 0) {
@@ -135,10 +138,12 @@ size_t vga_puts(const char * str) {
 }
 
 static char digit(uint32_t num, uint8_t base) {
-    if (num < 10)
+    if (num < 10) {
         return num + '0';
-    else
+    }
+    else {
         return (num - 10) + 'A';
+    }
 }
 
 static size_t _print_uint(uint32_t num, uint8_t base) {
@@ -186,8 +191,9 @@ size_t vga_putx(unsigned int num) {
  */
 
 static void update_cursor() {
-    if (index < 0 || index >= MAX_INDEX)
+    if (index < 0 || index >= MAX_INDEX) {
         return;
+    }
 
     port_byte_out(REG_SCREEN_CTRL, 14);
     port_byte_out(REG_SCREEN_DATA, (unsigned char)(index >> 8));

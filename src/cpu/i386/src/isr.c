@@ -183,9 +183,10 @@ void register_interrupt_handler(uint8_t n, isr_t handler) {
 void irq_handler(registers_t r) {
     /* After every interrupt we need to send an EOI to the PICs
      * or they will not send another interrupt again */
-    if (r.int_no >= 40)
+    if (r.int_no >= 40) {
         port_byte_out(0xA0, 0x20); /* slave */
-    port_byte_out(0x20, 0x20);     /* master */
+    }
+    port_byte_out(0x20, 0x20); /* master */
 
     if (r.int_no >= 256) {
         printf("BAD INTERRUPT 0x%X\n", r.int_no);
@@ -211,28 +212,39 @@ void enable_interrupts() {
 
 static void print_cr0(uint32_t cr0) {
     puts("[ ");
-    if (cr0 & (1 << 0))
+    if (cr0 & (1 << 0)) {
         puts("PE ");
-    if (cr0 & (1 << 1))
+    }
+    if (cr0 & (1 << 1)) {
         puts("MP ");
-    if (cr0 & (1 << 2))
+    }
+    if (cr0 & (1 << 2)) {
         puts("EM ");
-    if (cr0 & (1 << 3))
+    }
+    if (cr0 & (1 << 3)) {
         puts("TS ");
-    if (cr0 & (1 << 4))
+    }
+    if (cr0 & (1 << 4)) {
         puts("ET ");
-    if (cr0 & (1 << 5))
+    }
+    if (cr0 & (1 << 5)) {
         puts("NE ");
-    if (cr0 & (1 << 16))
+    }
+    if (cr0 & (1 << 16)) {
         puts("WP ");
-    if (cr0 & (1 << 18))
+    }
+    if (cr0 & (1 << 18)) {
         puts("AM ");
-    if (cr0 & (1 << 29))
+    }
+    if (cr0 & (1 << 29)) {
         puts("NW ");
-    if (cr0 & (1 << 30))
+    }
+    if (cr0 & (1 << 30)) {
         puts("CD ");
-    if (cr0 & (1 << 31))
+    }
+    if (cr0 & (1 << 31)) {
         puts("PG ");
+    }
     putc(']');
 }
 
