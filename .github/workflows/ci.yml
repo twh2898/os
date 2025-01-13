@@ -20,6 +20,9 @@ jobs:
       - name: Install dependencies
         run: sudo apt-get install -y build-essential gcc-multilib g++-multilib
 
+      - name: Install gcovr
+        run: pip install gcovr
+
       - name: Setup project
         run: cmake -S ${TEST_DIR} -B ${BUILD_DIR} -DCMAKE_BUILD_TYPE=Debug
 
