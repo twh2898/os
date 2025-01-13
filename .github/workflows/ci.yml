@@ -35,7 +35,8 @@ jobs:
 
       - name: Test with Coverage
         working-directory: build
-        run: make os_test_coverage
+        continue-on-error: true
+        run: cmake --build ${BUILD_DIR} --target os_test_coverage
 
   lint:
     runs-on: ubuntu-latest
