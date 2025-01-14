@@ -10,6 +10,10 @@
 #define VGA_WHITE_ON_BLACK (VGA_FG_WHITE | VGA_BG_BLACK)
 #define VGA_RED_ON_WHITE   (VGA_FG_RED | VGA_BG_WHITE)
 
+#define VGA_ROW(INDEX)      ((INDEX) / VGA_COLS)
+#define VGA_COL(INDEX)      ((INDEX) % VGA_COLS)
+#define VGA_INDEX(ROW, COL) (((ROW) * VGA_COLS) + (COL))
+
 enum VGA_FG {
     VGA_FG_BLACK         = 0x0,
     VGA_FG_BLUE          = 0x1,
@@ -52,9 +56,6 @@ void init_vga(void * vga_addr);
 
 void vga_clear();
 void vga_put(int index, char c, unsigned char attr);
-int  vga_row(int index);
-int  vga_col(int index);
-int  vga_index(int row, int col);
 
 int  vga_cursor_row();
 int  vga_cursor_col();
