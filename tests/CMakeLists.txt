@@ -3,6 +3,7 @@ project(os_test VERSION 0.1.0 LANGUAGES C CXX)
 
 option(OS_TEST_COVERAGE "Generate gcov target for calculating code coverage" ON)
 option(OS_TEST_COVERAGE_CAN_FAIL "Tests can fail for coverage" ON)
+option(OS_TEST_COVERAGE_DARK "Use dark theme for html output" ON)
 
 set(TEST_TARGET_ROOT ${CMAKE_SOURCE_DIR}/..)
 set(CMAKE_C_FLAGS -m32)
@@ -19,6 +20,9 @@ if(OS_TEST_COVERAGE AND CMAKE_COMPILER_IS_GNUCXX)
     append_coverage_compiler_flags()
     if(OS_TEST_COVERAGE_CAN_FAIL)
         set(GCOVR_ADDITIONAL_ARGS ${GCOVR_ADDITIONAL_ARGS} --fail-under-line 100 --fail-under-branch 100)
+    endif()
+    if(OS_TEST_COVERAGE_DARK)
+        set(GCOVR_ADDITIONAL_ARGS ${GCOVR_ADDITIONAL_ARGS} --html-theme github.dark-green)
     endif()
 endif()
 
