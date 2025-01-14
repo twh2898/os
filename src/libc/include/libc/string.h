@@ -13,7 +13,7 @@ size_t kstrlen(const char * str);
 size_t knstrlen(const char * str, int max);
 int    kstrcmp(const char * lhs, const char * rhs);
 char * kstrfind(const char * str, int c);
-char * kstrtok(char * str, const char * delim);
+// char * kstrtok(char * str, const char * delim);
 
 int katoi(const char * str);
 

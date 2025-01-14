@@ -113,72 +113,72 @@ char * kstrfind(const char * str, int c) {
     return 0;
 }
 
-static char * find_one(const char * str, const char * delim) {
-    if (!str || !delim) {
-        return 0;
-    }
+// static char * find_one(const char * str, const char * delim) {
+//     if (!str || !delim) {
+//         return 0;
+//     }
 
-    size_t len   = kstrlen(str);
-    size_t d_len = kstrlen(delim);
+//     size_t len   = kstrlen(str);
+//     size_t d_len = kstrlen(delim);
 
-    for (size_t i = 0; i < len; i++) {
-        for (size_t d = 0; d < d_len; d++) {
-            if (str[i] == delim[d]) {
-                return (char *)(str + i);
-            }
-        }
-    }
-    return (char *)str;
-}
+//     for (size_t i = 0; i < len; i++) {
+//         for (size_t d = 0; d < d_len; d++) {
+//             if (str[i] == delim[d]) {
+//                 return (char *)(str + i);
+//             }
+//         }
+//     }
+//     return (char *)str;
+// }
 
-static char * find_not_one(const char * str, const char * delim) {
-    if (!str || !delim) {
-        return 0;
-    }
+// static char * find_not_one(const char * str, const char * delim) {
+//     if (!str || !delim) {
+//         return 0;
+//     }
 
-    size_t len   = kstrlen(str);
-    size_t d_len = kstrlen(delim);
+//     size_t len   = kstrlen(str);
+//     size_t d_len = kstrlen(delim);
 
-    for (size_t i = 0; i < len; i++) {
-        for (size_t d = 0; d < d_len; d++) {
-            if (str[i] != delim[d]) {
-                return (char *)(str + i);
-            }
-        }
-    }
-    return (char *)str;
-}
+//     for (size_t i = 0; i < len; i++) {
+//         for (size_t d = 0; d < d_len; d++) {
+//             if (str[i] != delim[d]) {
+//                 return (char *)(str + i);
+//             }
+//         }
+//     }
+//     return (char *)str;
+// }
 
-// TODO Untested, idk if this actually works
-char * kstrtok(char * str, const char * delim) {
-    if (!str || !delim) {
-        return 0;
-    }
+// // TODO Untested, idk if this actually works
+// char * kstrtok(char * str, const char * delim) {
+//     if (!str || !delim) {
+//         return 0;
+//     }
 
-    if (str) {
-        kstrtok_curr = str;
-    }
+//     if (str) {
+//         kstrtok_curr = str;
+//     }
 
-    if (kstrtok_curr == 0) {
-        return 0;
-    }
+//     if (kstrtok_curr == 0) {
+//         return 0;
+//     }
 
-    kstrtok_curr = find_not_one(kstrtok_curr, delim);
-    size_t len   = kstrlen(kstrtok_curr);
-    if (len == 0) {
-        return 0;
-    }
+//     kstrtok_curr = find_not_one(kstrtok_curr, delim);
+//     size_t len   = kstrlen(kstrtok_curr);
+//     if (len == 0) {
+//         return 0;
+//     }
 
-    str = kstrtok_curr;
+//     str = kstrtok_curr;
 
-    kstrtok_curr = find_one(kstrtok_curr, delim);
-    if (kstrtok_curr == str) {
-        kstrtok_curr += len;
-    }
+//     kstrtok_curr = find_one(kstrtok_curr, delim);
+//     if (kstrtok_curr == str) {
+//         kstrtok_curr += len;
+//     }
 
-    *kstrtok_curr = 0;
-    return str;
-}
+//     *kstrtok_curr = 0;
+//     return str;
+// }
 
 int katoi(const char * str) {
     if (!str) {

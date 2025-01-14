@@ -16,6 +16,9 @@ protected:
 
 TEST_F(String, kmemcmp) {
     EXPECT_EQ(0, kmemcmp(0, 0, 0));
+    EXPECT_EQ(0, kmemcmp("", 0, 0));
+    EXPECT_EQ(0, kmemcmp(0, "", 0));
+    EXPECT_EQ(0, kmemcmp("", "", 0));
 
     char a[2] = {1, 2};
     char b[2] = {0, 0};
@@ -136,7 +139,10 @@ TEST_F(String, kstrlen) {
 }
 
 TEST_F(String, knstrlen) {
-    EXPECT_EQ(0, knstrlen(0, 1));
+    EXPECT_EQ(0, knstrlen(0, -1));
+    EXPECT_EQ(0, knstrlen("", -1));
+    EXPECT_EQ(0, knstrlen(0, 0));
+
     EXPECT_EQ(0, knstrlen("", 1));
     EXPECT_EQ(0, knstrlen("1", 0));
     EXPECT_EQ(1, knstrlen("1", 1));
@@ -151,12 +157,15 @@ TEST_F(String, kstrcmp) {
 
     char a[3] = {'a', 'b', 0};
     char b[3] = {'a', 'c', 0};
+    char c[2] = {'a', 0};
 
     EXPECT_EQ(0, kstrcmp(a, a));
     EXPECT_EQ(0, kstrcmp(b, b));
 
     EXPECT_LT(0, kstrcmp(b, a));
     EXPECT_GT(0, kstrcmp(a, b));
+
+    EXPECT_LT(0, kstrcmp(a, c));
 }
 
 TEST_F(String, kstrfind) {
@@ -172,11 +181,30 @@ TEST_F(String, kstrfind) {
 }
 
 // TODO kstrtok
+// TEST_F(String, kstrtok) {
+//     char a[3] = {'a', 'b', 0};
+
+//     EXPECT_EQ(0, kstrtok(0, 0));
+//     EXPECT_EQ(0, kstrtok(a, 0));
+//     EXPECT_EQ(0, kstrtok(0, ""));
+
+//     EXPECT_EQ(a, kstrtok(a, "a"));
+
+//     char b[3] = {'a', 'b', 0};
+
+//     EXPECT_EQ(b + 1, kstrtok(b, "b"));
+
+//     char c[3] = {'a', 'b', 0};
+
+//     EXPECT_EQ(0, kstrtok(c, "c"));
+// }
 
 TEST_F(String, katoi) {
     EXPECT_EQ(0, katoi(0));
     EXPECT_EQ(0, katoi("0"));
+    EXPECT_EQ(0, katoi("n"));
     EXPECT_EQ(0, katoi(""));
+
     EXPECT_EQ(1, katoi("1"));
     EXPECT_EQ(123, katoi("123"));
     EXPECT_EQ(123, katoi("0123"));
