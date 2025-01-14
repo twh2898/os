@@ -42,27 +42,6 @@ TEST_F(VGA, vga_put) {
     EXPECT_EQ(0x21, buff[7]);
 }
 
-TEST_F(VGA, vga_row) {
-    EXPECT_EQ(0, vga_row(0));
-    EXPECT_EQ(0, vga_row(79));
-    EXPECT_EQ(1, vga_row(80));
-    EXPECT_EQ(1, vga_row(159));
-    EXPECT_EQ(2, vga_row(160));
-    EXPECT_EQ(25, vga_row(80 * 25));
-}
-
-TEST_F(VGA, vga_col) {
-    EXPECT_EQ(0, vga_col(0));
-    EXPECT_EQ(79, vga_col(79));
-    EXPECT_EQ(0, vga_col(80));
-    EXPECT_EQ(79, vga_col(159));
-    EXPECT_EQ(0, vga_col(160));
-}
-
-TEST_F(VGA, vga_index) {
-    EXPECT_EQ(10 * 80 + 17, vga_index(10, 17));
-}
-
 TEST_F(VGA, vga_cursor_row) {
     EXPECT_EQ(0, vga_cursor_row());
 
@@ -78,6 +57,15 @@ TEST_F(VGA, vga_cursor_col) {
 }
 
 TEST_F(VGA, vga_cursor) {
+    // invalid args
+    vga_cursor(-1, 0);
+    vga_cursor(0, -1);
+    vga_cursor(VGA_ROWS + 1, 0);
+    vga_cursor(0, VGA_COLS + 1);
+
+    EXPECT_EQ(0, port_byte_out_fake.call_count);
+
+    // Success
     vga_cursor(10, 17);
 
     EXPECT_EQ(4, port_byte_out_fake.call_count);
@@ -160,7 +148,14 @@ TEST_F(VGA, vga_putc) {
     EXPECT_EQ(0, vga_cursor_col());
     EXPECT_EQ(1, vga_cursor_row());
 
+    vga_cursor(VGA_ROWS, VGA_COLS);
+    ASSERT_EQ(VGA_ROWS - 1, vga_cursor_row());
+    ASSERT_EQ(VGA_COLS - 1, vga_cursor_col());
+
     // TODO test shift lines
+    vga_putc('A');
+    ASSERT_EQ(VGA_ROWS - 1, vga_cursor_row());
+    ASSERT_EQ(0, vga_cursor_col());
 }
 
 TEST_F(VGA, vga_puts) {

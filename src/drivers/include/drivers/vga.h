@@ -52,23 +52,110 @@ enum VGA_BG {
     VGA_BG_WHITE         = 0xF0,
 };
 
+/**
+ * @brief Setup VGA driver with vga memory address.
+ *
+ * The cursor / index will also be reset to 0 and the color will be reset to
+ * white on black.
+ *
+ * @param vga_addr address of VGA memory
+ */
 void init_vga(void * vga_addr);
 
+/**
+ * @brief Clear the VGA buffer and reset the cursor and color.
+ */
 void vga_clear();
+
+/**
+ * @brief Put a single character on the screen with fg / bg colors (attr).
+ *
+ * @param index vga index of character
+ * @param c character to put
+ * @param attr foreground and background colors
+ */
 void vga_put(int index, char c, unsigned char attr);
 
-int  vga_cursor_row();
-int  vga_cursor_col();
+/**
+ * @brief Get the current cursor row.
+ *
+ * @return int cursor row
+ */
+int vga_cursor_row();
+
+/**
+ * @brief Get the current cursor column.
+ *
+ * @return int cursor column
+ */
+int vga_cursor_col();
+
+/**
+ * @brief Move the cursor to the position row / col.
+ *
+ * @param row cursor row
+ * @param col cursor column
+ */
 void vga_cursor(int row, int col);
+
+/**
+ * @brief Hide the cursor.
+ */
 void vga_cursor_hide();
+
+/**
+ * @brief Show the cursor.
+ */
 void vga_cursor_show();
 
-void   vga_color(unsigned char color);
+/**
+ * @brief Set the color.
+ *
+ * @param color foreground and background colors ored (|) together.
+ */
+void vga_color(unsigned char color);
+
+/**
+ * @brief Write a single character to the buffer and increment the cursor.
+ *
+ * @param c character to write
+ * @return size_t number of characters written (0 for failure)
+ */
 size_t vga_putc(char c);
+
+/**
+ * @brief Write a string of characters to the buffer and increment the cursor.
+ *
+ * @param str characters to write
+ * @return size_t number of characters written (0 for failure)
+ */
 size_t vga_puts(const char * str);
 
+/**
+ * @brief Write a signed integer to the buffer and increment the cursor.
+ *
+ * @param num integer to write
+ * @return size_t number of characters written (0 for failure)
+ */
 size_t vga_puti(int num);
+
+/**
+ * @brief Write an unsigned integer to the buffer and increment the cursor
+ *
+ * @param num integer to write
+ * @return size_t number of characters written (0 for failure)
+ */
 size_t vga_putu(unsigned int num);
+
+/**
+ * @brief Write a hexadecimal number to the buffer and increment the cursor.
+ *
+ * Letters are written in upper case. No leading "0x" is included. The user must
+ * write this if desired.
+ *
+ * @param num integer to write
+ * @return size_t number of characters written (0 for failure)
+ */
 size_t vga_putx(unsigned int num);
 
 #endif // VGA_H
