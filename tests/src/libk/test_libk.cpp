@@ -47,6 +47,14 @@ protected:
 //     EXPECT_EQ(send_interrupt_fake.arg1_val, 5);
 // }
 
+TEST_F(LibK, page_alloc) {
+    send_interrupt_fake.return_val = 3;
+    EXPECT_EQ((void *)3, _page_alloc(1));
+    EXPECT_EQ(send_interrupt_fake.call_count, 1);
+    EXPECT_EQ(send_interrupt_fake.arg0_val, 0x203);
+    EXPECT_EQ(send_interrupt_fake.arg1_val, 1);
+}
+
 TEST_F(LibK, exit) {
     _proc_exit(200);
     EXPECT_EQ(send_interrupt_noret_fake.call_count, 1);
@@ -73,6 +81,13 @@ TEST_F(LibK, panic) {
     EXPECT_EQ((void *)send_interrupt_noret_fake.arg1_val, msg);
     EXPECT_EQ((void *)send_interrupt_noret_fake.arg2_val, file);
     EXPECT_EQ(send_interrupt_noret_fake.arg3_val, line);
+}
+
+TEST_F(LibK, register_signals) {
+    _register_signals((void *)1);
+    EXPECT_EQ(send_interrupt_fake.call_count, 1);
+    EXPECT_EQ(send_interrupt_fake.arg0_val, 0x303);
+    EXPECT_EQ(send_interrupt_fake.arg1_val, 1);
 }
 
 TEST_F(LibK, putc) {
