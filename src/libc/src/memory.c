@@ -2,30 +2,21 @@
 
 #include "libc/string.h"
 #include "libk/sys_call.h"
-#include "memory_alloc.h"
 
-static memory_t __memory = {.first = 0, .last = 0};
+static memory_t * __memory;
 
-static void init() {
-    memory_init(&__memory, _page_alloc);
+void init_malloc(memory_t * memory) {
+    __memory = memory;
 }
 
 void * kmalloc(size_t size) {
-    if (!__memory.first) {
-        init();
-    }
-
-    return memory_alloc(&__memory, size);
+    return memory_alloc(__memory, size);
 }
 
 void * krealloc(void * ptr, size_t size) {
-    if (!__memory.first) {
-        init();
-    }
-
-    return memory_realloc(&__memory, ptr, size);
+    return memory_realloc(__memory, ptr, size);
 }
 
 void kfree(void * ptr) {
-    memory_free(&__memory, ptr);
+    memory_free(__memory, ptr);
 }

@@ -14,6 +14,7 @@
 #include "drivers/timer.h"
 #include "drivers/vga.h"
 #include "interrupts.h"
+#include "libc/memory.h"
 #include "libc/process.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
@@ -109,6 +110,7 @@ void kernel_main() {
 
     // Init kernel memory after system calls are registered
     memory_init(&__kernel.kernel_memory, _page_alloc);
+    init_malloc(&__kernel.kernel_memory);
 
     vga_puts("Welcome to kernel v..\n");
 
