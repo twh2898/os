@@ -203,6 +203,7 @@ TEST_F(String, katoi) {
     EXPECT_EQ(0, katoi(0));
     EXPECT_EQ(0, katoi("0"));
     EXPECT_EQ(0, katoi("n"));
+    EXPECT_EQ(0, katoi("/")); // < 0
     EXPECT_EQ(0, katoi(""));
 
     EXPECT_EQ(1, katoi("1"));
