@@ -32,6 +32,7 @@ int register_signal(int sig_no, signal_handler callback) {
         if (sig->sig_no == sig_no) {
             return -1;
         }
+        sig = sig->next;
     }
 
     sig = kmalloc(sizeof(signal_t));

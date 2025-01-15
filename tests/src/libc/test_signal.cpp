@@ -14,17 +14,14 @@ typedef void (*signal_callback_t)(int);
 
 TEST(Signal, register_signal) {
     init_mocks();
-
-    RESET_FAKE(_register_signals);
     RESET_FAKE(callback);
 
-    kmalloc_fake.custom_fake = malloc;
-
+    // Invalid parameters
     EXPECT_NE(0, register_signal(0, 0));
-
     EXPECT_EQ(0, kmalloc_fake.call_count);
     EXPECT_EQ(0, _register_signals_fake.call_count);
 
+    // Success
     EXPECT_EQ(0, register_signal(0, callback));
     EXPECT_EQ(1, kmalloc_fake.call_count);
     EXPECT_EQ(12, kmalloc_fake.arg0_val);
@@ -40,6 +37,13 @@ TEST(Signal, register_signal) {
     RESET_FAKE(kmalloc);
     kmalloc_fake.custom_fake = malloc;
 
+    // Duplicate registered
     EXPECT_NE(0, register_signal(0, callback));
     EXPECT_EQ(0, kmalloc_fake.call_count);
+
+    kmalloc_fake.custom_fake = 0;
+    kmalloc_fake.return_val  = 0;
+
+    // malloc fails
+    EXPECT_NE(0, register_signal(1, callback));
 }
