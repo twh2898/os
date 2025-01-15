@@ -70,9 +70,7 @@ int cb_push(cb_t * cb, const void * item) {
 
     void * elem = elem_ptr(cb, cb->len);
 
-    if (!kmemcpy(elem, item, cb->elem_size)) {
-        return -1;
-    }
+    kmemcpy(elem, item, cb->elem_size);
 
     cb->len++;
 
@@ -84,12 +82,9 @@ int cb_pop(cb_t * cb, void * item) {
         return -1;
     }
 
-    void * elem = elem_ptr(cb, 0);
-
     if (item) {
-        if (!kmemcpy(item, elem, cb->elem_size)) {
-            return -1;
-        }
+        void * elem = elem_ptr(cb, 0);
+        kmemcpy(item, elem, cb->elem_size);
     }
 
     cb->len--;
@@ -98,18 +93,25 @@ int cb_pop(cb_t * cb, void * item) {
     return 0;
 }
 
-static void * elem_ptr(const cb_t * cb, size_t i) {
-    if (!cb) {
-        return 0;
+int cb_rpop(cb_t * cb, void * item) {
+    if (!cb || !cb->len) {
+        return -1;
     }
 
+    if (item) {
+        void * elem = elem_ptr(cb, cb->len - 1);
+        kmemcpy(item, elem, cb->elem_size);
+    }
+
+    cb->len--;
+
+    return 0;
+}
+
+static void * elem_ptr(const cb_t * cb, size_t i) {
     return cb->buff + (wrap_index(cb, i) * cb->elem_size);
 }
 
 static size_t wrap_index(const cb_t * cb, size_t i) {
-    if (!cb) {
-        return 0;
-    }
-
     return (cb->start + i) % cb->size;
 }

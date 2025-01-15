@@ -72,4 +72,16 @@ int cb_push(cb_t * cb, const void * item);
  */
 int cb_pop(cb_t * cb, void * item);
 
+/**
+ * @brief Remove an element from the front of the buffer.
+ *
+ * If `item` is not 0, the value of the last element will be copied to item
+ * before poping.
+ *
+ * @param cb pointer to the buffer
+ * @param item optional output of item value
+ * @return int 0 for success
+ */
+int cb_rpop(cb_t * cb, void * item);
+
 #endif // LIBC_DATASTRUCT_CIRCULAR_BUFFER_H

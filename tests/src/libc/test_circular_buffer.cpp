@@ -139,6 +139,10 @@ TEST_F(CircularBuffer, cb_len) {
 }
 
 TEST_F(CircularBuffer, cb_peek) {
+    // Invalid Parameters
+    EXPECT_EQ(0, cb_peek(0, 0));
+
+    // No content
     EXPECT_EQ(0, cb_peek(cbuff, 0));
     EXPECT_EQ(0, cb_peek(cbuff, 1));
     EXPECT_EQ(0, cb_peek(cbuff, 2));
@@ -191,6 +195,11 @@ TEST_F(CircularBuffer, cb_peek) {
 }
 
 TEST_F(CircularBuffer, cb_push) {
+    // Invalid Parameter
+    EXPECT_NE(0, cb_push(0, 0));
+    EXPECT_NE(0, cb_push(cbuff, 0));
+
+    // Good
     EXPECT_EQ(0, cb_len(cbuff));
     ASSERT_EQ(3, cb_buff_size(cbuff));
 
@@ -265,9 +274,47 @@ TEST_F(CircularBuffer, cb_pop) {
 
     // One too many
     EXPECT_NE(0, cb_pop(cbuff, 0));
+}
 
-    TearDown();
-    SetUp();
+TEST_F(CircularBuffer, cb_rpop) {
+    EXPECT_EQ(0, cb_len(cbuff));
+    ASSERT_EQ(3, cb_buff_size(cbuff));
+
+    char item = 0;
+
+    // Pop with no elements
+    EXPECT_NE(0, cb_rpop(cbuff, 0));
+    EXPECT_NE(0, cb_rpop(cbuff, &item));
+
+    // Fill
+    char c = 'a';
+    ASSERT_EQ(0, cb_push(cbuff, &c));
+    c = 'b';
+    ASSERT_EQ(0, cb_push(cbuff, &c));
+    c = 'c';
+    ASSERT_EQ(0, cb_push(cbuff, &c));
+
+    // Invalid Parameter
+    ASSERT_NE(0, cb_rpop(0, &item));
+
+    // Check filled
+    ASSERT_EQ(3, cb_len(cbuff));
+
+    // Pop each element with item
+    EXPECT_EQ(0, cb_rpop(cbuff, &c));
+    EXPECT_EQ('c', c);
+
+    EXPECT_EQ(0, cb_rpop(cbuff, &c));
+    EXPECT_EQ('b', c);
+
+    EXPECT_EQ(0, cb_rpop(cbuff, &c));
+    EXPECT_EQ('a', c);
+
+    // Too many
+    c = '3';
+    EXPECT_NE(0, cb_rpop(cbuff, &c));
+    // Not changed
+    EXPECT_EQ('3', c);
 
     // Fill
     c = 'a';
@@ -280,11 +327,11 @@ TEST_F(CircularBuffer, cb_pop) {
     // Check filled
     ASSERT_EQ(3, cb_len(cbuff));
 
-    kmemcpy_fake.custom_fake = 0;
-    kmemcpy_fake.return_val  = 0;
+    // Pop each element no item
+    EXPECT_EQ(0, cb_rpop(cbuff, 0));
+    EXPECT_EQ(0, cb_rpop(cbuff, 0));
+    EXPECT_EQ(0, cb_rpop(cbuff, 0));
 
-    // Does not change
-    c = '3';
-    ASSERT_NE(0, cb_pop(cbuff, &c));
-    EXPECT_EQ('3', c);
+    // One too many
+    EXPECT_NE(0, cb_rpop(cbuff, 0));
 }
