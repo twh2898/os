@@ -183,12 +183,6 @@ size_t vga_putx(unsigned int num) {
  */
 
 static void update_cursor() {
-    // Disabled for coverage, assuming index will always be valid because it's
-    // access is managed.
-    // if (index < 0 || index >= MAX_INDEX) {
-    //     return;
-    // }
-
     port_byte_out(REG_SCREEN_CTRL, 14);
     port_byte_out(REG_SCREEN_DATA, (unsigned char)(index >> 8));
     port_byte_out(REG_SCREEN_CTRL, 15);
@@ -196,8 +190,8 @@ static void update_cursor() {
 }
 
 static void shift_lines() {
-    char * screen = (char *)VGA_ADDRESS;
     kmemmove(screen, screen + (VGA_COLS * 2), ((VGA_ROWS - 1) * VGA_COLS * 2));
+
     for (int col = 0; col < VGA_COLS; col++) {
         int index = VGA_INDEX(VGA_ROWS - 1, col);
         vga_put(index, ' ', RESET);

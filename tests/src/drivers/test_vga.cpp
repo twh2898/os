@@ -148,21 +148,23 @@ TEST_F(VGA, vga_putc) {
 
     vga_putc('\b');
     EXPECT_EQ(' ', buff[0]);
-    EXPECT_EQ(0, vga_cursor_col());
-    EXPECT_EQ(0, vga_cursor_row());
+    EXPECT_EQ(0, vga_index());
+
+    vga_putc('\b');
+    EXPECT_EQ(0, vga_index());
 
     vga_putc('\n');
     EXPECT_EQ(0, vga_cursor_col());
     EXPECT_EQ(1, vga_cursor_row());
 
-    vga_cursor(VGA_ROWS, VGA_COLS);
-    ASSERT_EQ(VGA_ROWS - 1, vga_cursor_row());
-    ASSERT_EQ(VGA_COLS - 1, vga_cursor_col());
+    SetUp();
 
-    // TODO test shift lines
-    vga_putc('A');
+    vga_cursor(VGA_ROWS - 1, 0);
     ASSERT_EQ(VGA_ROWS - 1, vga_cursor_row());
-    ASSERT_EQ(0, vga_cursor_col());
+
+    vga_putc('\n');
+    EXPECT_EQ(VGA_ROWS - 1, vga_cursor_row());
+    EXPECT_EQ(0, vga_cursor_col());
 }
 
 TEST_F(VGA, vga_puts) {
