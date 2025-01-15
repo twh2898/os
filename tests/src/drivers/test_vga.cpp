@@ -56,6 +56,13 @@ TEST_F(VGA, vga_cursor_col) {
     EXPECT_EQ(17, vga_cursor_col());
 }
 
+TEST_F(VGA, vga_index) {
+    EXPECT_EQ(0, vga_index());
+
+    vga_cursor(10, 17);
+    EXPECT_EQ(10 * VGA_COLS + 17, vga_index());
+}
+
 TEST_F(VGA, vga_cursor) {
     // invalid args
     vga_cursor(-1, 0);

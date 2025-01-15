@@ -55,6 +55,10 @@ int vga_cursor_col() {
     return VGA_COL(index);
 }
 
+int vga_index() {
+    return index;
+}
+
 void vga_cursor(int row, int col) {
     if (row < 0 || col < 0 || row >= VGA_ROWS || col >= VGA_COLS) {
         return;

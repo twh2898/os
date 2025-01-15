@@ -91,6 +91,15 @@ int vga_cursor_row();
 int vga_cursor_col();
 
 /**
+ * @brief Get the current vga index.
+ *
+ * The index is used to calculate column and row using VGA_COLS.
+ *
+ * @return int vga index
+ */
+int vga_index();
+
+/**
  * @brief Move the cursor to the position row / col.
  *
  * @param row cursor row
