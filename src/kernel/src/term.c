@@ -3,7 +3,7 @@
 #include "debug.h"
 #include "drivers/keyboard.h"
 #include "drivers/vga.h"
-#include "libc/circbuff.h"
+#include "libc/datastruct/circular_buffer.h"
 #include "libc/memory.h"
 #include "libc/process.h"
 #include "libc/stdio.h"
@@ -27,7 +27,7 @@ typedef struct {
 } command_t;
 
 #define MAX_CHARS 4095
-static circbuff_t *    keybuff;
+static cb_t *          keybuff;
 static char            command_buff[MAX_CHARS + 1];
 static volatile size_t command_ready = 0;
 
@@ -37,6 +37,8 @@ static size_t    n_commands             = 0;
 
 int term_last_ret = 0;
 
+static size_t  buff_read(const cb_t * cb, uint8_t * data, size_t count);
+static size_t  buff_remove(cb_t * cb, size_t count);
 static bool    is_ws(char c);
 static void    exec_buff();
 static char ** parse_args(const char * line, size_t * out_len);
@@ -44,29 +46,29 @@ static char ** parse_args(const char * line, size_t * out_len);
 static command_cb_t command_lookup;
 
 static void dump_buff() {
-    for (size_t i = 0; i < circbuff_len(keybuff); i++) {
-        printf("%X ", circbuff_at(keybuff, i));
+    for (size_t i = 0; i < cb_len(keybuff); i++) {
+        printf("%X ", cb_peek(keybuff, i));
     }
 }
 
 static void key_cb(uint8_t code, char c, keyboard_event_t event, keyboard_mod_t mod) {
     if (event != KEY_EVENT_RELEASE && c) {
-        if (circbuff_len(keybuff) >= MAX_CHARS) {
+        if (cb_len(keybuff) >= MAX_CHARS) {
             ERROR("key buffer overflow");
-            printf("(%u out of %u)", circbuff_len(keybuff), MAX_CHARS);
+            printf("(%u out of %u)", cb_len(keybuff), MAX_CHARS);
             PANIC("key buffer overflow");
             return;
         }
 
         if (code == KEY_BACKSPACE) {
-            if (circbuff_len(keybuff) > 0) {
+            if (cb_len(keybuff) > 0) {
                 vga_putc(c);
-                circbuff_rpop(keybuff);
+                cb_rpop(keybuff, 0);
             }
             return;
         }
 
-        if (circbuff_push(keybuff, c) != 1) {
+        if (cb_push(keybuff, &c) != 1) {
             ERROR("key buffer write error");
             return;
         }
@@ -95,7 +97,7 @@ void term_init() {
 
     term_command_add("help", help_cmd);
 
-    keybuff       = circbuff_new(MAX_CHARS);
+    keybuff       = cb_new(MAX_CHARS, 1);
     command_ready = false;
 
     // do last
@@ -113,8 +115,9 @@ void term_update() {
     bool   found_nl = false;
     // puts("Ready\n");
     // dump_buff();
-    for (size_t i = 0; i < circbuff_len(keybuff); i++) {
-        if (circbuff_at(keybuff, i) == '\n') {
+    for (size_t i = 0; i < cb_len(keybuff); i++) {
+        char c = *(char *)cb_peek(keybuff, i);
+        if (c == '\n') {
             cmd_len  = i;
             found_nl = true;
             break;
@@ -130,7 +133,7 @@ void term_update() {
         size_t res;
 
         // +1 to include newline that is set to 0 later
-        res = circbuff_read(keybuff, command_buff, cmd_len);
+        res = buff_read(keybuff, command_buff, cmd_len);
         if (res != cmd_len) {
             ERROR("key buffer failed to read");
             return;
@@ -138,7 +141,7 @@ void term_update() {
         // change newline to 0
         command_buff[cmd_len] = 0;
 
-        res = circbuff_remove(keybuff, cmd_len);
+        res = buff_remove(keybuff, cmd_len);
         if (res != cmd_len) {
             ERROR("key buffer failed to remove");
             return;
@@ -148,7 +151,7 @@ void term_update() {
     }
 
     // pop newline
-    circbuff_pop(keybuff);
+    cb_pop(keybuff, NULL);
 
     vga_color(RESET);
     vga_puts("> ");
@@ -181,6 +184,39 @@ bool term_command_add(const char * command, command_cb_t cb) {
 
 void set_command_lookup(command_cb_t lookup) {
     command_lookup = lookup;
+}
+
+static size_t buff_read(const cb_t * cb, uint8_t * data, size_t count) {
+    if (!cb || !data || !count) {
+        return 0;
+    }
+
+    if (count > cb_len(cb)) {
+        count = cb_len(cb);
+    }
+
+    for (size_t i = 0; i < count; i++) {
+        char * c = cb_peek(cb, i);
+        data[i]  = *c;
+    }
+
+    return count;
+}
+
+static size_t buff_remove(cb_t * cb, size_t count) {
+    if (!cb || !count) {
+        return 0;
+    }
+
+    if (count > cb_len(cb)) {
+        count = cb_len(cb);
+    }
+
+    for (size_t i = 0; i < count; i++) {
+        cb_pop(cb, 0);
+    }
+
+    return count;
 }
 
 static void exec_buff() {
