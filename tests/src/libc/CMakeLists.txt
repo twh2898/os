@@ -1,10 +1,4 @@
 unit_test(
-    TARGET test_libc_circbuff
-    TEST_FILES test_circbuff.cpp
-    TARGET_FILES libc/src/circbuff.c
-)
-
-unit_test(
     TARGET test_libc_circular_buffer
     TEST_FILES test_circular_buffer.cpp
     TARGET_FILES libc/src/circular_buffer.c
