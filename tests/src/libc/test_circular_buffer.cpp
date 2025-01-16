@@ -237,6 +237,9 @@ TEST_F(CircularBuffer, cb_pop) {
     c = 'c';
     ASSERT_EQ(0, cb_push(cbuff, &c));
 
+    // Invalid Parameter
+    ASSERT_NE(0, cb_pop(0, &item));
+
     // Check filled
     ASSERT_EQ(3, cb_len(cbuff));
 
