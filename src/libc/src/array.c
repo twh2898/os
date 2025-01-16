@@ -67,9 +67,7 @@ int arr_get(const arr_t * arr, size_t i, void * item) {
         return -1;
     }
 
-    if (!kmemcpy(item, elem, arr->elem_size)) {
-        return -1;
-    }
+    kmemcpy(item, elem, arr->elem_size);
 
     return 0;
 }
@@ -80,9 +78,7 @@ int arr_set(arr_t * arr, size_t i, const void * item) {
         return -1;
     }
 
-    if (!kmemcpy(elem, item, arr->elem_size)) {
-        return -1;
-    }
+    kmemcpy(elem, item, arr->elem_size);
 
     return 0;
 }
@@ -93,21 +89,19 @@ int arr_insert(arr_t * arr, size_t i, const void * item) {
     }
 
     if (arr->len >= arr->size) {
-        grow_array(arr);
+        if (grow_array(arr)) {
+            return -1;
+        }
     }
 
     void * elem = arr_at_no_limit(arr, i);
 
     if (i < arr->len) {
         void * shift = elem + arr->elem_size;
-        if (!kmemmove(shift, elem, (arr->len - i) * arr->elem_size)) {
-            return -1;
-        }
+        kmemmove(shift, elem, (arr->len - i) * arr->elem_size);
     }
 
-    if (!kmemcpy(elem, item, arr->elem_size)) {
-        return -1;
-    }
+    kmemcpy(elem, item, arr->elem_size);
 
     arr->len++;
 
@@ -121,16 +115,12 @@ int arr_remove(arr_t * arr, size_t i, void * item) {
     }
 
     if (item) {
-        if (!kmemcpy(item, elem, arr->elem_size)) {
-            return -1;
-        }
+        kmemcpy(item, elem, arr->elem_size);
     }
 
     if (i < arr->len - 1) {
         void * shift = elem + arr->elem_size;
-        if (!kmemmove(elem, shift, (arr->len - i) * arr->elem_size)) {
-            return -1;
-        }
+        kmemmove(elem, shift, (arr->len - i) * arr->elem_size);
     }
 
     arr->len--;
@@ -143,10 +133,6 @@ static void * arr_at_no_limit(const arr_t * arr, size_t i) {
 }
 
 static int grow_array(arr_t * arr) {
-    if (!arr) {
-        return -1;
-    }
-
     size_t new_size = arr->size + (arr->size / 2);
     void * new_data = krealloc(arr->data, new_size);
     if (!new_data) {

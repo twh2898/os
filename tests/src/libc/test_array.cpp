@@ -92,6 +92,13 @@ protected:
             arr_free(arr);
         }
     }
+
+    void fill_array() {
+        while (arr_size(arr) < 3) {
+            char c = 'a';
+            ASSERT_EQ(0, arr_insert(arr, arr_size(arr), &c));
+        }
+    }
 };
 
 TEST_F(Array, arr_free) {
@@ -241,9 +248,16 @@ TEST_F(Array, arr_get) {
 }
 
 TEST_F(Array, arr_insert) {
+    char c;
+
+    // Invalid parameters
+    EXPECT_NE(0, arr_insert(0, 0, 0));
+    EXPECT_NE(0, arr_insert(arr, 0, 0));
+    EXPECT_NE(0, arr_insert(0, 0, &c));
+
     EXPECT_EQ(0, arr_size(arr));
 
-    char c = '1';
+    c = '1';
     EXPECT_EQ(0, arr_insert(arr, 0, &c));
     EXPECT_EQ(1, arr_size(arr));
 
@@ -269,6 +283,16 @@ TEST_F(Array, arr_insert) {
     EXPECT_EQ('1', *(char *)arr_at(arr, 1));
     EXPECT_EQ('3', *(char *)arr_at(arr, 2));
     EXPECT_EQ('4', *(char *)arr_at(arr, 3));
+}
+
+TEST_F(Array, array_insert_grow_fails) {
+    fill_array();
+
+    krealloc_fake.custom_fake = 0;
+    krealloc_fake.return_val  = 0;
+
+    char c = '1';
+    EXPECT_NE(0, arr_insert(arr, 0, &c));
 }
 
 TEST_F(Array, arr_remove_start_only) {
@@ -301,6 +325,10 @@ TEST_F(Array, arr_remove_start_only) {
 
     EXPECT_NE(0, arr_remove(arr, 0, &c));
     EXPECT_NE(0, arr_remove(arr, 1, &c));
+
+    arr_insert(arr, 0, &c);
+    EXPECT_EQ(0, arr_remove(arr, 0, 0));
+    EXPECT_EQ(0, arr_size(arr));
 }
 
 TEST_F(Array, arr_remove_end_only) {
