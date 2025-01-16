@@ -30,7 +30,7 @@ void arr_free(arr_t * arr);
  * @param arr pointer to the array
  * @return size_t number of elements
  */
-size_t arr_size(arr_t * arr);
+size_t arr_size(const arr_t * arr);
 
 /**
  * @brief Get a pointer to the array's data.
@@ -40,7 +40,7 @@ size_t arr_size(arr_t * arr);
  * @param arr pointer to the array
  * @return void* pointer to the data
  */
-void * arr_data(arr_t * arr);
+void * arr_data(const arr_t * arr);
 
 /**
  * @brief Get a pointer to the value at index i.
@@ -49,7 +49,7 @@ void * arr_data(arr_t * arr);
  * @param i index of the element
  * @return void* pointer to the element or 0 for fail
  */
-void * arr_at(arr_t * arr, size_t i);
+void * arr_at(const arr_t * arr, size_t i);
 
 /**
  * @brief Set the value of the element at index i.
@@ -69,7 +69,7 @@ int arr_set(arr_t * arr, size_t i, const void * item);
  * @param item pointer to output
  * @return int 0 for success
  */
-int arr_get(arr_t * arr, size_t i, void * item);
+int arr_get(const arr_t * arr, size_t i, void * item);
 
 /**
  * @brief Add an element to the array.

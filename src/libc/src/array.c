@@ -10,7 +10,7 @@ struct _ds_arr {
     size_t elem_size;
 };
 
-static void * arr_at_no_limit(arr_t * arr, size_t i);
+static void * arr_at_no_limit(const arr_t * arr, size_t i);
 static int    grow_array(arr_t * arr);
 
 arr_t * arr_new(size_t size, size_t elem_size) {
@@ -45,15 +45,15 @@ void arr_free(arr_t * arr) {
     kfree(arr);
 }
 
-size_t arr_size(arr_t * arr) {
+size_t arr_size(const arr_t * arr) {
     return arr->len;
 }
 
-void * arr_data(arr_t * arr) {
+void * arr_data(const arr_t * arr) {
     return arr->data;
 }
 
-void * arr_at(arr_t * arr, size_t i) {
+void * arr_at(const arr_t * arr, size_t i) {
     if (!arr || i >= arr->len) {
         return 0;
     }
@@ -61,7 +61,7 @@ void * arr_at(arr_t * arr, size_t i) {
     return arr_at_no_limit(arr, i);
 }
 
-int arr_get(arr_t * arr, size_t i, void * item) {
+int arr_get(const arr_t * arr, size_t i, void * item) {
     const void * elem = arr_at(arr, i);
     if (!elem) {
         return -1;
@@ -138,7 +138,7 @@ int arr_remove(arr_t * arr, size_t i, void * item) {
     return 0;
 }
 
-static void * arr_at_no_limit(arr_t * arr, size_t i) {
+static void * arr_at_no_limit(const arr_t * arr, size_t i) {
     return arr->data + (i * arr->elem_size);
 }
 
