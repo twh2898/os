@@ -47,15 +47,15 @@ void cb_free(cb_t * cb) {
     kfree(cb);
 }
 
-size_t cb_buff_size(cb_t * cb) {
+size_t cb_buff_size(const cb_t * cb) {
     return cb->size;
 }
 
-size_t cb_len(cb_t * cb) {
+size_t cb_len(const cb_t * cb) {
     return cb->len;
 }
 
-void * cb_peek(cb_t * cb, size_t i) {
+void * cb_peek(const cb_t * cb, size_t i) {
     if (!cb || !cb->len || i >= cb->len) {
         return 0;
     }

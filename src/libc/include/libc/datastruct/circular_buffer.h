@@ -30,7 +30,7 @@ void cb_free(cb_t * cb);
  * @param cb pointer to the buffer
  * @return size_t number of elements
  */
-size_t cb_buff_size(cb_t * cb);
+size_t cb_buff_size(const cb_t * cb);
 
 /**
  * @brief Get the number of elements present in the buffer.
@@ -40,7 +40,7 @@ size_t cb_buff_size(cb_t * cb);
  * @param cb pointer to the buffer
  * @return size_t number of elements
  */
-size_t cb_len(cb_t * cb);
+size_t cb_len(const cb_t * cb);
 
 /**
  * @brief Get a pointer to the value at index i.
@@ -49,7 +49,7 @@ size_t cb_len(cb_t * cb);
  * @param i index of the element
  * @return void* pointer to the element or 0 for fail
  */
-void * cb_peek(cb_t * cb, size_t i);
+void * cb_peek(const cb_t * cb, size_t i);
 
 /**
  * @brief Add an element to the end of the buffer.
