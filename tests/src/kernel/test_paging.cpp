@@ -103,6 +103,10 @@ TEST_F(Paging, paging_temp_free) {
     paging_temp_free(0x1000);
     EXPECT_EQ(25, paging_temp_available());
     EXPECT_EQ(0, mmu_table_set_fake.call_count);
+
+    // Already Freed
+    paging_temp_free(0x1000);
+    EXPECT_EQ(25, paging_temp_available());
 }
 
 TEST_F(Paging, paging_temp_available) {
@@ -153,6 +157,14 @@ TEST_F(Paging, paging_add_pages) {
 
     // End past dir
     EXPECT_NE(0, paging_add_pages(1, MMU_DIR_SIZE * MMU_TABLE_SIZE));
+    EXPECT_BALANCED();
+
+    SetUp();
+
+    ram_page_alloc_fake.return_val = 0x2000;
+
+    // success fails
+    EXPECT_NE(0, paging_add_pages(1, 2));
     EXPECT_BALANCED();
 
     SetUp();
@@ -223,6 +235,14 @@ TEST_F(Paging, paging_remove_pages) {
     EXPECT_EQ(0, mmu_table_get_addr_fake.call_count);
     EXPECT_BALANCED();
 
+    mmu_dir_get_flags_fake.return_val = (MMU_DIR_FLAG)0;
+
+    // no tables
+    EXPECT_EQ(0, paging_remove_pages(1, 2));
+    EXPECT_EQ(2, mmu_dir_get_addr_fake.call_count);
+    EXPECT_EQ(0, mmu_table_get_addr_fake.call_count);
+    EXPECT_BALANCED();
+
     SetUp();
 
     mmu_dir_get_addr_fake.return_val    = 0x1000;
@@ -236,6 +256,8 @@ TEST_F(Paging, paging_remove_pages) {
     EXPECT_EQ(2, mmu_table_get_addr_fake.call_count);
     EXPECT_EQ(2, ram_page_free_fake.call_count);
     EXPECT_BALANCED();
+
+    SetUp();
 }
 
 TEST_F(Paging, paging_add_table) {
