@@ -105,6 +105,21 @@ make run
 
 Once running, use the `help` command to see what you can do.
 
+### Testing
+
+```sh
+make test
+make test_cov
+make test_cov DARK_MODE=ON
+```
+
+### Formatting / Linting
+
+```sh
+make lint
+make format
+```
+
 ### Format drive.img
 
 After creating the drive image with `make drive.img` you can format and mount it
