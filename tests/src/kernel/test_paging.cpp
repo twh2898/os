@@ -95,6 +95,11 @@ TEST_F(Paging, paging_temp_free) {
     paging_temp_free(0x2000);
     EXPECT_EQ(24, paging_temp_available());
 
+    // Invalid Parameters
+    paging_temp_free(0);
+    paging_temp_free(1); // misaligned
+    EXPECT_EQ(24, paging_temp_available());
+
     paging_temp_free(0x1000);
     EXPECT_EQ(25, paging_temp_available());
     EXPECT_EQ(0, mmu_table_set_fake.call_count);
