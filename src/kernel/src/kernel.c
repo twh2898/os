@@ -239,8 +239,8 @@ static uint32_t int_proc_cb(uint16_t int_no, registers_t * regs) {
         } break;
 
         case SYS_INT_PROC_REG_SIG: {
-            __kernel.pm.curr_task->sys_call_callback = (signals_master_callback)regs->ebx;
-            printf("Attached master signal callback at %p\n", __kernel.pm.curr_task->sys_call_callback);
+            __kernel.pm.curr_task->signals_callback = (signals_master_callback)regs->ebx;
+            printf("Attached master signal callback at %p\n", __kernel.pm.curr_task->signals_callback);
         } break;
     }
 

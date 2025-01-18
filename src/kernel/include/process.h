@@ -13,11 +13,11 @@ typedef struct _process {
 
     // TODO heap & stack limits
 
-    uint32_t esp;
     uint32_t cr3;
+    uint32_t esp;
     uint32_t esp0;
 
-    signals_master_callback sys_call_callback;
+    signals_master_callback signals_callback;
 
     struct _process * next_proc;
 } process_t;
@@ -25,8 +25,8 @@ typedef struct _process {
 /**
  * @brief Create a new process and it's page directory.ADDR2PAGE
  *
- * This function does not fill ss0, regs, sys_call_callback or next_proc and
- * sets them to 0.
+ * This function does not fill ss0, regs, signals_callback or next_proc and sets
+ * them to 0.
  *
  * @param proc pointer to the process object
  * @return int 0 for success
