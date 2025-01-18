@@ -22,53 +22,59 @@ protected:
     }
 
     void expect_temp_balanced() {
-        EXPECT_EQ(paging_temp_map_fake.call_count, paging_temp_free_fake.call_count);
+        ASSERT_EQ(paging_temp_map_fake.call_count, paging_temp_free_fake.call_count);
     }
 
     /**
      * @brief  Used when a pageing_temp_map fails (where there is nothing to
      * free for the last call).
      */
-    void expect_temp_balanced_with_fail() {
-        EXPECT_EQ(paging_temp_map_fake.call_count, paging_temp_free_fake.call_count + 1);
+    void expect_temp_balance_with_offset(int offset) {
+        ASSERT_EQ(paging_temp_map_fake.call_count, paging_temp_free_fake.call_count + offset);
     }
 };
 
-TEST_F(Process, process_create) {
-    // Invalid Parameters
-    EXPECT_NE(0, process_create(0));
+#define ASSERT_BALANCED()             ASSERT_NO_FATAL_FAILURE(expect_temp_balanced())
+#define ASSERT_BALANCE_OFFSET(OFFSET) ASSERT_NO_FATAL_FAILURE(expect_temp_balance_with_offset(OFFSET))
 
-    // Fail ram_page_alloc
+TEST_F(Process, process_create_InvalidParameters) {
+    EXPECT_NE(0, process_create(0));
+    ASSERT_BALANCED();
+}
+
+TEST_F(Process, process_create_FailPageAlloc) {
     EXPECT_NE(0, process_create(&proc));
     EXPECT_EQ(1, proc.pid);
-    expect_temp_balanced();
+    ASSERT_BALANCED();
+}
 
+TEST_F(Process, process_create_TempMapFails) {
     uint32_t page_ret_seq[2] = {0x400000, 0};
 
     SET_RETURN_SEQ(ram_page_alloc, page_ret_seq, 2);
 
-    // paging_temp_map fails
     EXPECT_NE(0, process_create(&proc));
     EXPECT_EQ(2, proc.pid);
     EXPECT_EQ(1, ram_page_free_fake.call_count);
-    expect_temp_balanced_with_fail();
+    ASSERT_BALANCE_OFFSET(1);
+}
 
-    SetUp();
+TEST_F(Process, process_create_FailSecondPageAlloc) {
+    uint32_t page_ret_seq[2] = {0x400000, 0};
 
     SET_RETURN_SEQ(ram_page_alloc, page_ret_seq, 2);
     paging_temp_map_fake.return_val = &dir;
 
-    // Second ram page alloc fails
     EXPECT_NE(0, process_create(&proc));
     EXPECT_EQ(3, proc.pid);
     EXPECT_EQ(1, paging_temp_free_fake.call_count);
     EXPECT_EQ(1, ram_page_free_fake.call_count);
-    expect_temp_balanced();
+    ASSERT_BALANCED();
 
     // TODO process_grow_stack fails
+}
 
-    SetUp();
-
+TEST_F(Process, process_create) {
     ram_page_alloc_fake.return_val  = 0x400000;
     paging_temp_map_fake.return_val = &dir;
 
@@ -89,120 +95,120 @@ TEST_F(Process, process_create) {
     EXPECT_EQ(&dir, mmu_dir_clear_fake.arg0_val);
 
     EXPECT_EQ(3, mmu_dir_set_fake.call_count);
-    expect_temp_balanced();
+    ASSERT_BALANCED();
 }
 
-TEST_F(Process, process_free) {
-    // Invalid parameters
+TEST_F(Process, process_free_InvalidParameters) {
     EXPECT_NE(0, process_free(0));
+    ASSERT_BALANCED();
+}
 
+TEST_F(Process, process_free_FailTempMap) {
     paging_temp_map_fake.return_val = 0;
 
-    // paging_temp_map fails
     EXPECT_NE(0, process_free(&proc));
-    expect_temp_balanced_with_fail();
+    ASSERT_BALANCE_OFFSET(1);
+}
 
-    SetUp();
-
+TEST_F(Process, process_free_FailSecondTempMap) {
     void * paging_temp_map_seq[2] = {&dir, 0};
     SET_RETURN_SEQ(paging_temp_map, paging_temp_map_seq, 2);
 
     mmu_dir_get_flags_fake.return_val = MMU_DIR_FLAG_PRESENT;
 
-    // second paging_temp_map fails
     EXPECT_NE(0, process_free(&proc));
     EXPECT_EQ(1, mmu_dir_get_flags_fake.call_count);
     EXPECT_EQ(1, mmu_dir_get_addr_fake.call_count);
     EXPECT_EQ(2, paging_temp_map_fake.call_count);
     EXPECT_EQ(1, paging_temp_free_fake.call_count);
-    expect_temp_balanced_with_fail();
-
-    SetUp();
-
-    // TODO Success
-
-    expect_temp_balanced();
+    ASSERT_BALANCE_OFFSET(1);
 }
 
-TEST_F(Process, process_add_pages) {
+TEST_F(Process, process_free) {
+    // TODO Success
+
+    ASSERT_BALANCED();
+}
+
+TEST_F(Process, process_add_pages_InvalidParameters) {
     // Invalid Parameters
     EXPECT_EQ(0, process_add_pages(0, 0));
     EXPECT_EQ(0, process_add_pages(0, 1));
     EXPECT_EQ(0, process_add_pages(&proc, 0));
-    expect_temp_balanced();
+    ASSERT_BALANCED();
+}
 
-    // ram_page_alloc fails
+TEST_F(Process, process_add_pages_FailPageAlloc) {
     EXPECT_EQ(0, process_add_pages(&proc, 1));
     EXPECT_EQ(0, proc.pid);
-    expect_temp_balanced();
+    ASSERT_BALANCED();
+}
 
+TEST_F(Process, process_add_pages_FailTempMap) {
     ram_page_alloc_fake.return_val = 0x400000;
 
-    // paging_temp_map fails
     EXPECT_EQ(0, process_add_pages(&proc, 1));
-    expect_temp_balanced_with_fail();
+    ASSERT_BALANCE_OFFSET(1);
+}
 
-    SetUp();
-
+TEST_F(Process, process_add_pages_FailSecondTempMap) {
     ram_page_alloc_fake.return_val = 0x400000;
     void * paging_temp_map_seq[2]  = {&dir, 0};
     SET_RETURN_SEQ(paging_temp_map, paging_temp_map_seq, 2);
 
-    // second paging_temp_map fails
     EXPECT_EQ(0, process_add_pages(&proc, 1));
     EXPECT_EQ(1, paging_temp_free_fake.call_count);
     EXPECT_EQ(1, ram_page_free_fake.call_count);
-    expect_temp_balanced_with_fail();
-
-    SetUp();
-
-    // TODO Success
-
-    expect_temp_balanced();
+    ASSERT_BALANCE_OFFSET(1);
 }
 
-TEST_F(Process, process_grow_stack) {
-    // Invalid Parameters
+TEST_F(Process, process_add_pages) {
+    // TODO Success
+
+    ASSERT_BALANCED();
+}
+
+TEST_F(Process, process_grow_stack_InvalidParameters) {
     EXPECT_NE(0, process_grow_stack(0));
+    ASSERT_BALANCED();
+}
 
-    // paging_temp_map fails
+TEST_F(Process, process_grow_stack_FailTempMap) {
     EXPECT_NE(0, process_grow_stack(&proc));
-    expect_temp_balanced_with_fail();
+    ASSERT_BALANCE_OFFSET(1);
+}
 
-    SetUp();
-
+TEST_F(Process, process_grow_stack_DirNotPresent_FailPageAlloc) {
     paging_temp_map_fake.return_val = &dir;
 
     // mmu_dir_get_flags is not present and ram_page_alloc fails
     EXPECT_NE(0, process_grow_stack(&proc));
     EXPECT_EQ(1, ram_page_alloc_fake.call_count);
     EXPECT_EQ(1, paging_temp_free_fake.call_count);
-    expect_temp_balanced();
+    ASSERT_BALANCED();
+}
 
-    SetUp();
-
+TEST_F(Process, process_grow_stack_FailSecondTempMap) {
     void * paging_temp_map_seq[2] = {&dir, 0};
     SET_RETURN_SEQ(paging_temp_map, paging_temp_map_seq, 2);
 
     mmu_dir_get_flags_fake.return_val = MMU_DIR_FLAG_PRESENT;
 
-    // second paging_temp_map fails
     EXPECT_NE(0, process_grow_stack(&proc));
     EXPECT_EQ(1, paging_temp_free_fake.call_count);
-    expect_temp_balanced_with_fail();
+    ASSERT_BALANCE_OFFSET(1);
+}
 
-    SetUp();
-
+TEST_F(Process, process_grow_stack_FailSecondPageAlloc) {
     mmu_dir_get_flags_fake.return_val = MMU_DIR_FLAG_PRESENT;
     paging_temp_map_fake.return_val   = &dir;
 
-    // second ram_page_alloc fails
     EXPECT_NE(0, process_grow_stack(&proc));
     EXPECT_EQ(2, paging_temp_free_fake.call_count);
-    expect_temp_balanced();
+    ASSERT_BALANCED();
+}
 
-    SetUp();
-
+TEST_F(Process, process_grow_stack_Success_NeedTabble) {
     ram_page_alloc_fake.return_val  = 0x400000;
     paging_temp_map_fake.return_val = &dir;
 
@@ -224,7 +230,7 @@ TEST_F(Process, process_grow_stack) {
 
     EXPECT_EQ(2, paging_temp_free_fake.call_count);
 
-    expect_temp_balanced();
+    ASSERT_BALANCED();
 
     // call a second time and check mmu_table_set gets new second arg
     EXPECT_EQ(0, process_grow_stack(&proc));
@@ -234,15 +240,14 @@ TEST_F(Process, process_grow_stack) {
     EXPECT_EQ(MMU_TABLE_SIZE - 2, mmu_table_set_fake.arg1_val);
     EXPECT_EQ(0x400000, mmu_table_set_fake.arg2_val);
     EXPECT_EQ(MMU_TABLE_RW, mmu_table_set_fake.arg3_val);
-    expect_temp_balanced();
+    ASSERT_BALANCED();
+}
 
-    SetUp();
-
+TEST_F(Process, process_grow_stack_Success) {
     ram_page_alloc_fake.return_val    = 0x400000;
     paging_temp_map_fake.return_val   = &dir;
     mmu_dir_get_flags_fake.return_val = MMU_DIR_FLAG_PRESENT;
 
-    // Success, doesn't need new table
     EXPECT_EQ(0, process_grow_stack(&proc));
     EXPECT_EQ(1, ram_page_alloc_fake.call_count);
     EXPECT_EQ(0, mmu_dir_set_fake.call_count);
@@ -253,10 +258,10 @@ TEST_F(Process, process_grow_stack) {
     EXPECT_EQ(MMU_TABLE_SIZE - 1, mmu_table_set_fake.arg1_val);
     EXPECT_EQ(0x400000, mmu_table_set_fake.arg2_val);
     EXPECT_EQ(MMU_TABLE_RW, mmu_table_set_fake.arg3_val);
-    expect_temp_balanced();
+    ASSERT_BALANCED();
+}
 
-    SetUp();
-
+TEST_F(Process, process_grow_stack_Success_AddSecondTable) {
     ram_page_alloc_fake.return_val  = 0x400000;
     paging_temp_map_fake.return_val = &dir;
 
@@ -281,5 +286,5 @@ TEST_F(Process, process_grow_stack) {
     EXPECT_EQ(2, paging_temp_free_fake.call_count);
 
     EXPECT_EQ(MMU_DIR_SIZE - 2, mmu_dir_get_flags_fake.arg1_val);
-    expect_temp_balanced();
+    ASSERT_BALANCED();
 }
