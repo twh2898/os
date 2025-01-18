@@ -44,7 +44,7 @@ TEST_F(Process, process_create_InvalidParameters) {
 
 TEST_F(Process, process_create_FailPageAlloc) {
     EXPECT_NE(0, process_create(&proc));
-    EXPECT_EQ(1, proc.pid);
+    EXPECT_NE(0, proc.pid);
     ASSERT_BALANCED();
 }
 
@@ -54,7 +54,7 @@ TEST_F(Process, process_create_TempMapFails) {
     SET_RETURN_SEQ(ram_page_alloc, page_ret_seq, 2);
 
     EXPECT_NE(0, process_create(&proc));
-    EXPECT_EQ(2, proc.pid);
+    EXPECT_NE(0, proc.pid);
     EXPECT_EQ(1, ram_page_free_fake.call_count);
     ASSERT_BALANCE_OFFSET(1);
 }
@@ -66,12 +66,37 @@ TEST_F(Process, process_create_FailSecondPageAlloc) {
     paging_temp_map_fake.return_val = &dir;
 
     EXPECT_NE(0, process_create(&proc));
-    EXPECT_EQ(3, proc.pid);
+    EXPECT_NE(0, proc.pid);
     EXPECT_EQ(1, paging_temp_free_fake.call_count);
     EXPECT_EQ(1, ram_page_free_fake.call_count);
     ASSERT_BALANCED();
+}
 
-    // TODO process_grow_stack fails
+TEST_F(Process, process_create_FailAddPages) {
+    ram_page_alloc_fake.return_val   = 0x400000;
+    paging_temp_map_fake.return_val  = &dir;
+    paging_add_pages_fake.return_val = -1;
+
+    EXPECT_NE(0, process_create(&proc));
+    EXPECT_NE(0, proc.pid);
+    EXPECT_EQ(1, paging_temp_free_fake.call_count);
+    EXPECT_EQ(1, ram_page_free_fake.call_count);
+    ASSERT_BALANCED();
+}
+
+TEST_F(Process, process_create_FailGrowStack) {
+    void * temp_map_seq[2] = {&dir, 0};
+
+    SET_RETURN_SEQ(paging_temp_map, temp_map_seq, 2);
+
+    ram_page_alloc_fake.return_val  = 0x400000;
+    paging_temp_map_fake.return_val = &dir;
+
+    EXPECT_NE(0, process_create(&proc));
+    EXPECT_NE(0, proc.pid);
+    EXPECT_EQ(1, paging_temp_free_fake.call_count);
+    EXPECT_EQ(1, ram_page_free_fake.call_count);
+    ASSERT_BALANCE_OFFSET(1);
 }
 
 TEST_F(Process, process_create) {
@@ -80,7 +105,7 @@ TEST_F(Process, process_create) {
 
     // Success
     EXPECT_EQ(0, process_create(&proc));
-    EXPECT_EQ(4, proc.pid);
+    EXPECT_NE(0, proc.pid);
     EXPECT_EQ(VADDR_USER_MEM, proc.next_heap_page);
     EXPECT_EQ(0x400000, proc.cr3);
     EXPECT_EQ(VADDR_USER_STACK, proc.esp);

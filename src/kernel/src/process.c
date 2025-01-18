@@ -50,7 +50,12 @@ int process_create(process_t * proc) {
     proc->esp  = VADDR_USER_STACK;
     proc->esp0 = VADDR_ISR_STACK;
 
-    // paging_add_pages()  TODO
+    // Allocate pages for ISR stack
+    if (paging_add_pages(proc->cr3, ADDR2PAGE(proc->esp + 1), ADDR2PAGE(proc->esp0))) {
+        paging_temp_free(proc->cr3);
+        ram_page_free(proc->cr3);
+        return -1;
+    }
 
     if (process_grow_stack(proc)) {
         paging_temp_free(proc->cr3);
