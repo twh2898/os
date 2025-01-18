@@ -196,8 +196,6 @@ int memory_free(memory_t * mem, void * ptr) {
  * @param size minimum number of bytes
  */
 static void memory_split_entry(memory_t * mem, memory_entry_t * entry, size_t size) {
-    ALIGN_SIZE(size);
-
     memory_entry_t * new_entry = ENTRY_PTR(entry) + size;
 
     new_entry->magic = MAGIC_FREE;
@@ -263,18 +261,7 @@ static memory_entry_t * memory_find_entry_size(memory_t * mem, size_t size) {
                     break;
                 }
 
-                memory_entry_t * next_entry = entry->next;
-
-                if (next_entry == mem->last) {
-                    mem->last = entry;
-                }
-
-                entry->size += next_entry->size + sizeof(memory_entry_t);
-                entry->next = next_entry->next;
-
-                if (next_entry->next) {
-                    next_entry->next->prev = entry;
-                }
+                memory_merge_with_next(mem, entry);
 
                 if (entry->size >= size) {
                     break;
