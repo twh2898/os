@@ -48,3 +48,16 @@ The TSS entry will need to be updated with the new process' esp0.
 
 TODO : the ESP0 might be better stored in the kernel instead of the process if
 the process page dir does not include a stack for the kernel (eg. isr stack).
+
+## Memory
+
+Each process is designated a unique page directory. The first table is always
+mapped to the kernel (4 MB), but the remaining space is available for user space
+programs.
+
+| start      | end        | pages       | description             |
+| ---------- | ---------- | ----------- | ----------------------- |
+| 0x00000000 | 0x003fffff | 0x400       | _Kernel Pages_          |
+| 0x00400000 | x          | n           | Program and Heap        |
+| x          | 0xffffefff | 0xffbff - n | User Stack (grows down) |
+| 0xfffff000 | 0xffffffff | 0x00010     | ISR Stack (grows down)  |
