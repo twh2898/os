@@ -2,7 +2,7 @@
 
 #include "cpu/idt.h"
 #include "cpu/ports.h"
-#include "libc/process.h"
+#include "libc/proc.h"
 #include "libc/stdio.h"
 
 // static void print_trace(registers_t *);

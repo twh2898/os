@@ -1,4 +1,4 @@
-#include "libc/process.h"
+#include "libc/proc.h"
 
 #include "libk/sys_call.h"
 

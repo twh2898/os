@@ -6,7 +6,7 @@ extern "C" {
 #define _Noreturn
 #include "addr.h"
 #include "cpu/mmu.h"
-#include "proc.h"
+#include "process.h"
 
 mmu_dir_t dir;
 process_t proc;

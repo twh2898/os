@@ -7,5 +7,5 @@ unit_test(
 unit_test(
     TARGET test_process
     TEST_FILES test_process.cpp
-    TARGET_FILES kernel/src/proc.c
+    TARGET_FILES kernel/src/process.c
 )

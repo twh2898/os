@@ -6,7 +6,7 @@
 
 #include "cpu/mmu.h"
 #include "memory_alloc.h"
-#include "proc.h"
+#include "process.h"
 
 typedef struct _kernel {
     uint32_t   ram_table_addr;

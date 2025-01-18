@@ -1,4 +1,4 @@
-#include "libc/process.h"
+#include "libc/proc.h"
 #include "libc/stdio.h"
 
 void foo() {

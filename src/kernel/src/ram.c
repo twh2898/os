@@ -2,7 +2,7 @@
 
 #include "cpu/boot_params.h"
 #include "defs.h"
-#include "libc/process.h"
+#include "libc/proc.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
 

@@ -3,7 +3,7 @@
 #include <stdint.h>
 
 #include "libc/memory.h"
-#include "libc/process.h"
+#include "libc/proc.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
 

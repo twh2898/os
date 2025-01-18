@@ -19,7 +19,7 @@ unit_test(
 unit_test(
     TARGET test_libc_process
     TEST_FILES test_process.cpp
-    TARGET_FILES libc/src/process.c
+    TARGET_FILES libc/src/proc.c
 )
 
 unit_test(

@@ -1,7 +1,7 @@
 #include "drivers/ramdisk.h"
 
 #include "libc/memory.h"
-#include "libc/process.h"
+#include "libc/proc.h"
 #include "libc/string.h"
 
 struct _ramdisk {

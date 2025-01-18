@@ -5,7 +5,7 @@
 #include "test_common.h"
 
 extern "C" {
-#include "libc/process.h"
+#include "libc/proc.h"
 }
 
 class LibC : public ::testing::Test {

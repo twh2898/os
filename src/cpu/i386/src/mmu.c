@@ -1,6 +1,6 @@
 #include "cpu/mmu.h"
 
-#include "libc/process.h"
+#include "libc/proc.h"
 #include "libc/string.h"
 
 void mmu_dir_clear(mmu_dir_t * dir) {
