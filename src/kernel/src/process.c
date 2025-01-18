@@ -14,8 +14,9 @@ int process_create(process_t * proc) {
 
     kmemset(proc, 0, sizeof(process_t));
 
-    proc->pid            = next_pid();
-    proc->next_heap_page = VADDR_USER_MEM;
+    proc->pid              = next_pid();
+    proc->next_heap_page   = VADDR_USER_MEM;
+    proc->stack_page_count = 0;
 
     proc->cr3 = ram_page_alloc();
 
@@ -46,9 +47,10 @@ int process_create(process_t * proc) {
 
     mmu_dir_set(dir, MMU_DIR_SIZE - 1, table_addr, MMU_DIR_RW);
 
-    proc->esp              = VADDR_USER_STACK;
-    proc->esp0             = VADDR_ISR_STACK;
-    proc->stack_page_count = 0;
+    proc->esp  = VADDR_USER_STACK;
+    proc->esp0 = VADDR_ISR_STACK;
+
+    // paging_add_pages()  TODO
 
     if (process_grow_stack(proc)) {
         paging_temp_free(proc->cr3);

@@ -96,14 +96,16 @@ int paging_id_map_page(size_t page) {
     return 0;
 }
 
-int paging_add_pages(size_t start, size_t end) {
+int paging_add_pages(uint32_t cr3, size_t start, size_t end) {
+    if (!cr3) {
+        return -1;
+    }
+
     if (start > end) {
         return 0;
     }
 
-    // Assuming mmu_get_curr_dir will always be valid
-    uint32_t    dir_addr = mmu_get_curr_dir();
-    mmu_dir_t * dir      = paging_temp_map(dir_addr);
+    mmu_dir_t * dir = paging_temp_map(cr3);
 
     if (!dir) {
         return -1;
@@ -113,15 +115,15 @@ int paging_add_pages(size_t start, size_t end) {
     uint32_t table_end   = end / MMU_DIR_SIZE;
 
     if (table_end >= MMU_DIR_SIZE) {
-        paging_temp_free(dir_addr);
+        paging_temp_free(cr3);
         return -1;
     }
 
     // Add page tables if missing
     for (size_t dir_i = table_start; dir_i <= table_end; dir_i++) {
         if (!(mmu_dir_get_flags(dir, dir_i) & MMU_DIR_FLAG_PRESENT)) {
-            if (paging_add_table(dir_i)) {
-                paging_temp_free(dir_addr);
+            if (paging_add_table(cr3, dir_i)) {
+                paging_temp_free(cr3);
                 return -1;
             }
         }
@@ -132,8 +134,8 @@ int paging_add_pages(size_t start, size_t end) {
         uint32_t addr = ram_page_alloc();
 
         if (!addr) {
-            paging_remove_pages(start, page_i - 1);
-            paging_temp_free(dir_addr);
+            paging_remove_pages(cr3, start, page_i - 1);
+            paging_temp_free(cr3);
             return -1;
         }
 
@@ -145,9 +147,9 @@ int paging_add_pages(size_t start, size_t end) {
         mmu_table_t * table      = paging_temp_map(table_addr);
 
         if (!table) {
-            paging_remove_pages(start, page_i - 1);
+            paging_remove_pages(cr3, start, page_i - 1);
             paging_temp_free(table_addr);
-            paging_temp_free(dir_addr);
+            paging_temp_free(cr3);
             ram_page_free(addr);
             return -1;
         }
@@ -156,19 +158,21 @@ int paging_add_pages(size_t start, size_t end) {
         paging_temp_free(table_addr);
     }
 
-    paging_temp_free(dir_addr);
+    paging_temp_free(cr3);
 
     return 0;
 }
 
-int paging_remove_pages(size_t start, size_t end) {
+int paging_remove_pages(uint32_t cr3, size_t start, size_t end) {
+    if (!cr3) {
+        return -1;
+    }
+
     if (start > end) {
         return 0;
     }
 
-    // Assuming mmu_get_curr_dir will always be valid
-    uint32_t    dir_addr = mmu_get_curr_dir();
-    mmu_dir_t * dir      = paging_temp_map(dir_addr);
+    mmu_dir_t * dir = paging_temp_map(cr3);
 
     if (!dir) {
         return -1;
@@ -189,7 +193,7 @@ int paging_remove_pages(size_t start, size_t end) {
         mmu_table_t * table      = paging_temp_map(table_addr);
 
         if (!table) {
-            paging_temp_free(dir_addr);
+            paging_temp_free(cr3);
             return -1;
         }
 
@@ -205,19 +209,17 @@ int paging_remove_pages(size_t start, size_t end) {
         paging_temp_free(table_addr);
     }
 
-    paging_temp_free(dir_addr);
+    paging_temp_free(cr3);
 
     return 0;
 }
 
-int paging_add_table(size_t dir_i) {
-    if (dir_i >= MMU_DIR_SIZE) {
+int paging_add_table(uint32_t cr3, size_t dir_i) {
+    if (!cr3 || dir_i >= MMU_DIR_SIZE) {
         return -1;
     }
 
-    // Assuming mmu_get_curr_dir will always be valid
-    uint32_t    dir_addr = mmu_get_curr_dir();
-    mmu_dir_t * dir      = paging_temp_map(dir_addr);
+    mmu_dir_t * dir = paging_temp_map(cr3);
 
     if (!dir) {
         return -1;
@@ -227,26 +229,24 @@ int paging_add_table(size_t dir_i) {
         uint32_t addr = ram_page_alloc();
 
         if (!addr) {
-            paging_temp_free(dir_addr);
+            paging_temp_free(cr3);
             return -1;
         }
 
         mmu_dir_set(dir, dir_i, addr, MMU_DIR_RW);
     }
 
-    paging_temp_free(dir_addr);
+    paging_temp_free(cr3);
 
     return 0;
 }
 
-int paging_remove_table(size_t dir_i) {
-    if (dir_i >= MMU_DIR_SIZE) {
+int paging_remove_table(uint32_t cr3, size_t dir_i) {
+    if (!cr3 || dir_i >= MMU_DIR_SIZE) {
         return -1;
     }
 
-    // Assuming mmu_get_curr_dir will always be valid
-    uint32_t    dir_addr = mmu_get_curr_dir();
-    mmu_dir_t * dir      = paging_temp_map(dir_addr);
+    mmu_dir_t * dir = paging_temp_map(cr3);
 
     if (!dir) {
         return -1;
@@ -258,7 +258,7 @@ int paging_remove_table(size_t dir_i) {
         ram_page_free(addr);
     }
 
-    paging_temp_free(dir_addr);
+    paging_temp_free(cr3);
 
     return 0;
 }

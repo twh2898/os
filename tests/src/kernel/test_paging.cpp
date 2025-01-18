@@ -8,14 +8,8 @@ extern "C" {
 
 #define EXPECT_BALANCED() EXPECT_EQ(25, paging_temp_available())
 
-void setup_fakes() {
-    init_mocks();
-
-    mmu_get_curr_dir_fake.return_val = 0x1000;
-}
-
 TEST(PagingStatic, paging_init) {
-    setup_fakes();
+    init_mocks();
 
     paging_init();
 
@@ -29,8 +23,12 @@ TEST(PagingStatic, paging_init) {
 
 class Paging : public ::testing::Test {
 protected:
+    uint32_t cr3;
+
     void SetUp() override {
-        setup_fakes();
+        init_mocks();
+
+        cr3 = 0x1000;
 
         paging_init();
     }
@@ -90,7 +88,7 @@ TEST_F(Paging, paging_temp_map) {
 TEST_F(Paging, paging_temp_free) {
     paging_temp_map(0x1000);
 
-    setup_fakes();
+    init_mocks();
 
     paging_temp_free(0x2000);
     EXPECT_EQ(24, paging_temp_available());
@@ -142,13 +140,16 @@ TEST_F(Paging, paging_id_map_page) {
 }
 
 TEST_F(Paging, paging_add_pages) {
-    // Start is after end
-    EXPECT_EQ(0, paging_add_pages(2, 1));
+    // Invalid parameters
+    EXPECT_NE(0, paging_add_pages(0, 1, 2));
 
-    mmu_get_curr_dir_fake.return_val = 0;
+    // Start is after end
+    EXPECT_EQ(0, paging_add_pages(cr3, 2, 1));
+
+    cr3 = 0x1001;
 
     // paging_temp_map fails
-    EXPECT_NE(0, paging_add_pages(1, 2));
+    EXPECT_NE(0, paging_add_pages(cr3, 1, 2));
     EXPECT_BALANCED();
 
     SetUp();
@@ -156,7 +157,7 @@ TEST_F(Paging, paging_add_pages) {
     mmu_dir_get_flags_fake.return_val = MMU_DIR_FLAG_PRESENT;
 
     // End past dir
-    EXPECT_NE(0, paging_add_pages(1, MMU_DIR_SIZE * MMU_TABLE_SIZE));
+    EXPECT_NE(0, paging_add_pages(cr3, 1, MMU_DIR_SIZE * MMU_TABLE_SIZE));
     EXPECT_BALANCED();
 
     SetUp();
@@ -164,13 +165,13 @@ TEST_F(Paging, paging_add_pages) {
     ram_page_alloc_fake.return_val = 0x2000;
 
     // success fails
-    EXPECT_NE(0, paging_add_pages(1, 2));
+    EXPECT_NE(0, paging_add_pages(cr3, 1, 2));
     EXPECT_BALANCED();
 
     SetUp();
 
     // paging_add_table fails
-    EXPECT_NE(0, paging_add_pages(1, 2));
+    EXPECT_NE(0, paging_add_pages(cr3, 1, 2));
     EXPECT_BALANCED();
 
     SetUp();
@@ -178,14 +179,14 @@ TEST_F(Paging, paging_add_pages) {
     mmu_dir_get_flags_fake.return_val = MMU_DIR_FLAG_PRESENT; // skip add tables loop
 
     // ram_page_alloc fails
-    EXPECT_NE(0, paging_add_pages(1, 2));
+    EXPECT_NE(0, paging_add_pages(cr3, 1, 2));
     EXPECT_EQ(1, ram_page_alloc_fake.call_count);
     EXPECT_BALANCED();
 
     ram_page_alloc_fake.return_val = 0x2000;
 
     // pageing_temp_map fails
-    EXPECT_NE(0, paging_add_pages(1, 2));
+    EXPECT_NE(0, paging_add_pages(cr3, 1, 2));
     EXPECT_EQ(2, ram_page_alloc_fake.call_count);
     EXPECT_EQ(1, ram_page_free_fake.call_count);
     EXPECT_BALANCED();
@@ -197,7 +198,7 @@ TEST_F(Paging, paging_add_pages) {
     mmu_dir_get_addr_fake.return_val  = 0x3000;
 
     // success
-    EXPECT_EQ(0, paging_add_pages(1, 2));
+    EXPECT_EQ(0, paging_add_pages(cr3, 1, 2));
     EXPECT_EQ(2, ram_page_alloc_fake.call_count);
     EXPECT_EQ(0, ram_page_free_fake.call_count);
     EXPECT_EQ(4, mmu_table_set_fake.call_count); // Includes calls to paging_temp_map
@@ -205,14 +206,17 @@ TEST_F(Paging, paging_add_pages) {
 }
 
 TEST_F(Paging, paging_remove_pages) {
-    // Start is after end
-    EXPECT_EQ(0, paging_remove_pages(2, 1));
+    // Invalid Parameters
+    EXPECT_NE(0, paging_remove_pages(0, 1, 2));
 
-    mmu_get_curr_dir_fake.return_val = 0;
+    // Start is after end
+    EXPECT_EQ(0, paging_remove_pages(cr3, 2, 1));
+
+    cr3                              = 0x1001;
     mmu_dir_get_addr_fake.return_val = 0x1000;
 
     // paging_temp_map fails
-    EXPECT_NE(0, paging_remove_pages(1, 2));
+    EXPECT_NE(0, paging_remove_pages(cr3, 1, 2));
     EXPECT_BALANCED();
 
     SetUp();
@@ -220,7 +224,7 @@ TEST_F(Paging, paging_remove_pages) {
     mmu_dir_get_flags_fake.return_val = MMU_DIR_FLAG_PRESENT;
 
     // second paging_temp_map fails
-    EXPECT_NE(0, paging_remove_pages(1, 2));
+    EXPECT_NE(0, paging_remove_pages(cr3, 1, 2));
     EXPECT_EQ(1, mmu_dir_get_addr_fake.call_count);
     EXPECT_BALANCED();
 
@@ -230,7 +234,7 @@ TEST_F(Paging, paging_remove_pages) {
     mmu_dir_get_flags_fake.return_val = MMU_DIR_FLAG_PRESENT;
 
     // success nothing to free
-    EXPECT_EQ(0, paging_remove_pages(1, 2));
+    EXPECT_EQ(0, paging_remove_pages(cr3, 1, 2));
     EXPECT_EQ(2, mmu_dir_get_addr_fake.call_count);
     EXPECT_EQ(0, mmu_table_get_addr_fake.call_count);
     EXPECT_BALANCED();
@@ -238,7 +242,7 @@ TEST_F(Paging, paging_remove_pages) {
     mmu_dir_get_flags_fake.return_val = (MMU_DIR_FLAG)0;
 
     // no tables
-    EXPECT_EQ(0, paging_remove_pages(1, 2));
+    EXPECT_EQ(0, paging_remove_pages(cr3, 1, 2));
     EXPECT_EQ(2, mmu_dir_get_addr_fake.call_count);
     EXPECT_EQ(0, mmu_table_get_addr_fake.call_count);
     EXPECT_BALANCED();
@@ -250,7 +254,7 @@ TEST_F(Paging, paging_remove_pages) {
     mmu_table_get_flags_fake.return_val = MMU_TABLE_FLAG_PRESENT;
 
     // success tables are present
-    EXPECT_EQ(0, paging_remove_pages(1, 2));
+    EXPECT_EQ(0, paging_remove_pages(cr3, 1, 2));
     EXPECT_EQ(2, mmu_dir_get_addr_fake.call_count);
     EXPECT_EQ(3, mmu_table_set_fake.call_count); // +1 for paging_temp_map
     EXPECT_EQ(2, mmu_table_get_addr_fake.call_count);
@@ -262,18 +266,19 @@ TEST_F(Paging, paging_remove_pages) {
 
 TEST_F(Paging, paging_add_table) {
     // Invalid parameters
-    EXPECT_NE(0, paging_add_table(MMU_DIR_SIZE));
+    EXPECT_NE(0, paging_add_table(0, 0));
+    EXPECT_NE(0, paging_add_table(cr3, MMU_DIR_SIZE));
 
-    mmu_get_curr_dir_fake.return_val = 0;
+    cr3 = 0x1001;
 
     // paging_temp_map fails
-    EXPECT_NE(0, paging_add_table(MMU_DIR_SIZE - 1));
+    EXPECT_NE(0, paging_add_table(cr3, MMU_DIR_SIZE - 1));
     EXPECT_BALANCED();
 
     SetUp();
 
     // ram_page_alloc fails
-    EXPECT_NE(0, paging_add_table(1));
+    EXPECT_NE(0, paging_add_table(cr3, 1));
     EXPECT_EQ(1, ram_page_alloc_fake.call_count);
     EXPECT_BALANCED();
 
@@ -282,7 +287,7 @@ TEST_F(Paging, paging_add_table) {
     ram_page_alloc_fake.return_val = 0x1000;
 
     // needs table
-    EXPECT_EQ(0, paging_add_table(1));
+    EXPECT_EQ(0, paging_add_table(cr3, 1));
     EXPECT_EQ(1, ram_page_alloc_fake.call_count);
     EXPECT_EQ(1, mmu_dir_set_fake.call_count);
     EXPECT_BALANCED();
@@ -290,32 +295,33 @@ TEST_F(Paging, paging_add_table) {
     mmu_dir_get_flags_fake.return_val = MMU_DIR_FLAG_PRESENT;
 
     // table present
-    EXPECT_EQ(0, paging_add_table(1));
+    EXPECT_EQ(0, paging_add_table(cr3, 1));
     EXPECT_EQ(1, ram_page_alloc_fake.call_count);
     EXPECT_BALANCED();
 }
 
 TEST_F(Paging, paging_remove_table) {
     // Invalid parameters
-    EXPECT_NE(0, paging_remove_table(MMU_DIR_SIZE));
+    EXPECT_NE(0, paging_remove_table(0, 0));
+    EXPECT_NE(0, paging_remove_table(cr3, MMU_DIR_SIZE));
 
-    mmu_get_curr_dir_fake.return_val = 0;
+    cr3 = 0x1001;
 
     // paging_temp_map fails
-    EXPECT_NE(0, paging_remove_table(MMU_DIR_SIZE - 1));
+    EXPECT_NE(0, paging_remove_table(cr3, MMU_DIR_SIZE - 1));
     EXPECT_BALANCED();
 
     SetUp();
 
     // mmu_dir_get_flags not present
-    EXPECT_EQ(0, paging_remove_table(0));
+    EXPECT_EQ(0, paging_remove_table(cr3, 0));
     EXPECT_EQ(0, mmu_dir_get_addr_fake.call_count);
     EXPECT_BALANCED();
 
     mmu_dir_get_flags_fake.return_val = MMU_DIR_FLAG_PRESENT;
 
     // mmu_dir_get_flags is present
-    EXPECT_EQ(0, paging_remove_table(0));
+    EXPECT_EQ(0, paging_remove_table(cr3, 0));
     EXPECT_EQ(1, mmu_dir_get_addr_fake.call_count);
     EXPECT_EQ(1, mmu_dir_set_fake.call_count);
     EXPECT_EQ(1, ram_page_free_fake.call_count);
