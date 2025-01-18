@@ -19,6 +19,8 @@ protected:
 
         memset(&dir, 0, sizeof(dir));
         memset(&proc, 0, sizeof(proc));
+
+        proc.next_heap_page = 2;
     }
 
     void expect_temp_balanced() {
@@ -149,14 +151,31 @@ TEST_F(Process, process_free_FailSecondTempMap) {
     ASSERT_BALANCE_OFFSET(1);
 }
 
-TEST_F(Process, process_free) {
-    // TODO Success
+TEST_F(Process, process_free_NoPages) {
+    paging_temp_map_fake.return_val   = &dir;
+    mmu_dir_get_flags_fake.return_val = MMU_DIR_FLAG_PRESENT;
 
+    EXPECT_EQ(0, process_free(&proc));
+    ASSERT_BALANCED();
+}
+
+TEST_F(Process, process_free_NoTables) {
+    paging_temp_map_fake.return_val = &dir;
+
+    EXPECT_EQ(0, process_free(&proc));
+    ASSERT_BALANCED();
+}
+
+TEST_F(Process, process_free) {
+    paging_temp_map_fake.return_val     = &dir;
+    mmu_dir_get_flags_fake.return_val   = MMU_DIR_FLAG_PRESENT;
+    mmu_table_get_flags_fake.return_val = MMU_TABLE_FLAG_PRESENT;
+
+    EXPECT_EQ(0, process_free(&proc));
     ASSERT_BALANCED();
 }
 
 TEST_F(Process, process_add_pages_InvalidParameters) {
-    // Invalid Parameters
     EXPECT_EQ(0, process_add_pages(0, 0));
     EXPECT_EQ(0, process_add_pages(0, 1));
     EXPECT_EQ(0, process_add_pages(&proc, 0));
@@ -164,6 +183,7 @@ TEST_F(Process, process_add_pages_InvalidParameters) {
 }
 
 TEST_F(Process, process_add_pages_FailPageAlloc) {
+    ASSERT_EQ(0, ram_page_alloc_fake.return_val);
     EXPECT_EQ(0, process_add_pages(&proc, 1));
     EXPECT_EQ(0, proc.pid);
     ASSERT_BALANCED();
@@ -188,8 +208,10 @@ TEST_F(Process, process_add_pages_FailSecondTempMap) {
 }
 
 TEST_F(Process, process_add_pages) {
-    // TODO Success
+    ram_page_alloc_fake.return_val  = 0x400000;
+    paging_temp_map_fake.return_val = &dir;
 
+    EXPECT_NE(nullptr, process_add_pages(&proc, 1));
     ASSERT_BALANCED();
 }
 
