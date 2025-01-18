@@ -3,46 +3,31 @@
 #include "libc/memory.h"
 #include "libc/string.h"
 
-struct _ds_arr {
-    void * data;
-    size_t len;
-    size_t size;
-    size_t elem_size;
-};
-
 static void * arr_at_no_limit(const arr_t * arr, size_t i);
 static int    grow_array(arr_t * arr);
 
-arr_t * arr_new(size_t size, size_t elem_size) {
-    if (!size || !elem_size) {
-        return 0;
-    }
-
-    arr_t * arr = kmalloc(sizeof(arr_t));
-    if (!arr) {
-        return 0;
+int arr_create(arr_t * arr, size_t size, size_t elem_size) {
+    if (!arr || !size || !elem_size) {
+        return -1;
     }
 
     arr->data = kmalloc(size * elem_size);
     if (!arr->data) {
-        kfree(arr);
-        return 0;
+        return -1;
     }
 
     arr->len       = 0;
     arr->size      = size;
     arr->elem_size = elem_size;
 
-    return arr;
+    return 0;
 }
 
 void arr_free(arr_t * arr) {
-    if (!arr) {
-        return;
+    if (arr && arr->data) {
+        kfree(arr->data);
+        arr->data = 0;
     }
-
-    kfree(arr->data);
-    kfree(arr);
 }
 
 size_t arr_size(const arr_t * arr) {

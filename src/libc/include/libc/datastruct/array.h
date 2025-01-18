@@ -3,22 +3,30 @@
 
 #include <stddef.h>
 
-typedef struct _ds_arr arr_t;
+typedef struct _ds_arr {
+    void * data;
+    size_t len;
+    size_t size;
+    size_t elem_size;
+} arr_t;
 
 /**
  * @brief Create a new array with pre-allocated `size` elements of `elem_size`
  * bytes each.
  *
- * The pre-allocated size will grow as elements are added.
+ * `arr` is expected to be existing memory that will be used by the function.
  *
+ * @param arr pointer to the array struct
  * @param size number of elements to pre-allocate
  * @param elem_size size of each element in bytes
- * @return arr_t* pointer to the new array or 0 for fail
+ * @return int 0 for success
  */
-arr_t * arr_new(size_t size, size_t elem_size);
+int arr_create(arr_t * arr, size_t size, size_t elem_size);
 
 /**
- * @brief Free a array.
+ * @brief Free array's buffer.
+ *
+ * This does not free the memory pointed to by `arr`.
  *
  * @param arr pointer to the array
  */
