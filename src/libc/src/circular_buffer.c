@@ -3,31 +3,17 @@
 #include "libc/memory.h"
 #include "libc/string.h"
 
-struct _ds_cb {
-    void * buff;
-    size_t start;
-    size_t len;
-    size_t size;
-    size_t elem_size;
-};
-
 static void * elem_ptr(const cb_t * cb, size_t i);
 static size_t wrap_index(const cb_t * cb, size_t i);
 
-cb_t * cb_new(size_t size, size_t elem_size) {
-    if (!size || !elem_size) {
-        return 0;
-    }
-
-    cb_t * cb = kmalloc(sizeof(cb_t));
-    if (!cb) {
-        return 0;
+int cb_create(cb_t * cb, size_t size, size_t elem_size) {
+    if (!cb || !size || !elem_size) {
+        return -1;
     }
 
     cb->buff = kmalloc(size * elem_size);
     if (!cb->buff) {
-        kfree(cb);
-        return 0;
+        return -1;
     }
 
     cb->start     = 0;
@@ -35,16 +21,14 @@ cb_t * cb_new(size_t size, size_t elem_size) {
     cb->size      = size;
     cb->elem_size = elem_size;
 
-    return cb;
+    return 0;
 }
 
 void cb_free(cb_t * cb) {
-    if (!cb) {
-        return;
+    if (cb && cb->buff) {
+        kfree(cb->buff);
+        cb->buff = 0;
     }
-
-    kfree(cb->buff);
-    kfree(cb);
 }
 
 size_t cb_buff_size(const cb_t * cb) {

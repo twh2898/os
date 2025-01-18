@@ -3,20 +3,29 @@
 
 #include <stddef.h>
 
-typedef struct _ds_cb cb_t;
+typedef struct _ds_cb {
+    void * buff;
+    size_t start;
+    size_t len;
+    size_t size;
+    size_t elem_size;
+} cb_t;
 
 /**
  * @brief Create a new circular buffer with `size` elements of `elem_size` bytes
  * each.
  *
+ * @param cb pointer to the buffer struct
  * @param size number of elements in buffer
  * @param elem_size size of each element in bytes
  * @return cb_t* pointer to the new buffer or 0 for fail
  */
-cb_t * cb_new(size_t size, size_t elem_size);
+int cb_create(cb_t * cb, size_t size, size_t elem_size);
 
 /**
- * @brief Free a circular buffer.
+ * @brief Free a circular buffer'a buffer.
+ *
+ * This does not free the memory pointed to by `cb`.
  *
  * @param cb pointer to the buffer
  */

@@ -97,7 +97,7 @@ void term_init() {
 
     term_command_add("help", help_cmd);
 
-    keybuff       = cb_new(MAX_CHARS, 1);
+    keybuff       = cb_create(MAX_CHARS, 1);
     command_ready = false;
 
     // do last
