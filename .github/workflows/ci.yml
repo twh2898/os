@@ -29,13 +29,12 @@ jobs:
       - name: Build
         run: cmake --build ${BUILD_DIR}
 
-      - name: Test
-        working-directory: build
-        run: ctest -V
+      # - name: Test
+      #   working-directory: build
+      #   run: ctest -V
 
       - name: Test with Coverage
         working-directory: build
-        continue-on-error: true
         run: cmake --build ${BUILD_DIR} --target os_test_coverage
 
   lint:
