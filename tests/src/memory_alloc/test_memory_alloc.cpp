@@ -64,17 +64,18 @@ protected:
 
     void expect_memory_joined() {
         memory_entry_t * entry = mem.first;
-        void *           data  = pages.data();
 
         size_t i = 0;
 
-        while (entry) {
-            EXPECT_EQ(data, (void *)entry) << "Entry " << i;
-            i++;
+        while (entry->next) {
+            memory_entry_t * expect_next = (memory_entry_t *)((uint32_t)entry + entry->size + sizeof(memory_entry_t));
+            EXPECT_EQ(expect_next, entry->next) << "Entry " << i;
 
-            data  = (void *)((uint32_t)data + entry->size + sizeof(memory_entry_t));
+            i++;
             entry = entry->next;
         }
+
+        EXPECT_EQ(mem.last, entry);
     }
 };
 
@@ -103,7 +104,7 @@ TEST_F(MemoryAlloc, memory_init) {
     EXPECT_EQ(nullptr, entry_1->prev);
 }
 
-TEST_F(MemoryAlloc, memory_alloc) {
+TEST_F(MemoryAlloc, memory_alloc_Success) {
     EXPECT_EQ(nullptr, memory_alloc(&mem, 0));
     EXPECT_EQ(nullptr, memory_alloc(0, 1));
 
@@ -115,10 +116,9 @@ TEST_F(MemoryAlloc, memory_alloc) {
     EXPECT_EQ(ENTRY_PTR(entry_2), memory_alloc(&mem, PAGE_SIZE - sizeof(memory_entry_t)));
     EXPECT_EQ(MAGIC_USED, entry_2->magic);
     EXPECT_EQ(PAGE_SIZE - sizeof(memory_entry_t), entry_2->size);
+}
 
-    SetUp();
-
-    // Smaller than free entry
+TEST_F(MemoryAlloc, memory_alloc_SmallerThanFreeEntry) {
     EXPECT_EQ(ENTRY_PTR(entry_1), memory_alloc(&mem, 1));
     EXPECT_EQ(MAGIC_USED, entry_1->magic);
     EXPECT_EQ(4, entry_1->size);
@@ -132,15 +132,14 @@ TEST_F(MemoryAlloc, memory_alloc) {
     EXPECT_EQ(entry_1, entry_1_5->prev);
     EXPECT_EQ(PAGE_SIZE - sizeof(memory_entry_t) * 2 - 4, entry_1_5->size);
     expect_memory_joined();
+}
 
-    SetUp();
-
-    // Larger than free entry (combine)
+TEST_F(MemoryAlloc, memory_alloc_LargerThanFreeEntry_Combine) {
     EXPECT_EQ(ENTRY_PTR(entry_1), memory_alloc(&mem, PAGE_SIZE));
     EXPECT_EQ(MAGIC_USED, entry_1->magic);
     EXPECT_EQ(PAGE_SIZE, entry_1->size);
 
-    entry_1_5 = entry_1->next;
+    memory_entry_t * entry_1_5 = entry_1->next;
     EXPECT_EQ(MAGIC_FREE, entry_1_5->magic);
     EXPECT_EQ(entry_3, entry_1_5->next);
     EXPECT_EQ(entry_1, entry_1_5->prev);
@@ -148,9 +147,9 @@ TEST_F(MemoryAlloc, memory_alloc) {
     EXPECT_EQ(entry_1_5, entry_1->next);
     EXPECT_EQ(PAGE_SIZE - sizeof(memory_entry_t) * 2, entry_1_5->size);
     expect_memory_joined();
+}
 
-    SetUp();
-
+TEST_F(MemoryAlloc, memory_alloc_NeedMore_LastFree) {
     entry_1->magic = MAGIC_USED;
     entry_2->magic = MAGIC_USED;
 
@@ -174,9 +173,9 @@ TEST_F(MemoryAlloc, memory_alloc) {
     EXPECT_EQ(entry_4, entry_3->next);
     EXPECT_EQ(PAGE_SIZE - sizeof(memory_entry_t) * 2, entry_4->size);
     expect_memory_joined();
+}
 
-    SetUp();
-
+TEST_F(MemoryAlloc, memory_alloc_NeedMore_LastUsed) {
     entry_1->magic = MAGIC_USED;
     entry_2->magic = MAGIC_USED;
     entry_3->magic = MAGIC_USED;
@@ -188,7 +187,7 @@ TEST_F(MemoryAlloc, memory_alloc) {
 
     alloc_page_fake.return_val = pages.data() + PAGE_SIZE * 3;
 
-    entry_4 = (memory_entry_t *)(pages.data() + PAGE_SIZE * 3);
+    memory_entry_t * entry_4 = (memory_entry_t *)(pages.data() + PAGE_SIZE * 3);
 
     // Needs more memory (last entry used)
     EXPECT_EQ(ENTRY_PTR(entry_4), memory_alloc(&mem, PAGE_SIZE));
@@ -287,146 +286,7 @@ TEST_F(MemoryAlloc, memory_free) {
 
     EXPECT_EQ(0, memory_free(&mem, ENTRY_PTR(entry_2)));
     EXPECT_EQ(MAGIC_FREE, entry_2->magic);
-}
 
-TEST_F(MemoryAlloc, memory_split_entry) {
-    EXPECT_NE(0, memory_split_entry(0, 0, 0));
-    EXPECT_NE(0, memory_split_entry(&mem, 0, 0));
-    EXPECT_NE(0, memory_split_entry(0, entry_1, 0));
-    EXPECT_NE(0, memory_split_entry(0, 0, 1));
-    EXPECT_NE(0, memory_split_entry(&mem, entry_1, 0));
-    EXPECT_NE(0, memory_split_entry(&mem, 0, 1));
-
-    EXPECT_EQ(0, memory_split_entry(&mem, entry_1, 1));
-    EXPECT_EQ(4, entry_1->size);
-
-    expect_memory_joined();
-
-    memory_entry_t * entry_1_5 = (memory_entry_t *)(pages.data() + sizeof(memory_entry_t) + 4);
-    EXPECT_EQ(MAGIC_FREE, entry_1_5->magic);
-    EXPECT_EQ(PAGE_SIZE - sizeof(memory_entry_t) * 2 - 4, entry_1_5->size);
-    EXPECT_EQ(entry_1_5, entry_1->next);
-    EXPECT_EQ(entry_1, entry_1_5->prev);
-    EXPECT_EQ(entry_1_5, entry_2->prev);
-    EXPECT_EQ(entry_2, entry_1_5->next);
-
-    SetUp();
-
-    memory_entry_t * entry_4 = (memory_entry_t *)(pages.data() + PAGE_SIZE * 2 + sizeof(memory_entry_t) + 4);
-
-    EXPECT_EQ(0, memory_split_entry(&mem, entry_3, 4));
-    EXPECT_EQ(4, entry_3->size);
-    EXPECT_EQ(PAGE_SIZE - sizeof(memory_entry_t) * 2 - 4, entry_4->size);
-    EXPECT_EQ(entry_4, entry_3->next);
-    EXPECT_EQ(entry_4, mem.last);
-    EXPECT_EQ(nullptr, entry_4->next);
-    EXPECT_EQ(entry_3, entry_4->prev);
-}
-
-TEST_F(MemoryAlloc, memory_merge_with_next) {
-    EXPECT_NE(0, memory_merge_with_next(0, 0));
-    EXPECT_NE(0, memory_merge_with_next(&mem, 0));
-    EXPECT_NE(0, memory_merge_with_next(0, entry_2));
-    EXPECT_NE(0, memory_merge_with_next(&mem, entry_3));
-
-    EXPECT_EQ(0, memory_merge_with_next(&mem, entry_1));
-    EXPECT_EQ(PAGE_SIZE * 2 - sizeof(memory_entry_t), entry_1->size);
-    EXPECT_EQ(entry_3, entry_1->next);
-    EXPECT_EQ(entry_1, entry_3->prev);
-
-    entry_3->magic = MAGIC_USED;
-
-    // Next is used
-    EXPECT_NE(0, memory_merge_with_next(&mem, entry_1));
-
-    SetUp();
-
-    EXPECT_EQ(0, memory_merge_with_next(&mem, entry_2));
-    EXPECT_EQ(PAGE_SIZE * 2 - sizeof(memory_entry_t), entry_2->size);
-    EXPECT_EQ(nullptr, entry_2->next);
-    EXPECT_EQ(entry_2, mem.last);
-}
-
-TEST_F(MemoryAlloc, memory_find_entry_size) {
-    EXPECT_EQ(nullptr, memory_find_entry_size(0, 0));
-    EXPECT_EQ(nullptr, memory_find_entry_size(&mem, 0));
-    EXPECT_EQ(nullptr, memory_find_entry_size(0, 1));
-
-    EXPECT_EQ(entry_1, memory_find_entry_size(&mem, 1));
-    EXPECT_EQ(entry_1, memory_find_entry_size(&mem, 2));
-    EXPECT_EQ(entry_1, memory_find_entry_size(&mem, 4));
-    EXPECT_EQ(entry_1, memory_find_entry_size(&mem, 8));
-
-    entry_2->magic = MAGIC_USED;
-
-    // Can't merge entries
-    EXPECT_EQ(nullptr, memory_find_entry_size(&mem, PAGE_SIZE));
-
-    SetUp();
-
-    // Can merge entries
-    EXPECT_EQ(entry_1, memory_find_entry_size(&mem, PAGE_SIZE));
-    EXPECT_EQ(MAGIC_FREE, entry_1->magic);
-    EXPECT_EQ(PAGE_SIZE * 2 - sizeof(memory_entry_t), entry_1->size);
-    EXPECT_EQ(entry_3, entry_1->next);
-    EXPECT_EQ(entry_1, entry_3->prev);
-
-    SetUp();
-
-    entry_1->magic = MAGIC_USED;
-
-    // Can merge entries (update last)
-    EXPECT_EQ(entry_2, memory_find_entry_size(&mem, PAGE_SIZE));
-    EXPECT_EQ(MAGIC_FREE, entry_2->magic);
-    EXPECT_EQ(PAGE_SIZE * 2 - sizeof(memory_entry_t), entry_2->size);
-    EXPECT_EQ(entry_2, entry_1->next);
-    EXPECT_EQ(entry_1, entry_2->prev);
-    EXPECT_EQ(nullptr, entry_2->next);
-    EXPECT_EQ(entry_2, mem.last);
-}
-
-TEST_F(MemoryAlloc, memory_find_entry_ptr) {
-    EXPECT_EQ(nullptr, memory_find_entry_ptr(0, 0));
-    EXPECT_EQ(nullptr, memory_find_entry_ptr(&mem, 0));
-    EXPECT_EQ(nullptr, memory_find_entry_ptr(0, (void *)1));
-
-    EXPECT_EQ(entry_1, memory_find_entry_ptr(&mem, ENTRY_PTR(entry_1)));
-    EXPECT_EQ(entry_2, memory_find_entry_ptr(&mem, ENTRY_PTR(entry_2)));
-    EXPECT_EQ(entry_3, memory_find_entry_ptr(&mem, ENTRY_PTR(entry_3)));
-}
-
-TEST_F(MemoryAlloc, memory_add_entry) {
-    EXPECT_EQ(nullptr, memory_add_entry(0, 0));
-    EXPECT_EQ(nullptr, memory_add_entry(&mem, 0));
-    EXPECT_EQ(nullptr, memory_add_entry(0, 1));
-
-    alloc_page_fake.return_val = pages.data() + PAGE_SIZE * 3;
-
-    memory_entry_t * entry_4 = (memory_entry_t *)(pages.data() + PAGE_SIZE * 3);
-
-    // Add 1 page
-    EXPECT_EQ(entry_4, memory_add_entry(&mem, 1));
-    EXPECT_EQ(MAGIC_FREE, entry_4->magic);
-    EXPECT_EQ(PAGE_SIZE - sizeof(memory_entry_t), entry_4->size);
-    EXPECT_EQ(entry_3, entry_4->prev);
-    EXPECT_EQ(0, entry_4->next);
-    EXPECT_EQ(entry_4, mem.last);
-
-    EXPECT_EQ(1, alloc_page_fake.call_count);
-    EXPECT_EQ(1, alloc_page_fake.arg0_val);
-
-    SetUp();
-
-    alloc_page_fake.return_val = (pages.data() + PAGE_SIZE * 3);
-
-    // Add 2 pages
-    EXPECT_EQ(entry_4, memory_add_entry(&mem, PAGE_SIZE));
-    EXPECT_EQ(MAGIC_FREE, entry_4->magic);
-    EXPECT_EQ(PAGE_SIZE * 2 - sizeof(memory_entry_t), entry_4->size);
-    EXPECT_EQ(entry_3, entry_4->prev);
-    EXPECT_EQ(0, entry_4->next);
-    EXPECT_EQ(entry_4, mem.last);
-
-    EXPECT_EQ(1, alloc_page_fake.call_count);
-    EXPECT_EQ(2, alloc_page_fake.arg0_val);
+    // Does not exist
+    EXPECT_NE(0, memory_free(&mem, (void *)0x1000));
 }

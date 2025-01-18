@@ -14,6 +14,12 @@
         (SIZE) = (((SIZE) >> 2) + 1) << 2; \
     }
 
+static void             memory_split_entry(memory_t * mem, memory_entry_t * entry, size_t size);
+static void             memory_merge_with_next(memory_t * mem, memory_entry_t * entry);
+static memory_entry_t * memory_find_entry_size(memory_t * mem, size_t size);
+static memory_entry_t * memory_find_entry_ptr(memory_t * mem, void * ptr);
+static memory_entry_t * memory_add_entry(memory_t * mem, size_t size);
+
 int memory_init(memory_t * mem, memory_alloc_pages_t alloc_pages_fn) {
     if (!mem || !alloc_pages_fn) {
         return -1;
@@ -49,6 +55,7 @@ void * memory_alloc(memory_t * mem, size_t size) {
     if (!entry) {
         size_t request_size = size;
 
+        // Last entry will be merged with new entry
         if (mem->last->magic == MAGIC_FREE) {
             request_size -= mem->last->size - sizeof(memory_entry_t);
         }
@@ -59,23 +66,15 @@ void * memory_alloc(memory_t * mem, size_t size) {
             return 0;
         }
 
+        // Last entry is being included, so merge it
         if (request_size != size) {
-            if (entry->prev->magic != MAGIC_FREE) {
-                return 0;
-            }
-
             entry = entry->prev;
-
-            if (memory_merge_with_next(mem, entry)) {
-                return 0;
-            }
+            memory_merge_with_next(mem, entry);
         }
     }
 
     if (SHOULD_SPLIT(entry, size)) {
-        if (memory_split_entry(mem, entry, size)) {
-            return 0;
-        }
+        memory_split_entry(mem, entry, size);
     }
 
     entry->magic = MAGIC_USED;
@@ -187,17 +186,17 @@ int memory_free(memory_t * mem, void * ptr) {
     return 0;
 }
 
-int memory_split_entry(memory_t * mem, memory_entry_t * entry, size_t size) {
-    if (!mem || !entry || !size) {
-        return -1;
-    }
-
+/**
+ * @brief Split a memory entry such that the first entry is at least `size`.
+ *
+ * If the entry cannot be split, this function will fail.
+ *
+ * @param mem pointer to the memory allocator
+ * @param entry pointer to the memory entry
+ * @param size minimum number of bytes
+ */
+static void memory_split_entry(memory_t * mem, memory_entry_t * entry, size_t size) {
     ALIGN_SIZE(size);
-
-    // There must be enough space for size + another entry of min size 4 bytes
-    if (entry->size < size + sizeof(memory_entry_t) + 4) {
-        return -1;
-    }
 
     memory_entry_t * new_entry = ENTRY_PTR(entry) + size;
 
@@ -216,15 +215,18 @@ int memory_split_entry(memory_t * mem, memory_entry_t * entry, size_t size) {
 
     entry->next = new_entry;
     entry->size = size;
-
-    return 0;
 }
 
-int memory_merge_with_next(memory_t * mem, memory_entry_t * entry) {
-    if (!mem || !entry || !entry->next || entry->next->magic != MAGIC_FREE) {
-        return -1;
-    }
-
+/**
+ * @brief Merge `entry` and the next.
+ *
+ * If the next entry is not free or there is no next entry, this function will
+ * fail.
+ *
+ * @param mem pointer to the memory allocator
+ * @param entry pointer to the memory entry
+ */
+static void memory_merge_with_next(memory_t * mem, memory_entry_t * entry) {
     memory_entry_t * next_entry = entry->next;
 
     if (next_entry == mem->last) {
@@ -237,15 +239,19 @@ int memory_merge_with_next(memory_t * mem, memory_entry_t * entry) {
     if (next_entry->next) {
         next_entry->next->prev = entry;
     }
-
-    return 0;
 }
 
-memory_entry_t * memory_find_entry_size(memory_t * mem, size_t size) {
-    if (!mem || !size) {
-        return 0;
-    }
-
+/**
+ * @brief Find a memory entry that is free and is at least `size` bytes.
+ *
+ * This function will join any adjacent free entries while searching. If the
+ * memory entry is larger than size, it will not be split.
+ *
+ * @param mem pointer to the memory allocator
+ * @param size minimum number of bytes
+ * @return memory_entry_t* pointer to the memory entry
+ */
+static memory_entry_t * memory_find_entry_size(memory_t * mem, size_t size) {
     memory_entry_t * entry = mem->first;
 
     while (entry) {
@@ -257,8 +263,17 @@ memory_entry_t * memory_find_entry_size(memory_t * mem, size_t size) {
                     break;
                 }
 
-                if (memory_merge_with_next(mem, entry)) {
-                    return 0;
+                memory_entry_t * next_entry = entry->next;
+
+                if (next_entry == mem->last) {
+                    mem->last = entry;
+                }
+
+                entry->size += next_entry->size + sizeof(memory_entry_t);
+                entry->next = next_entry->next;
+
+                if (next_entry->next) {
+                    next_entry->next->prev = entry;
                 }
 
                 if (entry->size >= size) {
@@ -279,11 +294,16 @@ memory_entry_t * memory_find_entry_size(memory_t * mem, size_t size) {
     return 0;
 }
 
-memory_entry_t * memory_find_entry_ptr(memory_t * mem, void * ptr) {
-    if (!mem || !ptr) {
-        return 0;
-    }
-
+/**
+ * @brief Find a memory entry from it's allocated pointer.
+ *
+ * `ptr` is the value returned by `memory_alloc`.
+ *
+ * @param mem pointer to the memory allocator
+ * @param ptr pointer to the allocated memory
+ * @return memory_entry_t* pointer to the memory entry
+ */
+static memory_entry_t * memory_find_entry_ptr(memory_t * mem, void * ptr) {
     memory_entry_t * entry = mem->first;
 
     while (entry) {
@@ -297,11 +317,14 @@ memory_entry_t * memory_find_entry_ptr(memory_t * mem, void * ptr) {
     return 0;
 }
 
-memory_entry_t * memory_add_entry(memory_t * mem, size_t size) {
-    if (!mem || !size) {
-        return 0;
-    }
-
+/**
+ * @brief Allocate new pages to create a new memory entry.
+ *
+ * @param mem pointer to the memory allocator
+ * @param size minimum number of bytes
+ * @return memory_entry_t* pointer to the new entry
+ */
+static memory_entry_t * memory_add_entry(memory_t * mem, size_t size) {
     size += sizeof(memory_entry_t);
 
     size_t pages = size >> 12;
