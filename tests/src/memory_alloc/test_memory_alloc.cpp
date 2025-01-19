@@ -127,6 +127,37 @@ TEST_F(MemoryAlloc, memory_alloc_FirstUsed) {
     ASSERT_MEMORY_JOINED();
 }
 
+TEST_F(MemoryAlloc, memory_alloc_AfterInit_OneEntryFree) {
+    entry_1->next              = 0;
+    mem.last                   = entry_1;
+    alloc_page_fake.return_val = entry_2;
+
+    memset(entry_2, 0, sizeof(memory_entry_t));
+    memset(entry_3, 0, sizeof(memory_entry_t));
+
+    void * ptr = memory_alloc(&mem, 1);
+    EXPECT_EQ(ENTRY_PTR(entry_1), ptr);
+    EXPECT_EQ(MAGIC_USED, entry_1->magic);
+    EXPECT_EQ(4, entry_1->size);
+    ASSERT_MEMORY_JOINED();
+}
+
+TEST_F(MemoryAlloc, memory_alloc_AfterInit_OneEntryUsed) {
+    entry_1->magic             = MAGIC_USED;
+    entry_1->next              = 0;
+    mem.last                   = entry_1;
+    alloc_page_fake.return_val = entry_2;
+
+    memset(entry_2, 0, sizeof(memory_entry_t));
+    memset(entry_3, 0, sizeof(memory_entry_t));
+
+    void * ptr = memory_alloc(&mem, 1);
+    EXPECT_EQ(ENTRY_PTR(entry_2), ptr);
+    EXPECT_EQ(MAGIC_USED, entry_2->magic);
+    EXPECT_EQ(4, entry_2->size);
+    ASSERT_MEMORY_JOINED();
+}
+
 TEST_F(MemoryAlloc, memory_alloc_FirstFoundTooSmall) {
     void * ptr = memory_alloc(&mem, PAGE_SIZE);
     EXPECT_EQ(ENTRY_PTR(entry_1), ptr);
