@@ -22,22 +22,10 @@ protected:
 
         proc.next_heap_page = 2;
     }
-
-    void expect_temp_balanced() {
-        ASSERT_EQ(paging_temp_map_fake.call_count, paging_temp_free_fake.call_count);
-    }
-
-    /**
-     * @brief  Used when a pageing_temp_map fails (where there is nothing to
-     * free for the last call).
-     */
-    void expect_temp_balance_with_offset(int offset) {
-        ASSERT_EQ(paging_temp_map_fake.call_count, paging_temp_free_fake.call_count + offset);
-    }
 };
 
-#define ASSERT_BALANCED()             ASSERT_NO_FATAL_FAILURE(expect_temp_balanced())
-#define ASSERT_BALANCE_OFFSET(OFFSET) ASSERT_NO_FATAL_FAILURE(expect_temp_balance_with_offset(OFFSET))
+#define ASSERT_BALANCED()             ASSERT_TEMP_MAP_BALANCED()
+#define ASSERT_BALANCE_OFFSET(OFFSET) ASSERT_TEMP_MAP_BALANCE_OFFSET(OFFSET)
 
 TEST_F(Process, process_create_InvalidParameters) {
     EXPECT_NE(0, process_create(0));
