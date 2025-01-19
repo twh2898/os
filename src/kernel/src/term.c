@@ -68,7 +68,7 @@ static void key_cb(uint8_t code, char c, keyboard_event_t event, keyboard_mod_t 
             return;
         }
 
-        if (cb_push(&keybuff, &c) != 1) {
+        if (cb_push(&keybuff, &c)) {
             ERROR("key buffer write error");
             return;
         }
