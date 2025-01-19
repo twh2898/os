@@ -3,6 +3,12 @@
 #ifdef __cplusplus
 #include <gtest/gtest.h>
 
+#define ASSERT_RAM_ALLOC_BALANCED()             ASSERT_EQ(ram_page_alloc_fake.call_count, ram_page_free_fake.call_count)
+#define ASSERT_RAM_ALLOC_BALANCE_OFFSET(OFFSET) ASSERT_EQ(ram_page_alloc_fake.call_count, ram_page_free_fake.call_count + (OFFSET))
+
+#define ASSERT_TEMP_MAP_BALANCED()             ASSERT_EQ(paging_temp_map_fake.call_count, paging_temp_free_fake.call_count)
+#define ASSERT_TEMP_MAP_BALANCE_OFFSET(OFFSET) ASSERT_EQ(paging_temp_map_fake.call_count, paging_temp_free_fake.call_count + (OFFSET))
+
 extern "C" {
 #endif
 
