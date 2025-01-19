@@ -74,8 +74,8 @@ int process_free(process_t * proc) {
         return -1;
     }
 
-    // Free ram pages, skip first table (kernel) and last table (tables)
-    for (size_t i = 1; i < MMU_DIR_SIZE - 1; i++) {
+    // Free tables, skip first (kernel)
+    for (size_t i = 1; i < MMU_DIR_SIZE; i++) {
         if (!(mmu_dir_get_flags(dir, i) & MMU_DIR_FLAG_PRESENT)) {
             continue;
         }
@@ -85,9 +85,11 @@ int process_free(process_t * proc) {
 
         if (!table) {
             paging_temp_free(proc->cr3);
+            ram_page_free(proc->cr3);
             return -1;
         }
 
+        // Free pages
         for (size_t j = 0; j < MMU_TABLE_SIZE; j++) {
             if (mmu_table_get_flags(table, j) & MMU_TABLE_FLAG_PRESENT) {
                 uint32_t page_addr = mmu_table_get_addr(table, j);
@@ -99,6 +101,7 @@ int process_free(process_t * proc) {
         ram_page_free(table_addr);
     }
 
+    // Free dir
     paging_temp_free(proc->cr3);
     ram_page_free(proc->cr3);
 
@@ -110,41 +113,25 @@ void * process_add_pages(process_t * proc, size_t count) {
         return 0;
     }
 
-    void * ptr = UINT2PTR(PAGE2ADDR(proc->next_heap_page));
-
-    for (size_t i = 0; i < count; i++) {
-        uint32_t addr = ram_page_alloc();
-
-        if (!addr) {
-            return 0;
-        }
-
-        uint32_t page_i  = proc->next_heap_page;
-        uint32_t dir_i   = page_i / MMU_DIR_SIZE;
-        uint32_t table_i = page_i % MMU_TABLE_SIZE;
-
-        mmu_dir_t * dir = paging_temp_map(proc->cr3);
-
-        if (!dir) {
-            ram_page_free(addr);
-            return 0;
-        }
-
-        mmu_table_t * table = paging_temp_map(mmu_dir_get_addr(dir, dir_i));
-
-        if (!table) {
-            paging_temp_free(PTR2UINT(table));
-            ram_page_free(addr);
-            return 0;
-        }
-
-        mmu_table_set(table, table_i, addr, MMU_TABLE_RW);
-
-        proc->next_heap_page++;
-
-        paging_temp_free(PTR2UINT(table));
-        paging_temp_free(PTR2UINT(dir));
+    if (proc->next_heap_page + count >= MMU_DIR_SIZE * MMU_TABLE_SIZE) {
+        return 0;
     }
+
+    mmu_dir_t * dir = paging_temp_map(proc->cr3);
+
+    if (!dir) {
+        return 0;
+    }
+
+    if (paging_add_pages(dir, proc->next_heap_page, proc->next_heap_page + count)) {
+        paging_temp_free(proc->cr3);
+        return 0;
+    }
+
+    paging_temp_free(proc->cr3);
+
+    void * ptr = UINT2PTR(PAGE2ADDR(proc->next_heap_page));
+    proc->next_heap_page += count;
 
     return ptr;
 }
@@ -162,42 +149,13 @@ int process_grow_stack(process_t * proc) {
 
     size_t new_stack_page_i = MMU_DIR_SIZE * MMU_TABLE_SIZE - proc->stack_page_count - 1;
 
-    size_t dir_i   = new_stack_page_i / MMU_DIR_SIZE;
-    size_t table_i = new_stack_page_i % MMU_TABLE_SIZE;
-
-    // Need new table
-    if (!(mmu_dir_get_flags(dir, dir_i) & MMU_DIR_FLAG_PRESENT)) {
-        uint32_t addr = ram_page_alloc();
-
-        if (!addr) {
-            paging_temp_free(proc->cr3);
-            return -1;
-        }
-
-        mmu_dir_set(dir, dir_i, addr, MMU_DIR_RW);
-    }
-
-    uint32_t      table_addr = mmu_dir_get_addr(dir, dir_i);
-    mmu_table_t * table      = paging_temp_map(table_addr);
-
-    if (!table) {
+    if (paging_add_pages(dir, new_stack_page_i, new_stack_page_i)) {
         paging_temp_free(proc->cr3);
         return -1;
     }
 
-    uint32_t addr = ram_page_alloc();
+    proc->stack_page_count--;
 
-    if (!addr) {
-        paging_temp_free(table_addr);
-        paging_temp_free(proc->cr3);
-        return -1;
-    }
-
-    mmu_table_set(table, table_i, addr, MMU_TABLE_RW);
-
-    proc->stack_page_count++;
-
-    paging_temp_free(table_addr);
     paging_temp_free(proc->cr3);
 
     return 0;
