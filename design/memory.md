@@ -95,20 +95,20 @@ directory.
   - Each of the 1024 tables from the page directory are stored here sequentially
   - The first table includes the null page and kernel memory mapping (see bellow)
 
-| start      | end        | pages       | physical addr | description                                               |
-| ---------- | ---------- | ----------- | ------------- | --------------------------------------------------------- |
-| 0x00000000 | 0x00000fff | 0x00001     | 0x00000000    | null page (not present)                                   |
-| 0x00001000 | 0x00001fff | 0x00001     | 0x00001000    | Page Directory                                            |
-| 0x00002000 | 0x00002fff | 0x00001     | 0x00002000    | ram region table                                          |
-| 0x00003000 | 0x00006fff | 0x00004     | 0x00003000    | Stack                                                     |
-| 0x00007000 | 0x0009efff | 0x00098     | 0x00007000    | Kernel (from 0x7e00 to 0x9efff)                           |
-| 0x0009f000 | 0x000b7fff | 0x00019     |               | _temp pages for mapping_                                  |
-| 0x000b8000 | 0x000b8fff | 0x00001     | 0x000b8000    | VGA Memory                                                |
-| 0x000b9000 | 0x002b9fff | 0x00200     |               | ram region bitmasks                                       |
-| 0x002ba000 | 0x002bafff | 0x00001     |               | First page table (kernel's page) of any page directory    |
-| 0x002bb000 | x          | n           |               | _free memory for kmalloc (remainder of first page table)_ |
-| x          | 0x003fffff | 0x00145 - n |               | _kernel stack (grows down)_                               |
-| 0x00400000 | 0xffffffff | 0xffb00     |               | _free memory for user (second+ page tables)_              |
+| start      | end        | pages      | physical addr | description                                               |
+| ---------- | ---------- | ---------- | ------------- | --------------------------------------------------------- |
+| 0x00000000 | 0x00000fff | 0x00001    | 0x00000000    | null page (not present)                                   |
+| 0x00001000 | 0x00001fff | 0x00001    | 0x00001000    | Page Directory                                            |
+| 0x00002000 | 0x00002fff | 0x00001    | 0x00002000    | ram region table                                          |
+| 0x00003000 | 0x00006fff | 0x00004    | 0x00003000    | Stack                                                     |
+| 0x00007000 | 0x0009efff | 0x00098    | 0x00007000    | Kernel (from 0x7e00 to 0x9efff)                           |
+| 0x0009f000 | 0x000b7fff | 0x00019    |               | _temp pages for mapping_                                  |
+| 0x000b8000 | 0x000b8fff | 0x00001    | 0x000b8000    | VGA Memory                                                |
+| 0x000b9000 | 0x000b9fff | 0x00001    |               | First page table (kernel's page) of any page directory    |
+| 0x000ba000 | x          | <= 0x00200 |               | ram region bitmasks                                       |
+| x          | y - 1      |            |               | _free memory for kmalloc (remainder of first page table)_ |
+| y          | 0x003fffff |            |               | _kernel stack (grows down)_                               |
+| 0x00400000 | 0xffffffff | 0xffb00    |               | _free memory for user (second+ page tables)_              |
 
 _Pages with a blank physical address are allocated form free physical memory._
 

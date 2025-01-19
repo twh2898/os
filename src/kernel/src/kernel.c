@@ -53,7 +53,7 @@ void kernel_main() {
     ram_init((void *)__kernel.ram_table_addr, &__kernel.ram_table_count);
 
     // Init Page Dir
-    __kernel.cr3     = PADDR_PAGE_DIR;
+    __kernel.cr3     = PADDR_KERNEL_PAGE_DIR;
     mmu_dir_t * pdir = (mmu_dir_t *)__kernel.cr3;
     mmu_dir_clear(pdir);
 
@@ -291,13 +291,13 @@ static void map_first_table(mmu_table_t * table) {
     // VGA
     id_map_page(table, 0xb8);
 
+    // Kernel Table
+    mmu_table_set(table, ADDR2PAGE(VADDR_KERNEL_TABLE), (uint32_t)table, MMU_TABLE_RW);
+
     // RAM region bitmasks
     for (size_t i = 0; i < __kernel.ram_table_count; i++) {
         mmu_table_set(table, ADDR2PAGE(VADDR_RAM_BITMASKS) + i, ram_bitmask_paddr(i), MMU_TABLE_RW);
     }
-
-    // Kernel Table
-    mmu_table_set(table, ADDR2PAGE(VADDR_KERNEL_TABLE), (uint32_t)table, MMU_TABLE_RW);
 }
 
 static void id_map_range(mmu_table_t * table, size_t start, size_t end) {
