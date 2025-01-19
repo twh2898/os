@@ -61,7 +61,9 @@ lint:
 format:
 	@find src tests/src -name '*.c' -or -name '*.h' -or -name '*.cpp' -or -name '*.hpp' | xargs clang-format -i --Werror --sort-includes
 
+pre-push: lint build test_cov
+
 clean:
 	rm -rf *.bin qemu_log.txt drive.img build/
 
-.PHONY: setup build run debug boot-debug dump dump-kernel test test_cov coverage lint format clean
+.PHONY: setup build run debug boot-debug dump dump-kernel test test_cov coverage lint format pre-push clean
