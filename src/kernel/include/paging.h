@@ -14,6 +14,9 @@ void paging_init();
 /**
  * @brief Map `paddr` to a temporary page and return the virtual address.
  *
+ * If `paddr` has already been allocated, return that address and increment the
+ * use counter.
+ *
  * @param paddr physical address to map
  * @return void* pointer to the virtual page address
  */
@@ -22,7 +25,9 @@ void * paging_temp_map(uint32_t paddr);
 /**
  * @brief Free `paddr` previously mapped with `paging_temp_map`.
  *
- * The `paddr` argument should be the same as passed to `paging_temp_map`.
+ * The `paddr` argument should be the same as passed to `paging_temp_map`. If
+ * `paddr` has been mapped multiple times, the use counter will be decremented
+ * until empty.
  *
  * @param paddr physical address to free
  */
@@ -65,51 +70,43 @@ int paging_id_map_page(size_t page);
  *
  * The range is end inclusive, ie a page will be added for end.
  *
- * This function uses the page directory returned by mmu_get_curr_dir.
- *
- * @param cr3 physical address of the page directory
+ * @param dir pointer to the page directory
  * @param start first page index
  * @param end last page index (inclusive)
  * @return int 0 for success
  */
-int paging_add_pages(uint32_t cr3, size_t start, size_t end);
+int paging_add_pages(mmu_dir_t * dir, size_t start, size_t end);
 
 /**
  * @brief Free physical memory for a range of pages.
  *
  * The range is end inclusive, ie a page will be freed for end.
  *
- * This function uses the page directory returned by mmu_get_curr_dir.
- *
  * This function does not free the page tables, it only frees their pages.
  *
- * @param cr3 physical address of the page directory
+ * @param dir pointer to the page directory
  * @param start first page index
  * @param end last page index (inclusive)
  * @return int 0 for success
  */
-int paging_remove_pages(uint32_t cr3, size_t start, size_t end);
+int paging_remove_pages(mmu_dir_t * dir, size_t start, size_t end);
 
 /**
  * @brief Add a table to the current page directory.
  *
- * This function uses the page directory returned by mmu_get_curr_dir.
- *
- * @param cr3 physical address of the page directory
+ * @param dir pointer to the page directory
  * @param dir_i table index in page directory
  * @return int 0 for success
  */
-int paging_add_table(uint32_t cr3, size_t dir_i);
+int paging_add_table(mmu_dir_t * dir, size_t dir_i);
 
 /**
  * @brief Remove a table from the current page directory.
  *
- * This function uses the page directory returned by mmu_get_curr_dir.
- *
- * @param cr3 physical address of the page directory
+ * @param dir pointer to the page directory
  * @param dir_i table index in page directory
  * @return int 0 for success
  */
-int paging_remove_table(uint32_t cr3, size_t dir_i);
+int paging_remove_table(mmu_dir_t * dir, size_t dir_i);
 
 #endif // KERNEL_PAGING_H
