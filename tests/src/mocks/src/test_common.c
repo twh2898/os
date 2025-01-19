@@ -12,5 +12,6 @@ void init_mocks() {
     reset_libk_sys_call_mock();
     reset_memory_alloc_mock();
     reset_paging_mock();
+    reset_process_mock();
     reset_ram_mock();
 }
