@@ -217,3 +217,15 @@ TEST_F(Process, process_grow_stack) {
     EXPECT_EQ(1, paging_temp_free_fake.call_count);
     ASSERT_TEMP_MAP_BALANCED();
 }
+
+// Set Next PID
+
+TEST_F(Process, set_next_pid) {
+    set_next_pid(1234);
+
+    process_create(&proc);
+    EXPECT_EQ(1234, proc.pid);
+
+    process_create(&proc);
+    EXPECT_EQ(1235, proc.pid);
+}

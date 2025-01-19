@@ -59,6 +59,16 @@ void * process_add_pages(process_t * proc, size_t count);
  */
 int process_grow_stack(process_t * proc);
 
+/**
+ * @brief Set the next PID value. All future PID's will be incremented from
+ * here.
+ *
+ * This can be used to reset, replace os skip certain PID values.
+ *
+ * @param next process id
+ */
+void set_next_pid(uint32_t next);
+
 // Old
 
 extern void set_first_task(process_t * next_proc);

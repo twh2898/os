@@ -161,7 +161,18 @@ int process_grow_stack(process_t * proc) {
     return 0;
 }
 
+static uint32_t __pid;
+
 static uint32_t next_pid() {
-    static uint32_t pid = 1; // 0 is reserved for kernel
-    return pid++;
+    static int pid_set = 0;
+    if (!pid_set) {
+        __pid   = 1;
+        pid_set = 1;
+    }
+    return __pid++;
+}
+
+void set_next_pid(uint32_t next) {
+    next_pid(); // Force pid_set to true so it doesn't override this value
+    __pid = next;
 }
