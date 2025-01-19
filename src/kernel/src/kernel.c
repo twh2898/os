@@ -77,19 +77,8 @@ void kernel_main() {
     init_tss();
 
     // Kernel process used for memory allocation
-    __kernel.proc.pid              = 0;
-    __kernel.proc.next_heap_page   = ADDR2PAGE(VADDR_KERNEL_MEM);
-    __kernel.proc.stack_page_count = 0;
-    __kernel.proc.esp              = 0; // To be filled by task switch?
-    __kernel.proc.cr3              = PADDR_PAGE_DIR;
-    __kernel.proc.esp0             = VADDR_ISR_STACK;
-
-    // Create isr stack pages
-    for (size_t i = 0; i < ISR_STACK_PAGES; i++) {
-        if (process_grow_stack(&__kernel.proc)) {
-            PANIC("FAILED TO CREATE ISR STACK");
-        }
-    }
+    __kernel.proc.next_heap_page = ADDR2PAGE(VADDR_RAM_BITMASKS) + __kernel.ram_table_count;
+    __kernel.proc.cr3            = PADDR_KERNEL_PAGE_DIR;
 
     // Add isr stack to kernel's TSS
     set_kernel_stack(VADDR_ISR_STACK);
