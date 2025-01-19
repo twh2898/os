@@ -16,7 +16,7 @@ int process_create(process_t * proc) {
 
     proc->pid              = next_pid();
     proc->next_heap_page   = VADDR_USER_MEM;
-    proc->stack_page_count = 0;
+    proc->stack_page_count = 1;
 
     proc->cr3 = ram_page_alloc();
 
@@ -54,12 +54,7 @@ int process_create(process_t * proc) {
     if (paging_add_pages(dir, ADDR2PAGE(proc->esp + 1), ADDR2PAGE(proc->esp0))) {
         paging_temp_free(proc->cr3);
         ram_page_free(proc->cr3);
-        return -1;
-    }
-
-    if (process_grow_stack(proc)) {
-        paging_temp_free(proc->cr3);
-        ram_page_free(proc->cr3);
+        ram_page_free(table_addr);
         return -1;
     }
 

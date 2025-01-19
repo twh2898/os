@@ -23,10 +23,9 @@ typedef struct _process {
 } process_t;
 
 /**
- * @brief Create a new process and it's page directory.ADDR2PAGE
+ * @brief Create a new process and it's page directory.
  *
- * This function does not fill ss0, regs, signals_callback or next_proc and sets
- * them to 0.
+ * Allocates pages for the isr stack and 1 for the user stack.
  *
  * @param proc pointer to the process object
  * @return int 0 for success
@@ -48,7 +47,7 @@ int process_free(process_t * proc);
  *
  * @param proc pointer to the process object
  * @param count number of pages to add
- * @return pointer to the new pages in virtual memory
+ * @return pointer to the first new page in virtual memory
  */
 void * process_add_pages(process_t * proc, size_t count);
 
