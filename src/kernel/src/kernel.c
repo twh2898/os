@@ -101,7 +101,7 @@ void kernel_main() {
     memory_init(&__kernel.kernel_memory, _page_alloc);
     init_malloc(&__kernel.kernel_memory);
 
-    vga_puts("Welcome to kernel v..\n");
+    vga_puts("Welcome to kernel v0.1.1\n");
 
     term_init();
     commands_init();
