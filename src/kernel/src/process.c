@@ -15,7 +15,7 @@ int process_create(process_t * proc) {
     kmemset(proc, 0, sizeof(process_t));
 
     proc->pid              = next_pid();
-    proc->next_heap_page   = VADDR_USER_MEM;
+    proc->next_heap_page   = ADDR2PAGE(VADDR_USER_MEM);
     proc->stack_page_count = 1;
 
     proc->cr3 = ram_page_alloc();
@@ -32,9 +32,11 @@ int process_create(process_t * proc) {
         return -1;
     }
 
+    uint32_t kernel_table_addr = mmu_dir_get_addr((mmu_dir_t *)VADDR_KERNEL_DIR, 0);
+
     // Copy first page table from kernel page directory
     mmu_dir_clear(dir);
-    mmu_dir_set(dir, 0, VADDR_KERNEL_TABLE, MMU_DIR_RW);
+    mmu_dir_set(dir, 0, kernel_table_addr, MMU_DIR_RW);
 
     // Setup stack table
     uint32_t table_addr = ram_page_alloc();

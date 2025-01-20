@@ -81,7 +81,7 @@ TEST_F(Process, process_create) {
 
     EXPECT_EQ(0, process_create(&proc));
     EXPECT_NE(0, proc.pid);
-    EXPECT_EQ(VADDR_USER_MEM, proc.next_heap_page);
+    EXPECT_EQ(1024, proc.next_heap_page);
     EXPECT_EQ(0x400000, proc.cr3);
     EXPECT_EQ(VADDR_USER_STACK, proc.esp);
     EXPECT_EQ(1, proc.stack_page_count);
