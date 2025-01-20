@@ -70,7 +70,7 @@ void kernel_main() {
     mmu_dir_set(pdir, MMU_DIR_SIZE - 1, __kernel.cr3, MMU_DIR_RW);
 
     // Enter Paging
-    mmu_enable_paging(pdir);
+    mmu_enable_paging(__kernel.cr3);
 
     // GDT & TSS
     init_gdt();

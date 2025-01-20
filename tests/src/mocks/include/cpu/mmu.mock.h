@@ -19,7 +19,7 @@ DECLARE_FAKE_VALUE_FUNC(int, mmu_table_set_flags, mmu_table_t *, size_t, enum MM
 DECLARE_FAKE_VALUE_FUNC(int, mmu_table_set, mmu_table_t *, size_t, uint32_t, enum MMU_TABLE_FLAG);
 DECLARE_FAKE_VALUE_FUNC(uint32_t, mmu_table_get_addr, mmu_table_t *, size_t);
 DECLARE_FAKE_VALUE_FUNC(enum MMU_TABLE_FLAG, mmu_table_get_flags, mmu_table_t *, size_t);
-DECLARE_FAKE_VOID_FUNC(mmu_enable_paging, mmu_dir_t *);
+DECLARE_FAKE_VOID_FUNC(mmu_enable_paging, uint32_t);
 DECLARE_FAKE_VOID_FUNC(mmu_disable_paging);
 DECLARE_FAKE_VALUE_FUNC(bool, mmu_paging_enabled);
 DECLARE_FAKE_VOID_FUNC(mmu_change_dir, uint32_t);
