@@ -60,7 +60,7 @@ TEST_F(Paging, paging_temp_map) {
     EXPECT_EQ((mmu_table_t *)VADDR_KERNEL_TABLE, mmu_table_set_fake.arg0_val);
     EXPECT_EQ(ADDR2PAGE(VADDR_TMP_PAGE), mmu_table_set_fake.arg1_val);
     EXPECT_EQ(0x1000, mmu_table_set_fake.arg2_val);
-    EXPECT_EQ(MMU_TABLE_RW_USER, mmu_table_set_fake.arg3_val);
+    EXPECT_EQ(MMU_TABLE_RW, mmu_table_set_fake.arg3_val);
 
     for (size_t i = 1; i < 25; i++) {
         EXPECT_NE(nullptr, paging_temp_map((i + 1) << 12)) << i;
