@@ -53,7 +53,7 @@ void kernel_main() {
     ram_init((void *)__kernel.ram_table_addr, &__kernel.ram_table_count);
 
     // Init Page Dir
-    __kernel.cr3     = PADDR_KERNEL_PAGE_DIR;
+    __kernel.cr3     = PADDR_KERNEL_DIR;
     mmu_dir_t * pdir = (mmu_dir_t *)__kernel.cr3;
     mmu_dir_clear(pdir);
 
