@@ -78,7 +78,7 @@ void kernel_main() {
 
     // Kernel process used for memory allocation
     __kernel.proc.next_heap_page = ADDR2PAGE(VADDR_RAM_BITMASKS) + __kernel.ram_table_count;
-    __kernel.proc.cr3            = PADDR_KERNEL_PAGE_DIR;
+    __kernel.proc.cr3            = PADDR_KERNEL_DIR;
 
     // Add isr stack to kernel's TSS
     set_kernel_stack(VADDR_ISR_STACK);
