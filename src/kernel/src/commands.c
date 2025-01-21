@@ -245,9 +245,6 @@ static void print_upper(uint64_t start, uint64_t end, uint64_t size, enum RAM_TY
 }
 
 static int mem_cmd(size_t argc, char ** argv) {
-    uint16_t low_mem = ram_lower_size();
-    printf("Lower memory is %u k\n", low_mem);
-
     uint16_t count = ram_upper_count();
 
     printf("Total of %u blocks\n", count);

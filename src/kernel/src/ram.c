@@ -39,7 +39,6 @@ static size_t   find_addr_entry(uint32_t addr);
 // Returns 0 for error, 0 is always invalid
 static size_t find_addr_bit(size_t region_index, uint32_t addr);
 
-static uint16_t      lower_ram;
 static uint16_t      upper_ram_count;
 static upper_ram_t * upper_ram;
 
@@ -51,16 +50,11 @@ void ram_init(void * ram_table, size_t * ram_table_count) {
 
     boot_params_t * bparams = get_boot_params();
 
-    lower_ram       = bparams->low_mem_size;
     upper_ram_count = bparams->mem_entries_count;
     upper_ram       = bparams->mem_entries;
     sort_ram();
 
     *ram_table_count = build_table();
-}
-
-uint16_t ram_lower_size() {
-    return lower_ram;
 }
 
 uint16_t ram_upper_count() {
