@@ -15,6 +15,8 @@
 #include "libc/memory.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
+#include "paging.h"
+#include "process.h"
 #include "ram.h"
 #include "term.h"
 
@@ -525,6 +527,76 @@ static int disk_size_cmd(size_t argc, char ** argv) {
     return 0;
 }
 
+static int currdir(size_t argc, char ** argv) {
+    printf("Current dir is %p\n", mmu_get_curr_dir());
+    return 0;
+}
+
+static int hotswap(size_t argc, char ** argv) {
+    uint32_t curr_dir = mmu_get_curr_dir();
+
+    uint32_t addr = ram_page_alloc();
+    if (!addr) {
+        printf("Failed to allocate page\n");
+        return 1;
+    }
+
+    mmu_dir_t * dir = paging_temp_map(addr);
+    if (!dir) {
+        printf("Failed to temp map\n");
+        ram_page_free(addr);
+        return 2;
+    }
+
+    mmu_dir_clear(dir);
+    mmu_dir_set(dir, 0, mmu_dir_get_addr(UINT2PTR(VADDR_KERNEL_DIR), 0), MMU_DIR_RW);
+
+    kmemcpy(dir, UINT2PTR(VADDR_KERNEL_DIR), sizeof(mmu_dir_t));
+
+    printf("Switching to new dir %p\n", addr);
+
+    mmu_change_dir(addr);
+
+    paging_temp_free(addr);
+
+    if (curr_dir != 0x1000) {
+        ram_page_free(curr_dir);
+    }
+
+    return 0;
+}
+
+static int procswap(size_t argc, char ** argv) {
+    static process_t * proc = 0;
+
+    process_t * next_proc = kmalloc(sizeof(process_t));
+
+    if (process_create(next_proc)) {
+        printf("Failed to do it\n");
+        kfree(next_proc);
+        return 1;
+    }
+
+    // void * ptr1 = process_add_pages(next_proc, 1);
+
+    mmu_change_dir(next_proc->cr3);
+
+    // void * ptr2 = process_add_pages(next_proc, 1);
+
+    if (proc) {
+        printf("Free first\n");
+        process_free(proc);
+        kfree(proc);
+    }
+
+    // printf("Ptr1 = %p\n", ptr1);
+    // printf("Ptr2 = %p\n", ptr2);
+
+    proc = next_proc;
+
+    return 0;
+}
+
 static int command_lookup(size_t argc, char ** argv) {
     char * filename = argv[0];
 
@@ -570,6 +642,10 @@ static int command_lookup(size_t argc, char ** argv) {
 
 void commands_init() {
     set_command_lookup(command_lookup);
+
+    term_command_add("currdir", currdir);
+    term_command_add("hotswap", hotswap);
+    term_command_add("procswap", procswap);
 
     term_command_add("clear", clear_cmd);
     term_command_add("echo", echo_cmd);
