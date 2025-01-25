@@ -3,6 +3,14 @@
 
 #include "defs.h"
 
+enum RAM_TYPE {
+    RAM_TYPE_USABLE           = 1,
+    RAM_TYPE_RESERVED         = 2,
+    RAM_TYPE_ACPI_RECLAIMABLE = 3,
+    RAM_TYPE_ACPI_NVS         = 4,
+    RAM_TYPE_BAD              = 5,
+};
+
 typedef struct {
     uint64_t base_addr;
     uint64_t length;

@@ -120,18 +120,20 @@ process,
 
 ## Physical Allocator (`ram.h`)
 
-Physical pages are tracked by a region table. The region table has on entry
-for each region of free pages where the first page is a bitmask with one bit
-per following page.
+Physical pages are tracked by a region table. A region table has one entry for
+each region of free pages where the first page is a bitmask with one bit per
+following page. The first bit is for the bitmask itself, which is included in
+the total page count for the region. This first bit will always be 0, and the
+number of free pages will always been 1 less than the total number of pages.
 
 ### Region Table
 
 Regions are used to track all pages. Each region has up to 32768 continuous
 pages (128 MiB) where the first page is a bitmask of all free pages in that
 region. All regions are tracked by a Region Table which holds up to 512 region
-pointers. Each entry in the region table also includes a flag if the region
-is present and counts of the total number of pages in the region and number of
-free pages in the region.
+entries. Each entry in the region table also includes a flag if the region is
+present and counts of the total number of pages in the region and number of free
+pages in the region.
 
 | start | size | description     |
 | ----- | ---- | --------------- |
@@ -170,8 +172,8 @@ any pages after the region end should be 0).
 ## Paging Allocator (`memory.h`)
 
 Paging allocator (aka `kmalloc` and `kfree`) is responsible for connecting the
-physical memory allocator (ram) and page tables (mmu). This allocator keeps
-a linked list of tables, 1022 entries each.
+physical memory allocator (ram) and page tables (mmu). This allocator keeps a
+linked list of tables, 1022 entries each.
 
 Each entry of the table describes a region of memory with address, flags and
 size in bytes (page aligned).

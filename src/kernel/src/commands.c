@@ -218,45 +218,45 @@ static void print_64(uint64_t v) {
     printf("0x%08X%08X", u, l);
 }
 
-static void print_upper(uint64_t start, uint64_t end, uint64_t size, enum RAM_TYPE type) {
-    puts("| ");
-    print_64(start);
-    puts(" | ");
-    print_64(end);
-    puts(" | ");
-    print_64(size);
-    puts(" | ");
-    switch (type) {
-        case 1:
-            puts("Usable RAM");
-            break;
-        case 2:
-            puts("Reserved");
-            break;
-        case 3:
-            puts("ACPI Reclaimable");
-            break;
-        case 4:
-            puts("ACPI NVS");
-            break;
-        case 5:
-            puts("BAD MEMORY");
-            break;
-    }
-    putc('\n');
-}
+// static void print_upper(uint64_t start, uint64_t end, uint64_t size, enum RAM_TYPE type) {
+//     puts("| ");
+//     print_64(start);
+//     puts(" | ");
+//     print_64(end);
+//     puts(" | ");
+//     print_64(size);
+//     puts(" | ");
+//     switch (type) {
+//         case 1:
+//             puts("Usable RAM");
+//             break;
+//         case 2:
+//             puts("Reserved");
+//             break;
+//         case 3:
+//             puts("ACPI Reclaimable");
+//             break;
+//         case 4:
+//             puts("ACPI NVS");
+//             break;
+//         case 5:
+//             puts("BAD MEMORY");
+//             break;
+//     }
+//     putc('\n');
+// }
 
-static int mem_cmd(size_t argc, char ** argv) {
-    uint16_t count = ram_upper_count();
+// static int mem_cmd(size_t argc, char ** argv) {
+//     uint16_t count = ram_upper_count();
 
-    printf("Total of %u blocks\n", count);
+//     printf("Total of %u blocks\n", count);
 
-    puts("| Start              | End                | Size               | Type\n");
-    for (size_t i = 0; i < count; i++) {
-        print_upper(ram_upper_start(i), ram_upper_end(i), ram_upper_size(i), ram_upper_type(i));
-    }
-    return 0;
-}
+//     puts("| Start              | End                | Size               | Type\n");
+//     for (size_t i = 0; i < count; i++) {
+//         print_upper(ram_upper_start(i), ram_upper_end(i), ram_upper_size(i), ram_upper_type(i));
+//     }
+//     return 0;
+// }
 
 static void ls_print_file_size(size_t size) {
     size_t order = 0;
@@ -658,7 +658,7 @@ void commands_init() {
     // term_command_add("format", format_cmd);
     term_command_add("mount", mount_cmd);
     term_command_add("unmount", unmount_cmd);
-    term_command_add("mem", mem_cmd);
+    // term_command_add("mem", mem_cmd);
     term_command_add("ls", ls_cmd);
     term_command_add("stat", stat_cmd);
     // term_command_add("status", status_cmd);

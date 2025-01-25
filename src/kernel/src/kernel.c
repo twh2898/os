@@ -1,6 +1,7 @@
 #include "kernel.h"
 
 #include "commands.h"
+#include "cpu/boot_params.h"
 #include "cpu/gdt.h"
 #include "cpu/isr.h"
 #include "cpu/mmu.h"
@@ -48,9 +49,19 @@ void kernel_main() {
 
     kmemset(&__kernel, 0, sizeof(kernel_t));
 
+    boot_params_t * bparams = get_boot_params();
+
     // Init RAM
     __kernel.ram_table_addr = PADDR_RAM_TABLE;
-    ram_init((void *)__kernel.ram_table_addr, &__kernel.ram_table_count);
+    ram_init((void *)__kernel.ram_table_addr, (void *)VADDR_RAM_BITMASKS);
+
+    for (size_t i = 0; i < bparams->mem_entries_count; i++) {
+        upper_ram_t * entry = &bparams->mem_entries[i];
+
+        if (entry->type == RAM_TYPE_USABLE || entry->type == RAM_TYPE_ACPI_RECLAIMABLE) {
+            ram_region_add_memory(entry->base_addr, entry->length);
+        }
+    }
 
     // Init Page Dir
     __kernel.cr3     = PADDR_KERNEL_DIR;
@@ -77,7 +88,7 @@ void kernel_main() {
     init_tss();
 
     // Kernel process used for memory allocation
-    __kernel.proc.next_heap_page = ADDR2PAGE(VADDR_RAM_BITMASKS) + __kernel.ram_table_count;
+    __kernel.proc.next_heap_page = ADDR2PAGE(VADDR_RAM_BITMASKS) + ram_region_table_count();
     __kernel.proc.cr3            = PADDR_KERNEL_DIR;
 
     // Add isr stack to kernel's TSS
@@ -284,8 +295,11 @@ static void map_first_table(mmu_table_t * table) {
     mmu_table_set(table, ADDR2PAGE(VADDR_KERNEL_TABLE), (uint32_t)table, MMU_TABLE_RW);
 
     // RAM region bitmasks
-    for (size_t i = 0; i < __kernel.ram_table_count; i++) {
-        mmu_table_set(table, ADDR2PAGE(VADDR_RAM_BITMASKS) + i, ram_bitmask_paddr(i), MMU_TABLE_RW);
+    ram_table_t * ram_table = (ram_table_t *)(__kernel.ram_table_addr);
+
+    for (size_t i = 0; i < ram_region_table_count(); i++) {
+        uint32_t bitmask_addr = ram_table->entries[i].addr_flags & MASK_ADDR;
+        mmu_table_set(table, ADDR2PAGE(VADDR_RAM_BITMASKS) + i, bitmask_addr, MMU_TABLE_RW);
     }
 }
 
