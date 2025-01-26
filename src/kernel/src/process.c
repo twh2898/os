@@ -39,15 +39,15 @@ int process_create(process_t * proc) {
     mmu_dir_set(dir, 0, kernel_table_addr, MMU_DIR_RW);
 
     // Setup stack table
-    uint32_t table_addr = ram_page_alloc();
+    uint32_t stack_table_addr = ram_page_alloc();
 
-    if (!table_addr) {
+    if (!stack_table_addr) {
         paging_temp_free(proc->cr3);
         ram_page_free(proc->cr3);
         return -1;
     }
 
-    mmu_dir_set(dir, MMU_DIR_SIZE - 1, table_addr, MMU_DIR_RW);
+    mmu_dir_set(dir, MMU_DIR_SIZE - 1, stack_table_addr, MMU_DIR_RW);
 
     proc->esp  = VADDR_USER_STACK;
     proc->esp0 = VADDR_ISR_STACK;
@@ -56,7 +56,7 @@ int process_create(process_t * proc) {
     if (paging_add_pages(dir, ADDR2PAGE(proc->esp + 1), ADDR2PAGE(proc->esp0))) {
         paging_temp_free(proc->cr3);
         ram_page_free(proc->cr3);
-        ram_page_free(table_addr);
+        ram_page_free(stack_table_addr);
         return -1;
     }
 
