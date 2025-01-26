@@ -8,8 +8,6 @@ DEFINE_FAKE_VALUE_FUNC(size_t, ram_max_pages);
 DEFINE_FAKE_VALUE_FUNC(uint32_t, ram_page_alloc);
 DEFINE_FAKE_VALUE_FUNC(uint32_t, ram_page_palloc);
 DEFINE_FAKE_VALUE_FUNC(int, ram_page_free, uint32_t);
-DEFINE_FAKE_VALUE_FUNC(size_t, ram_free_pages);
-DEFINE_FAKE_VALUE_FUNC(size_t, ram_max_pages);
 
 void reset_ram_mock() {
     RESET_FAKE(ram_init);
@@ -19,6 +17,4 @@ void reset_ram_mock() {
     RESET_FAKE(ram_page_alloc);
     RESET_FAKE(ram_page_palloc);
     RESET_FAKE(ram_page_free);
-    RESET_FAKE(ram_free_pages);
-    RESET_FAKE(ram_max_pages);
 }

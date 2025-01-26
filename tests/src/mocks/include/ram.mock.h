@@ -14,8 +14,6 @@ DECLARE_FAKE_VALUE_FUNC(size_t, ram_max_pages);
 DECLARE_FAKE_VALUE_FUNC(uint32_t, ram_page_alloc);
 DECLARE_FAKE_VALUE_FUNC(uint32_t, ram_page_palloc);
 DECLARE_FAKE_VALUE_FUNC(int, ram_page_free, uint32_t);
-DECLARE_FAKE_VALUE_FUNC(size_t, ram_free_pages);
-DECLARE_FAKE_VALUE_FUNC(size_t, ram_max_pages);
 
 void reset_ram_mock(void);
 
