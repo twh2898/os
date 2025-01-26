@@ -60,6 +60,27 @@ void * process_add_pages(process_t * proc, size_t count);
 int process_grow_stack(process_t * proc);
 
 /**
+ * @brief Allocate pages in the heap and copy data from `buff` into the pages.
+ *
+ * Pages are allocated using process_add_pages. If process_add_pages has not not
+ * yet been called, this will place the data at the start of the user memory.
+ * This is ideal for loading a process executable, as it has a fixed / known
+ * memory address to start execution.
+ *
+ * If process_add_pages or process_load_heap have been called, this function
+ * will begin allocating pages starting with the end of the heap. This is page
+ * aligned, so if the size of the last call process_load_heap was not page
+ * aligned, there will be a gap between the end of the last data and this new
+ * data.
+ *
+ * @param proc pointer to the process object
+ * @param buff pointer to the data
+ * @param size number of bytes to copy from buff
+ * @return int 0 for success
+ */
+int process_load_heap(process_t * proc, const char * buff, size_t size);
+
+/**
  * @brief Set the next PID value. All future PID's will be incremented from
  * here.
  *

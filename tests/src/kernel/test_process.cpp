@@ -1,16 +1,22 @@
+#include <array>
 #include <cstdlib>
 
 #include "test_common.h"
 
 extern "C" {
 #define _Noreturn
+
 #include "addr.h"
 #include "cpu/mmu.h"
 #include "process.h"
 
-mmu_dir_t dir;
-process_t proc;
+mmu_dir_t   dir;
+mmu_table_t table;
+process_t   proc;
 }
+
+std::array<char, PAGE_SIZE * 3>                 temp_page;
+std::array<char, PAGE_SIZE * 2 + PAGE_SIZE / 2> heap_data;
 
 class Process : public ::testing::Test {
 protected:
@@ -18,9 +24,18 @@ protected:
         init_mocks();
 
         memset(&dir, 0, sizeof(dir));
+        memset(&table, 0, sizeof(table));
         memset(&proc, 0, sizeof(proc));
 
+        temp_page.fill(0);
+
+        for (size_t i = 0; i < heap_data.size(); i++) {
+            heap_data[i] = i % 0xff;
+        }
+
         proc.next_heap_page = 2;
+
+        paging_temp_map_fake.return_val = temp_page.data();
     }
 };
 
@@ -37,6 +52,8 @@ TEST_F(Process, process_create_FailPageAlloc) {
 }
 
 TEST_F(Process, process_create_TempMapFails) {
+    paging_temp_map_fake.return_val = 0;
+
     uint32_t page_ret_seq[2] = {0x400000, 0};
 
     SET_RETURN_SEQ(ram_page_alloc, page_ret_seq, 2);
@@ -76,13 +93,13 @@ TEST_F(Process, process_create_FailAddPages) {
 }
 
 TEST_F(Process, process_create) {
-    ram_page_alloc_fake.return_val  = 0x400000;
+    ram_page_alloc_fake.return_val  = 0x2000;
     paging_temp_map_fake.return_val = &dir;
 
     EXPECT_EQ(0, process_create(&proc));
     EXPECT_NE(0, proc.pid);
     EXPECT_EQ(1024, proc.next_heap_page);
-    EXPECT_EQ(0x400000, proc.cr3);
+    EXPECT_EQ(0x2000, proc.cr3);
     EXPECT_EQ(VADDR_USER_STACK, proc.esp);
     EXPECT_EQ(1, proc.stack_page_count);
     EXPECT_EQ(VADDR_ISR_STACK, proc.esp0);
@@ -165,6 +182,8 @@ TEST_F(Process, process_add_pages_InvalidParameters) {
 }
 
 TEST_F(Process, process_add_pages_FailTempMap) {
+    paging_temp_map_fake.return_val = 0;
+
     EXPECT_EQ(0, process_add_pages(&proc, 1));
     ASSERT_TEMP_MAP_BALANCE_OFFSET(1);
 }
@@ -197,6 +216,8 @@ TEST_F(Process, process_grow_stack_InvalidParameters) {
 }
 
 TEST_F(Process, process_grow_stack_FailTempMap) {
+    paging_temp_map_fake.return_val = 0;
+
     EXPECT_NE(0, process_grow_stack(&proc));
     ASSERT_TEMP_MAP_BALANCE_OFFSET(1);
 }
@@ -215,6 +236,76 @@ TEST_F(Process, process_grow_stack) {
 
     EXPECT_EQ(0, process_grow_stack(&proc));
     EXPECT_EQ(1, paging_temp_free_fake.call_count);
+    ASSERT_TEMP_MAP_BALANCED();
+}
+
+// Process Load Heap
+
+TEST_F(Process, process_load_heap_InvalidParameters) {
+    EXPECT_NE(0, process_load_heap(0, 0, 0));
+    EXPECT_NE(0, process_load_heap(&proc, 0, 0));
+    EXPECT_NE(0, process_load_heap(0, heap_data.data(), 0));
+    EXPECT_NE(0, process_load_heap(0, 0, 1));
+    EXPECT_NE(0, process_load_heap(&proc, heap_data.data(), 0));
+    EXPECT_NE(0, process_load_heap(&proc, 0, 1));
+    EXPECT_NE(0, process_load_heap(0, heap_data.data(), 1));
+}
+
+TEST_F(Process, process_load_heap_FailAddPages) {
+    paging_temp_map_fake.return_val = 0;
+
+    EXPECT_NE(0, process_load_heap(&proc, heap_data.data(), PAGE_SIZE));
+    EXPECT_EQ(1, paging_temp_map_fake.call_count);
+    ASSERT_TEMP_MAP_BALANCE_OFFSET(1);
+}
+
+TEST_F(Process, process_load_heap_FailTempMapDir) {
+    void * paging_temp_map_seq[2] = {&dir, 0};
+    SET_RETURN_SEQ(paging_temp_map, paging_temp_map_seq, 2);
+
+    EXPECT_NE(0, process_load_heap(&proc, heap_data.data(), heap_data.size()));
+    EXPECT_EQ(2, paging_temp_map_fake.call_count);
+    ASSERT_TEMP_MAP_BALANCE_OFFSET(1);
+}
+
+TEST_F(Process, process_load_heap_FailTempMapTable) {
+    void * paging_temp_map_seq[3] = {&dir, &dir, 0};
+    SET_RETURN_SEQ(paging_temp_map, paging_temp_map_seq, 3);
+
+    EXPECT_NE(0, process_load_heap(&proc, heap_data.data(), heap_data.size()));
+    EXPECT_EQ(3, paging_temp_map_fake.call_count);
+    ASSERT_TEMP_MAP_BALANCE_OFFSET(1);
+}
+
+TEST_F(Process, process_load_heap_FailTempMapPage) {
+    void * paging_temp_map_seq[4] = {&dir, &dir, &table, 0};
+    SET_RETURN_SEQ(paging_temp_map, paging_temp_map_seq, 4);
+
+    EXPECT_NE(0, process_load_heap(&proc, heap_data.data(), heap_data.size()));
+    EXPECT_EQ(4, paging_temp_map_fake.call_count);
+    ASSERT_TEMP_MAP_BALANCE_OFFSET(1);
+}
+
+TEST_F(Process, process_load_heap_SinglePage) {
+    EXPECT_EQ(0, process_load_heap(&proc, heap_data.data(), PAGE_SIZE));
+    EXPECT_EQ(1, kmemcpy_fake.call_count);
+    EXPECT_EQ(4, paging_temp_map_fake.call_count);
+    ASSERT_TEMP_MAP_BALANCED();
+}
+
+TEST_F(Process, process_load_heap_MultiplePages) {
+    EXPECT_EQ(0, process_load_heap(&proc, heap_data.data(), heap_data.size()));
+    EXPECT_EQ(3, kmemcpy_fake.call_count);
+    EXPECT_EQ(8, paging_temp_map_fake.call_count);
+    ASSERT_TEMP_MAP_BALANCED();
+}
+
+TEST_F(Process, process_load_heap_MultipleCalls) {
+    EXPECT_EQ(0, process_load_heap(&proc, heap_data.data(), PAGE_SIZE));
+    EXPECT_EQ(0, process_load_heap(&proc, heap_data.data(), PAGE_SIZE + 1));
+
+    EXPECT_EQ(3, kmemcpy_fake.call_count);
+    EXPECT_EQ(10, paging_temp_map_fake.call_count);
     ASSERT_TEMP_MAP_BALANCED();
 }
 

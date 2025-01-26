@@ -163,6 +163,64 @@ int process_grow_stack(process_t * proc) {
     return 0;
 }
 
+int process_load_heap(process_t * proc, const char * buff, size_t size) {
+    if (!proc || !buff || !size) {
+        return -1;
+    }
+
+    size_t page_count = ADDR2PAGE(size);
+    if (size & MASK_FLAGS) {
+        page_count++;
+    }
+
+    uint32_t heap_start = proc->next_heap_page;
+    void *   heap_alloc = process_add_pages(proc, page_count);
+
+    if (!heap_alloc) {
+        return -1;
+    }
+
+    mmu_dir_t * dir = paging_temp_map(proc->cr3);
+
+    if (!dir) {
+        return -1;
+    }
+
+    for (size_t i = 0; i < page_count; i++) {
+        uint32_t      table_addr = mmu_dir_get_addr(dir, (heap_start + i) / MMU_TABLE_SIZE);
+        mmu_table_t * table      = paging_temp_map(table_addr);
+
+        if (!table) {
+            paging_temp_free(proc->cr3);
+            return -1;
+        }
+
+        uint32_t addr     = mmu_table_get_addr(table, (heap_start + i) % MMU_TABLE_SIZE);
+        void *   tmp_page = paging_temp_map(addr);
+
+        if (!tmp_page) {
+            paging_temp_free(table_addr);
+            paging_temp_free(proc->cr3);
+            return -1;
+        }
+
+        size_t to_copy = PAGE_SIZE;
+
+        if (i == page_count - 1) {
+            to_copy = size % PAGE_SIZE;
+        }
+
+        kmemcpy(tmp_page, &buff[i * PAGE_SIZE], to_copy);
+
+        paging_temp_free(addr);
+        paging_temp_free(table_addr);
+    }
+
+    paging_temp_free(proc->cr3);
+
+    return 0;
+}
+
 static uint32_t __pid;
 
 static uint32_t next_pid() {
