@@ -1,7 +1,7 @@
 #include "kernel.h"
 
+#include "boot_params.h"
 #include "commands.h"
-#include "cpu/boot_params.h"
 #include "cpu/gdt.h"
 #include "cpu/isr.h"
 #include "cpu/mmu.h"
