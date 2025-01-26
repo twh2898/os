@@ -210,6 +210,14 @@ int paging_add_table(mmu_dir_t * dir, size_t dir_i) {
             return -1;
         }
 
+        mmu_table_t * table = paging_temp_map(addr);
+
+        if (!table) {
+            ram_page_free(addr);
+            return -1;
+        }
+
+        mmu_table_clear(table);
         mmu_dir_set(dir, dir_i, addr, MMU_DIR_RW);
     }
 
