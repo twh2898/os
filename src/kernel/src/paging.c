@@ -105,7 +105,7 @@ int paging_add_pages(mmu_dir_t * dir, size_t start, size_t end) {
         return 0;
     }
 
-    uint32_t table_end = end / MMU_DIR_SIZE;
+    uint32_t table_end = end / MMU_TABLE_SIZE;
 
     if (table_end >= MMU_DIR_SIZE) {
         return -1;
@@ -120,7 +120,7 @@ int paging_add_pages(mmu_dir_t * dir, size_t start, size_t end) {
             return -1;
         }
 
-        uint32_t dir_i   = page_i / MMU_DIR_SIZE;
+        uint32_t dir_i   = page_i / MMU_TABLE_SIZE;
         uint32_t table_i = page_i % MMU_TABLE_SIZE;
 
         // Add table if needed
@@ -159,7 +159,7 @@ int paging_remove_pages(mmu_dir_t * dir, size_t start, size_t end) {
         return 0;
     }
 
-    uint32_t table_end = end / MMU_DIR_SIZE;
+    uint32_t table_end = end / MMU_TABLE_SIZE;
 
     if (table_end >= MMU_DIR_SIZE) {
         return -1;
@@ -167,7 +167,7 @@ int paging_remove_pages(mmu_dir_t * dir, size_t start, size_t end) {
 
     // Remove pages from tables
     for (size_t page_i = start; page_i <= end; page_i++) {
-        uint32_t dir_i   = page_i / MMU_DIR_SIZE;
+        uint32_t dir_i   = page_i / MMU_TABLE_SIZE;
         uint32_t table_i = page_i % MMU_TABLE_SIZE;
 
         // Table is not present
