@@ -14,10 +14,6 @@ int process_create(process_t * proc) {
 
     kmemset(proc, 0, sizeof(process_t));
 
-    proc->pid              = next_pid();
-    proc->next_heap_page   = ADDR2PAGE(VADDR_USER_MEM);
-    proc->stack_page_count = 1;
-
     proc->cr3 = ram_page_alloc();
 
     if (!proc->cr3) {
@@ -38,27 +34,19 @@ int process_create(process_t * proc) {
     mmu_dir_clear(dir);
     mmu_dir_set(dir, 0, kernel_table_addr, MMU_DIR_RW);
 
-    // Setup stack table
-    uint32_t stack_table_addr = ram_page_alloc();
-
-    if (!stack_table_addr) {
-        paging_temp_free(proc->cr3);
-        ram_page_free(proc->cr3);
-        return -1;
-    }
-
-    mmu_dir_set(dir, MMU_DIR_SIZE - 1, stack_table_addr, MMU_DIR_RW);
-
     proc->esp  = VADDR_USER_STACK;
     proc->esp0 = VADDR_ISR_STACK;
 
-    // Allocate pages for ISR stack
-    if (paging_add_pages(dir, ADDR2PAGE(proc->esp + 1), ADDR2PAGE(proc->esp0))) {
+    // Allocate pages for ISR stack + first page of user stack
+    if (paging_add_pages(dir, ADDR2PAGE(proc->esp), ADDR2PAGE(proc->esp0))) {
         paging_temp_free(proc->cr3);
         ram_page_free(proc->cr3);
-        ram_page_free(stack_table_addr);
         return -1;
     }
+
+    proc->pid              = next_pid();
+    proc->next_heap_page   = ADDR2PAGE(VADDR_USER_MEM);
+    proc->stack_page_count = 1;
 
     paging_temp_free(proc->cr3);
 

@@ -72,49 +72,33 @@ TEST_F(Process, process_create_InvalidParameters) {
     EXPECT_NE(0, process_create(0));
 }
 
-TEST_F(Process, process_create_FailPageAlloc) {
+TEST_F(Process, process_create_FailDirAlloc) {
+    ram_page_alloc_fake.return_val = 0;
+
     EXPECT_NE(0, process_create(&proc));
-    EXPECT_NE(0, proc.pid);
     ASSERT_RAM_ALLOC_BALANCE_OFFSET(1);
 }
 
-TEST_F(Process, process_create_TempMapFails) {
-    paging_temp_map_fake.return_val = 0;
-
+TEST_F(Process, process_create_FailDirTempMap) {
     uint32_t page_ret_seq[2] = {0x400000, 0};
-
     SET_RETURN_SEQ(ram_page_alloc, page_ret_seq, 2);
 
+    paging_temp_map_fake.return_val = 0;
+
     EXPECT_NE(0, process_create(&proc));
-    EXPECT_NE(0, proc.pid);
     EXPECT_EQ(1, ram_page_free_fake.call_count);
     ASSERT_TEMP_MAP_BALANCE_OFFSET(1);
     ASSERT_RAM_ALLOC_BALANCED();
 }
 
-TEST_F(Process, process_create_FailSecondPageAlloc) {
-    uint32_t page_ret_seq[2] = {0x400000, 0};
-
-    SET_RETURN_SEQ(ram_page_alloc, page_ret_seq, 2);
-    paging_temp_map_fake.return_val = &dir;
-
-    EXPECT_NE(0, process_create(&proc));
-    EXPECT_NE(0, proc.pid);
-    EXPECT_EQ(1, paging_temp_free_fake.call_count);
-    EXPECT_EQ(1, ram_page_free_fake.call_count);
-    ASSERT_TEMP_MAP_BALANCED();
-    ASSERT_RAM_ALLOC_BALANCE_OFFSET(1);
-}
-
 TEST_F(Process, process_create_FailAddPages) {
-    ram_page_alloc_fake.return_val   = 0x400000;
+    ram_page_alloc_fake.return_val   = 0x2000;
     paging_temp_map_fake.return_val  = &dir;
     paging_add_pages_fake.return_val = -1;
 
     EXPECT_NE(0, process_create(&proc));
-    EXPECT_NE(0, proc.pid);
     EXPECT_EQ(1, paging_temp_free_fake.call_count);
-    EXPECT_EQ(2, ram_page_free_fake.call_count);
+    EXPECT_EQ(1, ram_page_free_fake.call_count);
     ASSERT_TEMP_MAP_BALANCED();
     ASSERT_RAM_ALLOC_BALANCED();
 }
@@ -123,26 +107,31 @@ TEST_F(Process, process_create) {
     ram_page_alloc_fake.return_val   = 0x2000; // physical page for dir
     paging_temp_map_fake.return_val  = &dir;   // dir temp mapped to virtual
     mmu_dir_get_addr_fake.return_val = 0x5000; // table physical addr
+    set_next_pid(12);
 
     EXPECT_EQ(0, process_create(&proc));
 
     // Fields are set
-    EXPECT_NE(0, proc.pid);
-    EXPECT_EQ(1024, proc.next_heap_page);
     EXPECT_EQ(0x2000, proc.cr3);
-    EXPECT_EQ(VADDR_USER_STACK, proc.esp);
+    EXPECT_EQ(12, proc.pid);
+    EXPECT_EQ(1024, proc.next_heap_page);
     EXPECT_EQ(1, proc.stack_page_count);
-    EXPECT_EQ(VADDR_ISR_STACK, proc.esp0);
+    EXPECT_EQ(0xfffeffff, proc.esp);
+    EXPECT_EQ(0xffffffff, proc.esp0);
 
     // Dir has correct contents
     EXPECT_EQ(0x5003, dir.entries[0]);
-    for (size_t i = 1; i < 1023; i++) {
+    for (size_t i = 1; i < 1024; i++) {
         EXPECT_EQ(0, dir.entries[i]);
     }
-    EXPECT_EQ(0x2003, dir.entries[1023]);
+
+    EXPECT_EQ(1, paging_add_pages_fake.call_count);
+    EXPECT_EQ(&dir, paging_add_pages_fake.arg0_val);
+    EXPECT_EQ(0xfffef, paging_add_pages_fake.arg1_val);
+    EXPECT_EQ(0xfffff, paging_add_pages_fake.arg2_val);
 
     ASSERT_TEMP_MAP_BALANCED();
-    ASSERT_RAM_ALLOC_BALANCE_OFFSET(2);
+    ASSERT_RAM_ALLOC_BALANCE_OFFSET(1);
 }
 
 // Process Free
@@ -345,16 +334,4 @@ TEST_F(Process, process_load_heap_MultipleCalls) {
     EXPECT_EQ(3, kmemcpy_fake.call_count);
     EXPECT_EQ(10, paging_temp_map_fake.call_count);
     ASSERT_TEMP_MAP_BALANCED();
-}
-
-// Set Next PID
-
-TEST_F(Process, set_next_pid) {
-    set_next_pid(1234);
-
-    process_create(&proc);
-    EXPECT_EQ(1234, proc.pid);
-
-    process_create(&proc);
-    EXPECT_EQ(1235, proc.pid);
 }
