@@ -58,6 +58,11 @@ void kernel_main() {
     for (size_t i = 0; i < bparams->mem_entries_count; i++) {
         upper_ram_t * entry = &bparams->mem_entries[i];
 
+        // End of second stage kernel
+        if (entry->base_addr <= 0x9fbff) {
+            continue;
+        }
+
         if (entry->type == RAM_TYPE_USABLE || entry->type == RAM_TYPE_ACPI_RECLAIMABLE) {
             ram_region_add_memory(entry->base_addr, entry->length);
         }
