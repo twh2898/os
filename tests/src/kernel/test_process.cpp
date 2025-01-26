@@ -13,6 +13,30 @@ extern "C" {
 mmu_dir_t   dir;
 mmu_table_t table;
 process_t   proc;
+
+int custom_mmu_dir_set(mmu_dir_t * dir, size_t i, uint32_t addr, enum MMU_DIR_FLAG flags) {
+    if (!dir || i >= MMU_DIR_SIZE) {
+        return -1;
+    }
+
+    mmu_entry_t entry = (addr & MASK_ADDR) | (flags & MASK_FLAGS);
+
+    dir->entries[i] = entry;
+
+    return 0;
+}
+
+int custom_mmu_table_set(mmu_table_t * table, size_t i, uint32_t addr, enum MMU_TABLE_FLAG flags) {
+    if (!table || i >= MMU_DIR_SIZE) {
+        return -1;
+    }
+
+    mmu_entry_t entry = (addr & MASK_ADDR) | (flags & MASK_FLAGS);
+
+    table->entries[i] = entry;
+
+    return 0;
+}
 }
 
 std::array<char, PAGE_SIZE * 3>                 temp_page;
@@ -34,6 +58,9 @@ protected:
         }
 
         proc.next_heap_page = 2;
+
+        mmu_dir_set_fake.custom_fake   = custom_mmu_dir_set;
+        mmu_table_set_fake.custom_fake = custom_mmu_table_set;
 
         paging_temp_map_fake.return_val = temp_page.data();
     }
@@ -93,16 +120,27 @@ TEST_F(Process, process_create_FailAddPages) {
 }
 
 TEST_F(Process, process_create) {
-    ram_page_alloc_fake.return_val  = 0x2000;
-    paging_temp_map_fake.return_val = &dir;
+    ram_page_alloc_fake.return_val   = 0x2000; // physical page for dir
+    paging_temp_map_fake.return_val  = &dir;   // dir temp mapped to virtual
+    mmu_dir_get_addr_fake.return_val = 0x5000; // table physical addr
 
     EXPECT_EQ(0, process_create(&proc));
+
+    // Fields are set
     EXPECT_NE(0, proc.pid);
     EXPECT_EQ(1024, proc.next_heap_page);
     EXPECT_EQ(0x2000, proc.cr3);
     EXPECT_EQ(VADDR_USER_STACK, proc.esp);
     EXPECT_EQ(1, proc.stack_page_count);
     EXPECT_EQ(VADDR_ISR_STACK, proc.esp0);
+
+    // Dir has correct contents
+    EXPECT_EQ(0x5003, dir.entries[0]);
+    for (size_t i = 1; i < 1023; i++) {
+        EXPECT_EQ(0, dir.entries[i]);
+    }
+    EXPECT_EQ(0x2003, dir.entries[1023]);
+
     ASSERT_TEMP_MAP_BALANCED();
     ASSERT_RAM_ALLOC_BALANCE_OFFSET(2);
 }
