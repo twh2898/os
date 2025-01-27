@@ -25,6 +25,7 @@ function(unit_test)
 endfunction()
 
 add_subdirectory(mocks)
+add_subdirectory(cpu)
 add_subdirectory(drivers)
 add_subdirectory(kernel)
 add_subdirectory(libc)
@@ -33,6 +34,7 @@ add_subdirectory(memory_alloc)
 
 add_custom_target(${PROJECT_NAME}_all
     DEPENDS
+    cpu
     drivers
     kernel
     libc
