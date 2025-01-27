@@ -51,18 +51,18 @@ void mmu_dir_clear(mmu_dir_t * dir);
 void mmu_table_clear(mmu_table_t * table);
 
 int mmu_dir_set_addr(mmu_dir_t * dir, size_t i, uint32_t addr);
-int mmu_dir_set_flags(mmu_dir_t * dir, size_t i, enum MMU_DIR_FLAG flags);
-int mmu_dir_set(mmu_dir_t * dir, size_t i, uint32_t addr, enum MMU_DIR_FLAG flags);
+int mmu_dir_set_flags(mmu_dir_t * dir, size_t i, uint32_t flags);
+int mmu_dir_set(mmu_dir_t * dir, size_t i, uint32_t addr, uint32_t flags);
 
-uint32_t          mmu_dir_get_addr(mmu_dir_t * dir, size_t i);
-enum MMU_DIR_FLAG mmu_dir_get_flags(mmu_dir_t * dir, size_t i);
+uint32_t mmu_dir_get_addr(mmu_dir_t * dir, size_t i);
+uint32_t mmu_dir_get_flags(mmu_dir_t * dir, size_t i);
 
 int mmu_table_set_addr(mmu_table_t * table, size_t i, uint32_t addr);
-int mmu_table_set_flags(mmu_table_t * table, size_t i, enum MMU_TABLE_FLAG flags);
-int mmu_table_set(mmu_table_t * table, size_t i, uint32_t addr, enum MMU_TABLE_FLAG flags);
+int mmu_table_set_flags(mmu_table_t * table, size_t i, uint32_t flags);
+int mmu_table_set(mmu_table_t * table, size_t i, uint32_t addr, uint32_t flags);
 
-uint32_t            mmu_table_get_addr(mmu_table_t * table, size_t i);
-enum MMU_TABLE_FLAG mmu_table_get_flags(mmu_table_t * table, size_t i);
+uint32_t mmu_table_get_addr(mmu_table_t * table, size_t i);
+uint32_t mmu_table_get_flags(mmu_table_t * table, size_t i);
 
 extern void     mmu_enable_paging(uint32_t addr);
 extern void     mmu_disable_paging(void);

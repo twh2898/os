@@ -8,7 +8,7 @@ extern "C" {
 mmu_table_t table;
 mmu_dir_t   dir;
 
-int custom_mmu_dir_set(mmu_dir_t * dir, size_t i, uint32_t addr, enum MMU_DIR_FLAG flags) {
+int custom_mmu_dir_set(mmu_dir_t * dir, size_t i, uint32_t addr, uint32_t flags) {
     if (!dir || i >= MMU_DIR_SIZE) {
         return -1;
     }

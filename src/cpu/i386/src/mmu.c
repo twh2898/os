@@ -25,7 +25,7 @@ int mmu_dir_set_addr(mmu_dir_t * dir, size_t i, uint32_t addr) {
     return 0;
 }
 
-int mmu_dir_set_flags(mmu_dir_t * dir, size_t i, enum MMU_DIR_FLAG flags) {
+int mmu_dir_set_flags(mmu_dir_t * dir, size_t i, uint32_t flags) {
     if (!dir || i >= MMU_DIR_SIZE) {
         return -1;
     }
@@ -39,7 +39,7 @@ int mmu_dir_set_flags(mmu_dir_t * dir, size_t i, enum MMU_DIR_FLAG flags) {
     return 0;
 }
 
-int mmu_dir_set(mmu_dir_t * dir, size_t i, uint32_t addr, enum MMU_DIR_FLAG flags) {
+int mmu_dir_set(mmu_dir_t * dir, size_t i, uint32_t addr, uint32_t flags) {
     if (!dir || i >= MMU_DIR_SIZE) {
         return -1;
     }
@@ -59,7 +59,7 @@ uint32_t mmu_dir_get_addr(mmu_dir_t * dir, size_t i) {
     return dir->entries[i] & MASK_ADDR;
 }
 
-enum MMU_DIR_FLAG mmu_dir_get_flags(mmu_dir_t * dir, size_t i) {
+uint32_t mmu_dir_get_flags(mmu_dir_t * dir, size_t i) {
     if (!dir || i >= MMU_DIR_SIZE) {
         return 0;
     }
@@ -81,7 +81,7 @@ int mmu_table_set_addr(mmu_table_t * table, size_t i, uint32_t addr) {
     return 0;
 }
 
-int mmu_table_set_flags(mmu_table_t * table, size_t i, enum MMU_TABLE_FLAG flags) {
+int mmu_table_set_flags(mmu_table_t * table, size_t i, uint32_t flags) {
     if (!table || i >= MMU_TABLE_SIZE) {
         return -1;
     }
@@ -95,7 +95,7 @@ int mmu_table_set_flags(mmu_table_t * table, size_t i, enum MMU_TABLE_FLAG flags
     return 0;
 }
 
-int mmu_table_set(mmu_table_t * table, size_t i, uint32_t addr, enum MMU_TABLE_FLAG flags) {
+int mmu_table_set(mmu_table_t * table, size_t i, uint32_t addr, uint32_t flags) {
     if (!table || i >= MMU_TABLE_SIZE) {
         return -1;
     }
@@ -115,7 +115,7 @@ uint32_t mmu_table_get_addr(mmu_table_t * table, size_t i) {
     return table->entries[i] & MASK_ADDR;
 }
 
-enum MMU_TABLE_FLAG mmu_table_get_flags(mmu_table_t * table, size_t i) {
+uint32_t mmu_table_get_flags(mmu_table_t * table, size_t i) {
     if (!table || i >= MMU_TABLE_SIZE) {
         return 0;
     }

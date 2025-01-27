@@ -14,7 +14,7 @@ mmu_dir_t   dir;
 mmu_table_t table;
 process_t   proc;
 
-int custom_mmu_dir_set(mmu_dir_t * dir, size_t i, uint32_t addr, enum MMU_DIR_FLAG flags) {
+int custom_mmu_dir_set(mmu_dir_t * dir, size_t i, uint32_t addr, uint32_t flags) {
     if (!dir || i >= MMU_DIR_SIZE) {
         return -1;
     }
@@ -26,7 +26,7 @@ int custom_mmu_dir_set(mmu_dir_t * dir, size_t i, uint32_t addr, enum MMU_DIR_FL
     return 0;
 }
 
-int custom_mmu_table_set(mmu_table_t * table, size_t i, uint32_t addr, enum MMU_TABLE_FLAG flags) {
+int custom_mmu_table_set(mmu_table_t * table, size_t i, uint32_t addr, uint32_t flags) {
     if (!table || i >= MMU_DIR_SIZE) {
         return -1;
     }
