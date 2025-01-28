@@ -6,7 +6,7 @@ extern void load_gdt(uint32_t limit, uint32_t base);
 
 #define GDT_N 7
 
-gdt_entry_t gdt[GDT_N];
+static gdt_entry_t gdt[GDT_N];
 
 void init_gdt() {
     kmemset(gdt, 0, GDT_N * sizeof(gdt_entry_t));
@@ -40,7 +40,7 @@ int gdt_set(size_t i, uint64_t base, uint64_t limit, uint8_t access, uint8_t fla
 
     gdt_entry_t * gdt_entry = &gdt[i];
     gdt_entry->limit_low    = limit & 0xffff;
-    gdt_entry->base_low     = base * 0xffffff;
+    gdt_entry->base_low     = base & 0xffffff;
     gdt_entry->access       = access;
     gdt_entry->limit_high   = (limit >> 16) & 0xf;
     gdt_entry->flags        = flags;
@@ -55,7 +55,7 @@ int gdt_set_base(size_t i, uint64_t base) {
     }
 
     gdt_entry_t * gdt_entry = &gdt[i];
-    gdt_entry->base_low     = base * 0xffffff;
+    gdt_entry->base_low     = base & 0xffffff;
     gdt_entry->base_high    = (base >> 24) & 0xff;
 
     return 0;
