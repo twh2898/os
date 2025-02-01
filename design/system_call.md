@@ -24,6 +24,8 @@ An interrupt id is an 8 bit family + an 8 bit id.
 |                 | 0x0101 | close                                                                |
 |                 | 0x0102 | read                                                                 |
 |                 | 0x0103 | write                                                                |
+|                 | 0x0104 | seek                                                                 |
+|                 | 0x0105 | tell                                                                 |
 | Memory          | 0x0200 | `void * malloc(size_t size)`                                         |
 |                 | 0x0201 | `void * realloc(void * ptr, size_t size)`                            |
 |                 | 0x0202 | `void free(void * ptr)`                                              |

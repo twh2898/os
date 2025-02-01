@@ -7,7 +7,7 @@ extern "C" {
 }
 
 extern "C" {
-FAKE_VALUE_FUNC(uint32_t, send_interrupt, uint32_t, uint32_t, uint32_t);
+FAKE_VALUE_FUNC(uint32_t, send_interrupt, uint32_t, uint32_t, uint32_t, uint32_t);
 FAKE_VALUE_FUNC(uint32_t, send_interrupt_noret, uint32_t, uint32_t, uint32_t, uint32_t);
 }
 
@@ -46,6 +46,63 @@ protected:
 //     EXPECT_EQ(send_interrupt_fake.arg0_val, 0x202);
 //     EXPECT_EQ(send_interrupt_fake.arg1_val, 5);
 // }
+
+TEST_F(LibK, sys_io_open) {
+    send_interrupt_fake.return_val = 3;
+    EXPECT_EQ(3, _sys_io_open("path", "mode"));
+    EXPECT_EQ(send_interrupt_fake.call_count, 1);
+    EXPECT_EQ(send_interrupt_fake.arg0_val, 0x100);
+}
+
+TEST_F(LibK, sys_io_close) {
+    send_interrupt_fake.return_val = 3;
+    EXPECT_EQ(3, _sys_io_close(2));
+    EXPECT_EQ(send_interrupt_fake.call_count, 1);
+    EXPECT_EQ(send_interrupt_fake.arg0_val, 0x101);
+    EXPECT_EQ(send_interrupt_fake.arg1_val, 2);
+}
+
+TEST_F(LibK, sys_io_read) {
+    send_interrupt_fake.return_val = 3;
+    char buff[2]                   = "a";
+    EXPECT_EQ(3, _sys_io_read(0, buff, 1));
+    EXPECT_EQ(send_interrupt_fake.call_count, 1);
+    EXPECT_EQ(send_interrupt_fake.arg0_val, 0x102);
+    EXPECT_EQ(send_interrupt_fake.arg1_val, 0);
+    EXPECT_EQ(send_interrupt_fake.arg2_val, (uint32_t)buff);
+    EXPECT_EQ(send_interrupt_fake.arg3_val, 1);
+}
+
+TEST_F(LibK, sys_io_write) {
+    send_interrupt_fake.return_val = 3;
+    char buff[2]                   = "a";
+    EXPECT_EQ(3, _sys_io_write(0, buff, 1));
+    EXPECT_EQ(send_interrupt_fake.call_count, 1);
+    EXPECT_EQ(send_interrupt_fake.arg0_val, 0x103);
+    EXPECT_EQ(send_interrupt_fake.arg1_val, 0);
+    EXPECT_EQ(send_interrupt_fake.arg2_val, (uint32_t)buff);
+    EXPECT_EQ(send_interrupt_fake.arg3_val, 1);
+}
+
+TEST_F(LibK, sys_io_seek) {
+    send_interrupt_fake.return_val = 3;
+    char buff[2]                   = "a";
+    EXPECT_EQ(3, _sys_io_seek(1, 2, 3));
+    EXPECT_EQ(send_interrupt_fake.call_count, 1);
+    EXPECT_EQ(send_interrupt_fake.arg0_val, 0x104);
+    EXPECT_EQ(send_interrupt_fake.arg1_val, 1);
+    EXPECT_EQ(send_interrupt_fake.arg2_val, 2);
+    EXPECT_EQ(send_interrupt_fake.arg3_val, 3);
+}
+
+TEST_F(LibK, sys_io_tell) {
+    send_interrupt_fake.return_val = 3;
+    char buff[2]                   = "a";
+    EXPECT_EQ(3, _sys_io_tell(0));
+    EXPECT_EQ(send_interrupt_fake.call_count, 1);
+    EXPECT_EQ(send_interrupt_fake.arg0_val, 0x105);
+    EXPECT_EQ(send_interrupt_fake.arg1_val, 0);
+}
 
 TEST_F(LibK, page_alloc) {
     send_interrupt_fake.return_val = 3;
