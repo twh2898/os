@@ -1,6 +1,7 @@
 #include "exec.h"
 
 #include "cpu/mmu.h"
+#include "cpu/tss.h"
 #include "libc/memory.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
@@ -9,6 +10,8 @@
 #include "ram.h"
 
 typedef int (*ff_t)(size_t argc, char ** argv);
+
+extern _Noreturn void jump_proc(uint32_t cr3, uint32_t esp, uint32_t call);
 
 int command_exec(uint8_t * buff, size_t size, size_t argc, char ** argv) {
     process_t * proc = kmalloc(sizeof(process_t));
@@ -28,7 +31,13 @@ int command_exec(uint8_t * buff, size_t size, size_t argc, char ** argv) {
 
     ff_t call = UINT2PTR(VADDR_USER_MEM);
 
-    mmu_change_dir(proc->cr3);
+    // mmu_change_dir(proc->cr3);
+
+    tss_get_entry(0)->esp0 = proc->esp0;
+    tss_get_entry(0)->cr3  = proc->cr3;
+    tss_get_entry(0)->esp  = proc->esp;
+
+    jump_proc(proc->cr3, proc->esp, VADDR_USER_MEM);
 
     int res = call(argc, argv);
 
