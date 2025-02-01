@@ -35,33 +35,33 @@ int _sys_io_tell(int handle) {
     return send_interrupt(SYS_INT_IO_TELL, handle);
 }
 
-void * _page_alloc(size_t count) {
+void * _sys_page_alloc(size_t count) {
     return UINT2PTR(send_interrupt(SYS_INT_MEM_PAGE_ALLOC, count));
 }
 
-void _proc_exit(uint8_t code) {
-    _puts("Proc exit\n");
+void _sys_proc_exit(uint8_t code) {
+    _sys_puts("Proc exit\n");
     send_interrupt_noret(SYS_INT_PROC_EXIT, code);
 }
 
-void _proc_abort(uint8_t code, const char * msg) {
-    _puts("Proc abort\n");
+void _sys_proc_abort(uint8_t code, const char * msg) {
+    _sys_puts("Proc abort\n");
     send_interrupt_noret(SYS_INT_PROC_ABORT, code, msg);
 }
 
-void _proc_panic(const char * msg, const char * file, unsigned int line) {
-    _puts("Proc panic\n");
+void _sys_proc_panic(const char * msg, const char * file, unsigned int line) {
+    _sys_puts("Proc panic\n");
     send_interrupt_noret(SYS_INT_PROC_PANIC, msg, file, line);
 }
 
-void _register_signals(void * callback) {
+void _sys_register_signals(void * callback) {
     send_interrupt(SYS_INT_PROC_REG_SIG, callback);
 }
 
-size_t _putc(char c) {
+size_t _sys_putc(char c) {
     return send_interrupt(SYS_INT_STDIO_PUTC, c);
 }
 
-size_t _puts(const char * str) {
+size_t _sys_puts(const char * str) {
     return send_interrupt(SYS_INT_STDIO_PUTS, str);
 }

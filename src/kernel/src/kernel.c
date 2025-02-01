@@ -114,7 +114,7 @@ void kernel_main() {
     system_interrupt_register(SYS_INT_FAMILY_STDIO, int_tmp_stdio_cb);
 
     // Init kernel memory after system calls are registered
-    memory_init(&__kernel.kernel_memory, _page_alloc);
+    memory_init(&__kernel.kernel_memory, _sys_page_alloc);
     init_malloc(&__kernel.kernel_memory);
 
     vga_puts("Welcome to kernel v0.1.1\n");

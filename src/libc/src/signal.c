@@ -47,6 +47,6 @@ int register_signal(int sig_no, signal_handler callback) {
     sig->next = signals;
     signals   = sig;
 
-    _register_signals(signal_callback);
+    _sys_register_signals(signal_callback);
     return 0;
 }

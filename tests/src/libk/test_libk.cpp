@@ -106,14 +106,14 @@ TEST_F(LibK, sys_io_tell) {
 
 TEST_F(LibK, page_alloc) {
     send_interrupt_fake.return_val = 3;
-    EXPECT_EQ((void *)3, _page_alloc(1));
+    EXPECT_EQ((void *)3, _sys_page_alloc(1));
     EXPECT_EQ(send_interrupt_fake.call_count, 1);
     EXPECT_EQ(send_interrupt_fake.arg0_val, 0x203);
     EXPECT_EQ(send_interrupt_fake.arg1_val, 1);
 }
 
 TEST_F(LibK, exit) {
-    _proc_exit(200);
+    _sys_proc_exit(200);
     EXPECT_EQ(send_interrupt_noret_fake.call_count, 1);
     EXPECT_EQ(send_interrupt_noret_fake.arg0_val, 0x300);
     EXPECT_EQ(send_interrupt_noret_fake.arg1_val, 200);
@@ -121,7 +121,7 @@ TEST_F(LibK, exit) {
 
 TEST_F(LibK, abort) {
     const char * msg = "message";
-    _proc_abort(200, msg);
+    _sys_proc_abort(200, msg);
     EXPECT_EQ(send_interrupt_noret_fake.call_count, 1);
     EXPECT_EQ(send_interrupt_noret_fake.arg0_val, 0x301);
     EXPECT_EQ(send_interrupt_noret_fake.arg1_val, 200);
@@ -132,7 +132,7 @@ TEST_F(LibK, panic) {
     const char * msg  = "message";
     const char * file = "file";
     unsigned int line = 37;
-    _proc_panic(msg, file, line);
+    _sys_proc_panic(msg, file, line);
     EXPECT_EQ(send_interrupt_noret_fake.call_count, 1);
     EXPECT_EQ(send_interrupt_noret_fake.arg0_val, 0x302);
     EXPECT_EQ((void *)send_interrupt_noret_fake.arg1_val, msg);
@@ -141,7 +141,7 @@ TEST_F(LibK, panic) {
 }
 
 TEST_F(LibK, register_signals) {
-    _register_signals((void *)1);
+    _sys_register_signals((void *)1);
     EXPECT_EQ(send_interrupt_fake.call_count, 1);
     EXPECT_EQ(send_interrupt_fake.arg0_val, 0x303);
     EXPECT_EQ(send_interrupt_fake.arg1_val, 1);
@@ -149,7 +149,7 @@ TEST_F(LibK, register_signals) {
 
 TEST_F(LibK, putc) {
     send_interrupt_fake.return_val = 1;
-    size_t olen                    = _putc('A');
+    size_t olen                    = _sys_putc('A');
     EXPECT_EQ(send_interrupt_fake.call_count, 1);
     EXPECT_EQ(send_interrupt_fake.arg0_val, 0x1000);
     EXPECT_EQ(send_interrupt_fake.arg1_val, 'A');
@@ -159,7 +159,7 @@ TEST_F(LibK, putc) {
 TEST_F(LibK, puts) {
     const char * str               = "ABC";
     send_interrupt_fake.return_val = 3;
-    size_t olen                    = _puts(str);
+    size_t olen                    = _sys_puts(str);
     EXPECT_EQ(send_interrupt_fake.call_count, 1);
     EXPECT_EQ(send_interrupt_fake.arg0_val, 0x1001);
     EXPECT_EQ(send_interrupt_fake.arg1_val, (uint32_t)str);
