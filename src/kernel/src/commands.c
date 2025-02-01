@@ -12,6 +12,7 @@
 #include "drivers/timer.h"
 #include "drivers/vga.h"
 #include "exec.h"
+#include "libc/datastruct/array.h"
 #include "libc/memory.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
@@ -566,6 +567,105 @@ static int hotswap(size_t argc, char ** argv) {
     return 0;
 }
 
+typedef struct {
+    uint32_t addr;
+    int      dir_i;
+    int      table_i;
+} little_t;
+
+static void assert_all_unique(uint32_t cr3) {
+    printf("Checking cr3 %p\n", cr3);
+
+    little_t little;
+
+    arr_t array;
+    arr_create(&array, 1024, sizeof(little_t));
+    little.addr    = cr3;
+    little.dir_i   = -1;
+    little.table_i = -1;
+    arr_insert(&array, arr_size(&array), &little);
+
+    mmu_dir_t * dir = paging_temp_map(cr3);
+
+    for (size_t i = 0; i < MMU_DIR_SIZE; i++) {
+        if (mmu_dir_get_flags(dir, i) & MMU_DIR_FLAG_PRESENT) {
+            uint32_t      table_addr = mmu_dir_get_addr(dir, i);
+            mmu_table_t * table      = paging_temp_map(table_addr);
+
+            little.addr    = table_addr;
+            little.dir_i   = i;
+            little.table_i = -1;
+            arr_insert(&array, arr_size(&array), &little);
+
+            for (size_t j = 0; j < MMU_TABLE_SIZE; j++) {
+                if (mmu_table_get_flags(table, j) & MMU_TABLE_FLAG_PRESENT) {
+                    uint32_t page_addr = mmu_table_get_addr(table, j);
+
+                    little.addr    = page_addr;
+                    little.dir_i   = i;
+                    little.table_i = j;
+                    arr_insert(&array, arr_size(&array), &little);
+                }
+            }
+
+            paging_temp_free(table_addr);
+        }
+    }
+
+    paging_temp_free(cr3);
+
+    puts("Checking pages\n");
+
+    for (size_t i = 0; i < arr_size(&array); i++) {
+        little_t * curr = arr_at(&array, i);
+
+        for (size_t j = i + 1; j < arr_size(&array); j++) {
+            little_t * search = arr_at(&array, j);
+
+            if (curr->addr == search->addr) {
+                printf("Found duplicate page %p src %i:%i dest %i:%i\n", curr->addr, curr->dir_i, curr->table_i, search->dir_i, search->table_i);
+            }
+        }
+    }
+
+    arr_free(&array);
+}
+
+static void assert_process_is(process_t * proc) {
+    printf("Checking process %p\n", proc->cr3);
+
+    mmu_dir_t * dir = paging_temp_map(proc->cr3);
+    printf("Temp map to %p\n", dir);
+
+    for (size_t i = 0; i < MMU_DIR_SIZE; i++) {
+        if (mmu_dir_get_flags(dir, i) & MMU_DIR_FLAG_PRESENT) {
+            uint32_t      table_addr = mmu_dir_get_addr(dir, i);
+            mmu_table_t * table      = paging_temp_map(table_addr);
+
+            printf("Entry %u present with address %p\n", i, table_addr);
+            size_t page_count = 0;
+            size_t are_zero   = 0;
+            for (size_t j = 0; j < MMU_TABLE_SIZE; j++) {
+                if (mmu_table_get_flags(table, j) & MMU_TABLE_FLAG_PRESENT) {
+                    uint32_t page_addr = mmu_table_get_addr(table, j);
+                    page_count++;
+                    if (!page_addr) {
+                        are_zero++;
+                    }
+                    else {
+                        printf("%p ", page_addr);
+                    }
+                }
+            }
+            printf("Found %u pages with %u zeros\n", page_count, are_zero);
+
+            paging_temp_free(table_addr);
+        }
+    }
+
+    paging_temp_free(proc->cr3);
+}
+
 static int procswap(size_t argc, char ** argv) {
     static process_t * proc = 0;
 
@@ -576,6 +676,9 @@ static int procswap(size_t argc, char ** argv) {
         kfree(next_proc);
         return 1;
     }
+
+    assert_all_unique(next_proc->cr3);
+    assert_process_is(next_proc);
 
     // void * ptr1 = process_add_pages(next_proc, 1);
 
@@ -593,6 +696,8 @@ static int procswap(size_t argc, char ** argv) {
     // printf("Ptr2 = %p\n", ptr2);
 
     proc = next_proc;
+
+    // assert_process_is(proc);
 
     return 0;
 }
