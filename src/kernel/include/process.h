@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-typedef void (*signals_master_callback)(int);
+typedef void (*signals_master_cb_t)(int);
 
 typedef struct _process {
     uint32_t pid;
@@ -17,7 +17,7 @@ typedef struct _process {
     uint32_t esp;
     uint32_t esp0;
 
-    signals_master_callback signals_callback;
+    signals_master_cb_t signals_callback;
 
     struct _process * next_proc;
 } process_t;

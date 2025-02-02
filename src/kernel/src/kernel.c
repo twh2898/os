@@ -34,9 +34,10 @@ static void        id_map_range(mmu_table_t * table, size_t start, size_t end);
 static void        id_map_page(mmu_table_t * table, size_t page);
 static void        cursor();
 static void        irq_install();
-static uint32_t    int_mem_cb(uint16_t int_no, registers_t * regs);
-static uint32_t    int_proc_cb(uint16_t int_no, registers_t * regs);
-static uint32_t    int_tmp_stdio_cb(uint16_t int_no, registers_t * regs);
+static uint32_t    int_io_cb(uint16_t int_no, void * args_data, registers_t * regs);
+static uint32_t    int_mem_cb(uint16_t int_no, void * args_data, registers_t * regs);
+static uint32_t    int_proc_cb(uint16_t int_no, void * args_data, registers_t * regs);
+static uint32_t    int_tmp_stdio_cb(uint16_t int_no, void * args_data, registers_t * regs);
 static int         kill(size_t argc, char ** argv);
 static int         try_switch(size_t argc, char ** argv);
 static void        map_first_table(mmu_table_t * table);
@@ -168,7 +169,7 @@ static void irq_install() {
     init_rtc(RTC_RATE_1024_HZ);
 }
 
-static uint32_t int_mem_cb(uint16_t int_no, registers_t * regs) {
+static uint32_t int_mem_cb(uint16_t int_no, void * args_data, registers_t * regs) {
     uint32_t res = 0;
 
     switch (int_no) {
@@ -189,52 +190,60 @@ static uint32_t int_mem_cb(uint16_t int_no, registers_t * regs) {
             // } break;
 
         case SYS_INT_MEM_PAGE_ALLOC: {
-            size_t count = regs->ebx;
+            struct _args {
+                size_t count;
+            } args = *(struct _args *)args_data;
 
             process_t * curr_proc = get_current_process();
 
-            res = PTR2UINT(process_add_pages(curr_proc, count));
+            res = PTR2UINT(process_add_pages(curr_proc, args.count));
         } break;
     }
 
     return res;
 }
 
-static uint32_t int_proc_cb(uint16_t int_no, registers_t * regs) {
+static uint32_t int_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
     uint32_t res = 0;
 
     switch (int_no) {
         case SYS_INT_PROC_EXIT: {
-            uint8_t code = regs->ebx;
-            printf("Proc exit with code %u\n", code);
+            struct _args {
+                uint8_t code;
+            } args = *(struct _args *)args_data;
+            printf("Proc exit with code %u\n", args.code);
             regs->eip = PTR2UINT(term_run);
             // kernel_exit();
         } break;
 
         case SYS_INT_PROC_ABORT: {
-            uint8_t      code = regs->ebx;
-            const char * msg  = UINT2PTR(regs->ecx);
-            printf("Proc exit with code %u\n", code);
-            puts(msg);
+            struct _args {
+                uint8_t      code;
+                const char * msg;
+            } args = *(struct _args *)args_data;
+            printf("Proc exit with code %u\n", args.code);
+            puts(args.msg);
             regs->eip = PTR2UINT(term_run);
             // kernel_exit();
         } break;
 
         case SYS_INT_PROC_PANIC: {
-            const char * msg  = UINT2PTR(regs->ebx);
-            const char * file = UINT2PTR(regs->ecx);
-            unsigned int line = regs->edx;
+            struct _args {
+                const char * msg;
+                const char * file;
+                unsigned int line;
+            } args = *(struct _args *)args_data;
             vga_color(VGA_FG_WHITE | VGA_BG_RED);
             vga_puts("[PANIC]");
-            if (file) {
+            if (args.file) {
                 vga_putc('[');
-                vga_puts(file);
+                vga_puts(args.file);
                 vga_puts("]:");
-                vga_putu(line);
+                vga_putu(args.line);
             }
-            if (msg) {
+            if (args.msg) {
                 vga_putc(' ');
-                vga_puts(msg);
+                vga_puts(args.msg);
             }
             vga_cursor_hide();
             asm("cli");
@@ -244,7 +253,10 @@ static uint32_t int_proc_cb(uint16_t int_no, registers_t * regs) {
         } break;
 
         case SYS_INT_PROC_REG_SIG: {
-            __kernel.pm.curr_task->signals_callback = (signals_master_callback)regs->ebx;
+            struct _args {
+                signals_master_cb_t cb;
+            } args                                  = *(struct _args *)args_data;
+            __kernel.pm.curr_task->signals_callback = args.cb;
             printf("Attached master signal callback at %p\n", __kernel.pm.curr_task->signals_callback);
         } break;
     }
@@ -252,18 +264,22 @@ static uint32_t int_proc_cb(uint16_t int_no, registers_t * regs) {
     return 0;
 }
 
-static uint32_t int_tmp_stdio_cb(uint16_t int_no, registers_t * regs) {
+static uint32_t int_tmp_stdio_cb(uint16_t int_no, void * args_data, registers_t * regs) {
     uint32_t res = 0;
 
     switch (int_no) {
         case SYS_INT_STDIO_PUTC: {
-            char c = regs->ebx;
-            res    = vga_putc(c);
+            struct _args {
+                char c;
+            } args = *(struct _args *)args_data;
+            res    = vga_putc(args.c);
         } break;
 
         case SYS_INT_STDIO_PUTS: {
-            char * str = UINT2PTR(regs->ebx);
-            res        = vga_puts(str);
+            struct _args {
+                const char * str;
+            } args = *(struct _args *)args_data;
+            res    = vga_puts(args.str);
         } break;
     }
 

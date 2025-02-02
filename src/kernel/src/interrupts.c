@@ -31,10 +31,12 @@ static void callback(registers_t * regs) {
     uint16_t int_no = regs->eax & 0xffff;
     uint8_t  family = (regs->eax >> 8) & 0xff;
 
+    void * args_data = UINT2PTR(regs->ebx);
+
     sys_interrupt_handler_t handler = callbacks[family];
 
     if (handler) {
-        res = handler(int_no, regs);
+        res = handler(int_no, args_data, regs);
     }
     else {
         vga_puts("Unknown interrupt: 0x");
