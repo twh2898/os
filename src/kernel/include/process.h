@@ -4,7 +4,19 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "libc/datastruct/array.h"
+
 typedef void (*signals_master_cb_t)(int);
+
+enum HANDLE_TYPE {
+    HANDLE_TYPE_FREE = 0,
+    HANDLE_TYPE_FILE,
+};
+
+typedef struct _handle {
+    int id;
+    int type;
+} handle_t;
 
 typedef struct _process {
     uint32_t pid;
@@ -18,6 +30,8 @@ typedef struct _process {
     uint32_t esp0;
 
     signals_master_cb_t signals_callback;
+
+    arr_t io_handles; // array<handle_t>
 
     struct _process * next_proc;
 } process_t;

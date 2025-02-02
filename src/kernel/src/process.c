@@ -12,6 +12,8 @@ int process_create(process_t * proc) {
         return -1;
     }
 
+    // TODO io_handles
+
     kmemset(proc, 0, sizeof(process_t));
 
     proc->cr3 = ram_page_alloc();
