@@ -1,6 +1,8 @@
 #ifndef KERNEL_SYSTEM_CALL_H
 #define KERNEL_SYSTEM_CALL_H
 
+#include <stdint.h>
+
 #include "cpu/isr.h"
 #include "defs.h"
 

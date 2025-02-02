@@ -16,6 +16,10 @@
 #include "io/file.h"
 #include "kernel/boot_params.h"
 #include "kernel/system_call.h"
+#include "kernel/system_call_io.h"
+#include "kernel/system_call_mem.h"
+#include "kernel/system_call_proc.h"
+#include "kernel/system_call_stdio.h"
 #include "libc/memory.h"
 #include "libc/proc.h"
 #include "libc/stdio.h"
@@ -30,18 +34,13 @@ static kernel_t __kernel;
 
 extern _Noreturn void halt(void);
 
-static process_t * get_current_process();
-static void        id_map_range(mmu_table_t * table, size_t start, size_t end);
-static void        id_map_page(mmu_table_t * table, size_t page);
-static void        cursor();
-static void        irq_install();
-static uint32_t    int_io_cb(uint16_t int_no, void * args_data, registers_t * regs);
-static uint32_t    int_mem_cb(uint16_t int_no, void * args_data, registers_t * regs);
-static uint32_t    int_proc_cb(uint16_t int_no, void * args_data, registers_t * regs);
-static uint32_t    int_tmp_stdio_cb(uint16_t int_no, void * args_data, registers_t * regs);
-static int         kill(size_t argc, char ** argv);
-static int         try_switch(size_t argc, char ** argv);
-static void        map_first_table(mmu_table_t * table);
+static void id_map_range(mmu_table_t * table, size_t start, size_t end);
+static void id_map_page(mmu_table_t * table, size_t page);
+static void cursor();
+static void irq_install();
+static int  kill(size_t argc, char ** argv);
+static int  try_switch(size_t argc, char ** argv);
+static void map_first_table(mmu_table_t * table);
 
 extern void jump_kernel_mode(void * fn);
 
@@ -111,10 +110,10 @@ void kernel_main() {
     irq_install();
 
     init_system_call(IRQ16);
-    system_call_register(SYS_INT_FAMILY_IO, int_io_cb);
-    system_call_register(SYS_INT_FAMILY_MEM, int_mem_cb);
-    system_call_register(SYS_INT_FAMILY_PROC, int_proc_cb);
-    system_call_register(SYS_INT_FAMILY_STDIO, int_tmp_stdio_cb);
+    system_call_register(SYS_INT_FAMILY_IO, sys_call_io_cb);
+    system_call_register(SYS_INT_FAMILY_MEM, sys_call_mem_cb);
+    system_call_register(SYS_INT_FAMILY_PROC, sys_call_proc_cb);
+    system_call_register(SYS_INT_FAMILY_STDIO, sys_call_tmp_stdio_cb);
 
     // Init kernel memory after system calls are registered
     memory_init(&__kernel.kernel_memory, _sys_page_alloc);
@@ -147,8 +146,13 @@ mmu_table_t * get_kernel_table() {
     return (mmu_table_t *)VADDR_KERNEL_TABLE;
 }
 
-static process_t * get_current_process() {
+process_t * get_current_process() {
     return __kernel.pm.curr_task;
+}
+
+void tmp_register_signals_cb(signals_master_cb_t cb) {
+    __kernel.pm.curr_task->signals_callback = cb;
+    printf("Attached master signal callback at %p\n", __kernel.pm.curr_task->signals_callback);
 }
 
 static void cursor() {
@@ -169,176 +173,6 @@ static void irq_install() {
     init_ata();
     /* IRQ8: real time clock */
     init_rtc(RTC_RATE_1024_HZ);
-}
-
-static uint32_t int_io_cb(uint16_t int_no, void * args_data, registers_t * regs) {
-    uint32_t res = 0;
-
-    switch (int_no) {
-        case SYS_INT_IO_OPEN: {
-            struct _args {
-                const char * path;
-                const char * mode;
-            } args = *(struct _args *)args_data;
-
-            res = 0;
-        } break;
-
-        case SYS_INT_IO_CLOSE: {
-            struct _args {
-                int handle;
-            } args = *(struct _args *)args_data;
-        } break;
-
-        case SYS_INT_IO_READ: {
-            struct _args {
-                int    handle;
-                char * buff;
-                size_t count;
-            } args = *(struct _args *)args_data;
-        } break;
-
-        case SYS_INT_IO_WRITE: {
-            struct _args {
-                int          handle;
-                const char * buff;
-                size_t       count;
-            } args = *(struct _args *)args_data;
-        } break;
-
-        case SYS_INT_IO_SEEK: {
-            struct _args {
-                int handle;
-                int pos;
-                int seek;
-            } args = *(struct _args *)args_data;
-        } break;
-
-        case SYS_INT_IO_TELL: {
-            struct _args {
-                int handle;
-            } args = *(struct _args *)args_data;
-        } break;
-    }
-
-    return res;
-}
-
-static uint32_t int_mem_cb(uint16_t int_no, void * args_data, registers_t * regs) {
-    uint32_t res = 0;
-
-    switch (int_no) {
-            // case SYS_INT_MEM_MALLOC: {
-            //     size_t size = regs->ebx;
-            //     res         = PTR2UINT(impl_kmalloc(size));
-            // } break;
-
-            // case SYS_INT_MEM_REALLOC: {
-            //     void * ptr  = UINT2PTR(regs->ebx);
-            //     size_t size = regs->ecx;
-            //     // res = PTR2UINT(krealloc(ptr, size));
-            // } break;
-
-            // case SYS_INT_MEM_FREE: {
-            //     void * ptr = UINT2PTR(regs->ebx);
-            //     impl_kfree(ptr);
-            // } break;
-
-        case SYS_INT_MEM_PAGE_ALLOC: {
-            struct _args {
-                size_t count;
-            } args = *(struct _args *)args_data;
-
-            process_t * curr_proc = get_current_process();
-
-            res = PTR2UINT(process_add_pages(curr_proc, args.count));
-        } break;
-    }
-
-    return res;
-}
-
-static uint32_t int_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
-    uint32_t res = 0;
-
-    switch (int_no) {
-        case SYS_INT_PROC_EXIT: {
-            struct _args {
-                uint8_t code;
-            } args = *(struct _args *)args_data;
-            printf("Proc exit with code %u\n", args.code);
-            regs->eip = PTR2UINT(term_run);
-            // kernel_exit();
-        } break;
-
-        case SYS_INT_PROC_ABORT: {
-            struct _args {
-                uint8_t      code;
-                const char * msg;
-            } args = *(struct _args *)args_data;
-            printf("Proc exit with code %u\n", args.code);
-            puts(args.msg);
-            regs->eip = PTR2UINT(term_run);
-            // kernel_exit();
-        } break;
-
-        case SYS_INT_PROC_PANIC: {
-            struct _args {
-                const char * msg;
-                const char * file;
-                unsigned int line;
-            } args = *(struct _args *)args_data;
-            vga_color(VGA_FG_WHITE | VGA_BG_RED);
-            vga_puts("[PANIC]");
-            if (args.file) {
-                vga_putc('[');
-                vga_puts(args.file);
-                vga_puts("]:");
-                vga_putu(args.line);
-            }
-            if (args.msg) {
-                vga_putc(' ');
-                vga_puts(args.msg);
-            }
-            vga_cursor_hide();
-            asm("cli");
-            for (;;) {
-                asm("hlt");
-            }
-        } break;
-
-        case SYS_INT_PROC_REG_SIG: {
-            struct _args {
-                signals_master_cb_t cb;
-            } args                                  = *(struct _args *)args_data;
-            __kernel.pm.curr_task->signals_callback = args.cb;
-            printf("Attached master signal callback at %p\n", __kernel.pm.curr_task->signals_callback);
-        } break;
-    }
-
-    return 0;
-}
-
-static uint32_t int_tmp_stdio_cb(uint16_t int_no, void * args_data, registers_t * regs) {
-    uint32_t res = 0;
-
-    switch (int_no) {
-        case SYS_INT_STDIO_PUTC: {
-            struct _args {
-                char c;
-            } args = *(struct _args *)args_data;
-            res    = vga_putc(args.c);
-        } break;
-
-        case SYS_INT_STDIO_PUTS: {
-            struct _args {
-                const char * str;
-            } args = *(struct _args *)args_data;
-            res    = vga_puts(args.str);
-        } break;
-    }
-
-    return 0;
 }
 
 static int kill(size_t argc, char ** argv) {

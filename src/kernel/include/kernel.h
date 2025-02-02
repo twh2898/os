@@ -36,4 +36,8 @@ mmu_dir_t * get_kernel_dir();
  */
 mmu_table_t * get_kernel_table();
 
+process_t * get_current_process();
+
+void tmp_register_signals_cb(signals_master_cb_t cb);
+
 #endif // KERNEL_H
