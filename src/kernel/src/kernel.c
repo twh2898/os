@@ -15,6 +15,7 @@
 #include "drivers/timer.h"
 #include "drivers/vga.h"
 #include "interrupts.h"
+#include "io/file.h"
 #include "libc/memory.h"
 #include "libc/proc.h"
 #include "libc/stdio.h"
@@ -110,6 +111,7 @@ void kernel_main() {
     irq_install();
 
     init_system_interrupts(IRQ16);
+    system_interrupt_register(SYS_INT_FAMILY_IO, int_io_cb);
     system_interrupt_register(SYS_INT_FAMILY_MEM, int_mem_cb);
     system_interrupt_register(SYS_INT_FAMILY_PROC, int_proc_cb);
     system_interrupt_register(SYS_INT_FAMILY_STDIO, int_tmp_stdio_cb);
@@ -167,6 +169,59 @@ static void irq_install() {
     init_ata();
     /* IRQ8: real time clock */
     init_rtc(RTC_RATE_1024_HZ);
+}
+
+static uint32_t int_io_cb(uint16_t int_no, void * args_data, registers_t * regs) {
+    uint32_t res = 0;
+
+    switch (int_no) {
+        case SYS_INT_IO_OPEN: {
+            struct _args {
+                const char * path;
+                const char * mode;
+            } args = *(struct _args *)args_data;
+
+            res = 0;
+        } break;
+
+        case SYS_INT_IO_CLOSE: {
+            struct _args {
+                int handle;
+            } args = *(struct _args *)args_data;
+        } break;
+
+        case SYS_INT_IO_READ: {
+            struct _args {
+                int    handle;
+                char * buff;
+                size_t count;
+            } args = *(struct _args *)args_data;
+        } break;
+
+        case SYS_INT_IO_WRITE: {
+            struct _args {
+                int          handle;
+                const char * buff;
+                size_t       count;
+            } args = *(struct _args *)args_data;
+        } break;
+
+        case SYS_INT_IO_SEEK: {
+            struct _args {
+                int handle;
+                int pos;
+                int seek;
+            } args = *(struct _args *)args_data;
+        } break;
+
+        case SYS_INT_IO_TELL: {
+            struct _args {
+                int handle;
+            } args = *(struct _args *)args_data;
+        } break;
+    }
+
+    return res;
 }
 
 static uint32_t int_mem_cb(uint16_t int_no, void * args_data, registers_t * regs) {
