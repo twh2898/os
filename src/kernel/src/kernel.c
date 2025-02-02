@@ -1,6 +1,5 @@
 #include "kernel.h"
 
-#include "boot_params.h"
 #include "commands.h"
 #include "cpu/gdt.h"
 #include "cpu/isr.h"
@@ -14,8 +13,9 @@
 #include "drivers/rtc.h"
 #include "drivers/timer.h"
 #include "drivers/vga.h"
-#include "interrupts.h"
 #include "io/file.h"
+#include "kernel/boot_params.h"
+#include "kernel/system_call.h"
 #include "libc/memory.h"
 #include "libc/proc.h"
 #include "libc/stdio.h"
@@ -110,11 +110,11 @@ void kernel_main() {
     isr_install();
     irq_install();
 
-    init_system_interrupts(IRQ16);
-    system_interrupt_register(SYS_INT_FAMILY_IO, int_io_cb);
-    system_interrupt_register(SYS_INT_FAMILY_MEM, int_mem_cb);
-    system_interrupt_register(SYS_INT_FAMILY_PROC, int_proc_cb);
-    system_interrupt_register(SYS_INT_FAMILY_STDIO, int_tmp_stdio_cb);
+    init_system_call(IRQ16);
+    system_call_register(SYS_INT_FAMILY_IO, int_io_cb);
+    system_call_register(SYS_INT_FAMILY_MEM, int_mem_cb);
+    system_call_register(SYS_INT_FAMILY_PROC, int_proc_cb);
+    system_call_register(SYS_INT_FAMILY_STDIO, int_tmp_stdio_cb);
 
     // Init kernel memory after system calls are registered
     memory_init(&__kernel.kernel_memory, _sys_page_alloc);
