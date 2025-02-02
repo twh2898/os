@@ -8,7 +8,7 @@
 
 static handle_t * get_free_handle(process_t * proc);
 
-uint32_t sys_call_io_cb(uint16_t int_no, void * args_data, registers_t * regs) {
+int sys_call_io_cb(uint16_t int_no, void * args_data, registers_t * regs) {
     process_t * proc       = get_current_process();
     arr_t *     io_handles = &proc->io_handles;
 

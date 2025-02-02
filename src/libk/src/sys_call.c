@@ -8,7 +8,7 @@
 #define UINT2PTR(UINT)  ((void *)(UINT))
 #define LUINT2PTR(UINT) UINT2PTR((uint32_t)(UINT))
 
-extern uint32_t       send_call(uint32_t int_no, ...);
+extern int            send_call(uint32_t int_no, ...);
 extern NO_RETURN void send_call_noret(uint32_t int_no, ...);
 
 int _sys_io_open(const char * path, const char * mode) {

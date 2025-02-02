@@ -9,8 +9,8 @@
 #include "libk/defs.h"
 #include "process.h"
 
-uint32_t sys_call_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
-    uint32_t res = 0;
+int sys_call_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
+    int res = 0;
 
     switch (int_no) {
         case SYS_INT_PROC_EXIT: {
