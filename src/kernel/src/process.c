@@ -12,13 +12,16 @@ int process_create(process_t * proc) {
         return -1;
     }
 
-    // TODO io_handles
-
     kmemset(proc, 0, sizeof(process_t));
 
     proc->cr3 = ram_page_alloc();
 
     if (!proc->cr3) {
+        return -1;
+    }
+
+    if (arr_create(&proc->io_handles, 1, sizeof(handle_t))) {
+        ram_page_free(proc->cr3);
         return -1;
     }
 
@@ -59,6 +62,8 @@ int process_free(process_t * proc) {
     if (!proc) {
         return -1;
     }
+
+    arr_free(&proc->io_handles);
 
     mmu_dir_t * dir = paging_temp_map(proc->cr3);
 

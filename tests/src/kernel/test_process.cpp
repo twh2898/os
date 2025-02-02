@@ -8,6 +8,7 @@ extern "C" {
 
 #include "addr.h"
 #include "cpu/mmu.h"
+#include "libc/datastruct/array.h"
 #include "process.h"
 
 mmu_dir_t   dir;
@@ -77,6 +78,14 @@ TEST_F(Process, process_create_FailDirAlloc) {
 
     EXPECT_NE(0, process_create(&proc));
     ASSERT_RAM_ALLOC_BALANCE_OFFSET(1);
+}
+
+TEST_F(Process, process_create_FailCreateArray) {
+    ram_page_alloc_fake.return_val = 0x2000;
+    arr_create_fake.return_val     = -1;
+
+    EXPECT_NE(0, process_create(&proc));
+    ASSERT_RAM_ALLOC_BALANCED();
 }
 
 TEST_F(Process, process_create_FailDirTempMap) {
@@ -176,6 +185,7 @@ TEST_F(Process, process_free_NoTables) {
 
     EXPECT_EQ(0, process_free(&proc));
     EXPECT_EQ(1, ram_page_free_fake.call_count);
+    EXPECT_EQ(1, arr_free_fake.call_count);
     ASSERT_TEMP_MAP_BALANCED();
 }
 
@@ -192,6 +202,7 @@ TEST_F(Process, process_free) {
 
     EXPECT_EQ(0, process_free(&proc));
     EXPECT_EQ(expect_free_count, ram_page_free_fake.call_count);
+    EXPECT_EQ(1, arr_free_fake.call_count);
     ASSERT_TEMP_MAP_BALANCED();
 }
 
