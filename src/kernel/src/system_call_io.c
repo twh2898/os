@@ -3,6 +3,8 @@
 #include "io/file.h"
 #include "kernel.h"
 #include "libc/datastruct/array.h"
+#include "libc/proc.h"
+#include "libc/string.h"
 #include "libk/defs.h"
 #include "process.h"
 
@@ -29,7 +31,44 @@ int sys_call_io_cb(uint16_t int_no, void * args_data, registers_t * regs) {
                 return 0;
             }
 
-            handle->type = HANDLE_TYPE_FILE; // TODO type by path prefix
+            char *       split = kstrfind(args.path, ':');
+            const char * type  = "file";
+
+            if (split) {
+                type      = args.path;
+                *split    = 0;
+                args.path = split + 1;
+            }
+
+            if (!*args.path) {
+                return 0;
+            }
+
+            handle->type = HANDLE_TYPE_FILE;
+            // if (type) {
+            //     if (kstrcmp("file", type) == 0) {
+            //         handle->type = HANDLE_TYPE_FILE;
+            //         handle->size = 0;
+            //     }
+            //     else if (kstrcmp("dir", type) == 0) {
+            //         handle->type = HANDLE_TYPE_DIR;
+            //         handle->size = 0;
+            //     }
+            //     else if (kstrcmp("fs", type) == 0) {
+            //         handle->type = HANDLE_TYPE_FS;
+            //         handle->size = 0;
+            //     }
+            //     else if (kstrcmp("disk", type) == 0) {
+            //         handle->type = HANDLE_TYPE_ATA;
+            //         handle->ata = disk_open(0, DISK_DRIVER_ATA);
+            //         if (!handle->ata) {
+            //             PANIC("Failed to open disk");
+            //         }
+            //         handle->size = disk_size(handle->ata);
+            //     }
+            // }
+
+            handle->cursor = 0;
             return handle->id;
         } break;
 
@@ -38,14 +77,14 @@ int sys_call_io_cb(uint16_t int_no, void * args_data, registers_t * regs) {
                 int handle;
             } args = *(struct _args *)args_data;
 
-            if (args.handle > arr_size(io_handles)) {
-                return 0; // TODO proper error
+            if (args.handle < 1 || args.handle > arr_size(io_handles)) {
+                return -1;
             }
 
             handle_t * handle = arr_at(io_handles, args.handle - 1);
 
             if (handle->type == HANDLE_TYPE_FREE) {
-                return 0; // TODO proper error
+                return -1;
             }
 
             handle->type = HANDLE_TYPE_FREE;
@@ -61,13 +100,13 @@ int sys_call_io_cb(uint16_t int_no, void * args_data, registers_t * regs) {
             } args = *(struct _args *)args_data;
 
             if (args.handle > arr_size(io_handles)) {
-                return 0; // TODO proper error
+                return 0;
             }
 
             handle_t * handle = arr_at(io_handles, args.handle - 1);
 
             if (handle->type == HANDLE_TYPE_FREE) {
-                return 0; // TODO proper error
+                return 0;
             }
 
             // TODO
@@ -81,13 +120,13 @@ int sys_call_io_cb(uint16_t int_no, void * args_data, registers_t * regs) {
             } args = *(struct _args *)args_data;
 
             if (args.handle > arr_size(io_handles)) {
-                return 0; // TODO proper error
+                return 0;
             }
 
             handle_t * handle = arr_at(io_handles, args.handle - 1);
 
             if (handle->type == HANDLE_TYPE_FREE) {
-                return 0; // TODO proper error
+                return 0;
             }
 
             // TODO
@@ -101,13 +140,13 @@ int sys_call_io_cb(uint16_t int_no, void * args_data, registers_t * regs) {
             } args = *(struct _args *)args_data;
 
             if (args.handle > arr_size(io_handles)) {
-                return 0; // TODO proper error
+                return -1;
             }
 
             handle_t * handle = arr_at(io_handles, args.handle - 1);
 
             if (handle->type == HANDLE_TYPE_FREE) {
-                return 0; // TODO proper error
+                return -1;
             }
 
             // TODO
@@ -119,13 +158,13 @@ int sys_call_io_cb(uint16_t int_no, void * args_data, registers_t * regs) {
             } args = *(struct _args *)args_data;
 
             if (args.handle > arr_size(io_handles)) {
-                return 0; // TODO proper error
+                return -1;
             }
 
             handle_t * handle = arr_at(io_handles, args.handle - 1);
 
             if (handle->type == HANDLE_TYPE_FREE) {
-                return 0; // TODO proper error
+                return -1;
             }
 
             // TODO

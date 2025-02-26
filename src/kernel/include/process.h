@@ -4,6 +4,10 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "drivers/ata.h"
+#include "drivers/io_driver.h"
+#include "drivers/ramdisk.h"
+#include "drivers/tar.h"
 #include "libc/datastruct/array.h"
 
 typedef void (*signals_master_cb_t)(int);
@@ -11,11 +15,25 @@ typedef void (*signals_master_cb_t)(int);
 enum HANDLE_TYPE {
     HANDLE_TYPE_FREE = 0,
     HANDLE_TYPE_FILE,
+    HANDLE_TYPE_DIR,
+    HANDLE_TYPE_FS,
+    HANDLE_TYPE_ATA,
+    HANDLE_TYPE_RAM,
 };
 
 typedef struct _handle {
     int id;
     int type;
+
+    size_t cursor;
+    size_t size;
+
+    io_device_t * device;
+
+    union {
+        ata_t *     ata;
+        ramdisk_t * ram;
+    };
 } handle_t;
 
 typedef struct _process {

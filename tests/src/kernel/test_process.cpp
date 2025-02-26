@@ -139,6 +139,11 @@ TEST_F(Process, process_create) {
     EXPECT_EQ(0xfffef, paging_add_pages_fake.arg1_val);
     EXPECT_EQ(0xfffff, paging_add_pages_fake.arg2_val);
 
+    EXPECT_EQ(1, arr_create_fake.call_count);
+    EXPECT_EQ(&proc.io_handles, arr_create_fake.arg0_val);
+    EXPECT_EQ(1, arr_create_fake.arg1_val);
+    EXPECT_EQ(8, arr_create_fake.arg2_val);
+
     ASSERT_TEMP_MAP_BALANCED();
     ASSERT_RAM_ALLOC_BALANCE_OFFSET(1);
 }

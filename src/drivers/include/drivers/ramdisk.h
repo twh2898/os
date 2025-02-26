@@ -16,6 +16,6 @@ void        ramdisk_close(ramdisk_t * rdisk);
 size_t ramdisk_size(ramdisk_t * rdisk);
 
 size_t ramdisk_read(ramdisk_t * rdisk, uint8_t * buff, size_t count, size_t pos);
-size_t ramdisk_write(ramdisk_t * rdisk, uint8_t * buff, size_t count, size_t pos);
+size_t ramdisk_write(ramdisk_t * rdisk, const uint8_t * buff, size_t count, size_t pos);
 
 #endif // RAMDISK_H

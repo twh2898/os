@@ -1,13 +1,15 @@
 #include "drivers/disk.h"
 
 #include "drivers/ata.h"
+#include "drivers/io_driver.h"
 #include "drivers/ramdisk.h"
 #include "libc/memory.h"
 #include "libc/string.h"
 
 #define DISK_BUFFER_SIZE 4096
 
-typedef size_t (*disk_io)(disk_t * disk, uint8_t * buff, size_t count, size_t pos);
+typedef size_t (*disk_io_read)(disk_t * disk, uint8_t * buff, size_t count, size_t pos);
+typedef size_t (*disk_io_write)(disk_t * disk, const uint8_t * buff, size_t count, size_t pos);
 
 struct _disk {
     enum DISK_DRIVER driver;
@@ -21,16 +23,32 @@ struct _disk {
         ramdisk_t * rdisk;
     } device;
 
-    size_t  size;
-    disk_io fn_read;
-    disk_io fn_write;
+    size_t        size;
+    disk_io_read  fn_read;
+    disk_io_write fn_write;
 };
 
 static size_t disk_ata_read(disk_t * disk, uint8_t * buff, size_t count, size_t pos);
-static size_t disk_ata_write(disk_t * disk, uint8_t * buff, size_t count, size_t pos);
+static size_t disk_ata_write(disk_t * disk, const uint8_t * buff, size_t count, size_t pos);
 
 static size_t disk_rdisk_read(disk_t * disk, uint8_t * buff, size_t count, size_t pos);
-static size_t disk_rdisk_write(disk_t * disk, uint8_t * buff, size_t count, size_t pos);
+static size_t disk_rdisk_write(disk_t * disk, const uint8_t * buff, size_t count, size_t pos);
+
+static size_t drv_read(void * disk_ptr, char * buff, size_t count, size_t pos) {
+    return disk_read(disk_ptr, buff, count, pos);
+}
+static size_t drv_write(void * disk_ptr, const char * buff, size_t count, size_t pos) {
+    return disk_write(disk_ptr, buff, count, pos);
+}
+
+// void ata_register_driver() {
+//     io_driver_t ata_driver = {
+//         .read_fn  = drv_read,
+//         .write_fn = drv_write,
+//     };
+
+//     register_io_driver("ata", &ata_driver);
+// }
 
 disk_t * disk_open(int id, enum DISK_DRIVER driver) {
     disk_t * disk = kmalloc(sizeof(disk_t));
@@ -128,7 +146,7 @@ size_t disk_read(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
     return o_len;
 }
 
-size_t disk_write(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
+size_t disk_write(disk_t * disk, const uint8_t * buff, size_t count, size_t pos) {
     if (!disk || !buff) {
         return 0;
     }
@@ -141,7 +159,7 @@ size_t disk_write(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
     size_t o_len = 0;
     for (size_t i = 0; i < steps; i++) {
         size_t offset = i * disk->buff_size;
-        o_len += disk->fn_write(disk, buff + offset, count - offset, pos + offset);
+        o_len += disk->fn_write(disk, &buff[offset], count - offset, pos + offset);
     }
     return o_len;
 }
@@ -176,7 +194,7 @@ static size_t disk_ata_read(disk_t * disk, uint8_t * buff, size_t count, size_t 
     return count;
 }
 
-static size_t disk_ata_write(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
+static size_t disk_ata_write(disk_t * disk, const uint8_t * buff, size_t count, size_t pos) {
     if (!disk || !buff) {
         return 0;
     }
@@ -226,7 +244,7 @@ static size_t disk_rdisk_read(disk_t * disk, uint8_t * buff, size_t count, size_
     return o_len;
 }
 
-static size_t disk_rdisk_write(disk_t * disk, uint8_t * buff, size_t count, size_t pos) {
+static size_t disk_rdisk_write(disk_t * disk, const uint8_t * buff, size_t count, size_t pos) {
     if (!disk || !buff) {
         return 0;
     }

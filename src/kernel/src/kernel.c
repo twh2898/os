@@ -8,6 +8,7 @@
 #include "cpu/tss.h"
 #include "defs.h"
 #include "drivers/ata.h"
+#include "drivers/io_driver.h"
 #include "drivers/keyboard.h"
 #include "drivers/ramdisk.h"
 #include "drivers/rtc.h"
@@ -106,6 +107,8 @@ void kernel_main() {
     __kernel.pm.curr_task            = __kernel.pm.idle_task;
     __kernel.pm.task_begin           = __kernel.pm.idle_task;
 
+    arr_create(&__kernel.proc.io_handles, 1, sizeof(handle_t));
+
     isr_install();
     irq_install();
 
@@ -120,6 +123,27 @@ void kernel_main() {
     init_malloc(&__kernel.kernel_memory);
 
     vga_puts("Welcome to kernel v0.1.1\n");
+
+    init_io_drivers();
+    ata_register_driver();
+
+    ata_t * disk = ata_open(0);
+    register_io_device("disk/0", disk, "ata");
+
+    printf("ATA disk registered\n");
+
+    io_device_t * disk_dev = get_io_device("disk/0");
+
+    printf("Got device %p\n", disk_dev);
+
+    printf("Reading 10\n");
+    char buff[1024];
+    disk_dev->driver->read_fn(disk_dev->driver_data, buff, 10, 0);
+
+    for (size_t i = 0; i < 10; i++) {
+        printf("%x ", buff[i]);
+    }
+    putc('\n');
 
     term_init();
     commands_init();

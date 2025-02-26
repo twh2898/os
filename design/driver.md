@@ -21,5 +21,13 @@ an ata disk object as it's driver data).
 
 ```c
 void * ata_disk = ata_create(0);
-register_device("/dev/ata/0", ata_disk, "ata");
+register_io_device("/dev/ata/0", ata_disk, "ata");
+```
+
+Using device
+
+```c
+device_t * dev = get_io_driver("/dev/ata/0");
+
+io_driver_read(dev, 12);
 ```

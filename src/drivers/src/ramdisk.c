@@ -53,15 +53,15 @@ size_t ramdisk_read(ramdisk_t * rdisk, uint8_t * buff, size_t count, size_t pos)
         count = rdisk->size - pos;
     }
 
-    kmemcpy(rdisk->data + pos, buff, count);
+    kmemcpy(buff, rdisk->data + pos, count);
     return count;
 }
 
-size_t ramdisk_write(ramdisk_t * rdisk, uint8_t * buff, size_t count, size_t pos) {
+size_t ramdisk_write(ramdisk_t * rdisk, const uint8_t * buff, size_t count, size_t pos) {
     if (rdisk->size - pos < count) {
         count = rdisk->size - pos;
     }
 
-    kmemcpy(buff, rdisk->data + pos, count);
+    kmemcpy(rdisk->data + pos, buff, count);
     return count;
 }

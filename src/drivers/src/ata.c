@@ -3,10 +3,12 @@
 #include "cpu/isr.h"
 #include "cpu/ports.h"
 #include "debug.h"
+#include "drivers/io_driver.h"
 #include "drivers/rtc.h"
 #include "libc/memory.h"
 #include "libc/proc.h"
 #include "libc/stdio.h"
+#include "libc/string.h"
 
 // https://wiki.osdev.org/ATA_PIO_Mode
 
@@ -127,6 +129,18 @@ static void ata_callback(registers_t * regs) {
     if (debug) {
         puts("disk callback\n");
     }
+}
+
+static size_t drv_read(void * ata_ptr, char * buff, size_t count, size_t pos);
+static size_t drv_write(void * ata_ptr, const char * buff, size_t count, size_t pos);
+
+void ata_register_driver() {
+    io_driver_t ata_driver = {
+        .read_fn  = drv_read,
+        .write_fn = drv_write,
+    };
+
+    register_io_driver("ata", &ata_driver);
 }
 
 ata_t * ata_open(uint8_t id) {
@@ -505,4 +519,89 @@ static void software_reset(ata_t * disk) {
             return;
         }
     }
+}
+
+static size_t drv_read(void * ata_ptr, char * buff, size_t count, size_t pos) {
+    if (!ata_ptr || !buff) {
+        return 0;
+    }
+
+    ata_t * ata = ata_ptr;
+    char    sector_buff[ATA_SECTOR_BYTES];
+
+    if (count > ata->sect_count * ATA_SECTOR_BYTES - pos) {
+        count = ata->sect_count * ATA_SECTOR_BYTES - pos;
+    }
+
+    size_t lba          = pos / ATA_SECTOR_BYTES;
+    size_t sect_to_read = count / ATA_SECTOR_BYTES;
+
+    if (count % ATA_SECTOR_BYTES) {
+        sect_to_read++;
+    }
+
+    for (size_t sect = 0; sect < sect_to_read; sect++) {
+        if (ata_sect_read(ata, sector_buff, 1, lba + sect) != sect_to_read) {
+            return 0;
+        }
+
+        size_t pos_in_buff = pos % ATA_SECTOR_BYTES;
+        size_t to_copy     = ATA_SECTOR_BYTES;
+
+        if (sect == 0) {
+            // TODO handle first copy with smaller because pos
+
+            // TODO handle only single
+        }
+
+        else if (sect == sect_to_read - 1) {
+            // TODO clip to_copy
+        }
+
+        kmemcpy(buff, sector_buff + pos_in_buff, to_copy);
+    }
+
+    return count;
+}
+
+static size_t drv_write(void * ata_ptr, const char * buff, size_t count, size_t pos) {
+    if (!ata_ptr || !buff) {
+        return 0;
+    }
+
+    ata_t * ata = ata_ptr;
+    char    sector_buff[ATA_SECTOR_BYTES];
+
+    if (count > ata->sect_count * ATA_SECTOR_BYTES - pos) {
+        count = ata->sect_count * ATA_SECTOR_BYTES - pos;
+    }
+
+    size_t lba          = pos / ATA_SECTOR_BYTES;
+    size_t sect_to_read = count / ATA_SECTOR_BYTES;
+
+    if (count % ATA_SECTOR_BYTES) {
+        sect_to_read++;
+    }
+
+    for (size_t sect = 0; sect < sect_to_read; sect++) {
+        if (ata_sect_read(ata, sector_buff, 1, lba + sect) != sect_to_read) {
+            return 0;
+        }
+
+        size_t pos_in_buff = pos % ATA_SECTOR_BYTES;
+        size_t to_copy     = ATA_SECTOR_BYTES;
+
+        if (sect == 0) {
+            // TODO handle first copy with smaller because pos
+
+            // TODO handle only single
+        }
+
+        else if (sect == sect_to_read - 1) {
+            // TODO clip to_copy
+        }
+
+        kmemcpy(sector_buff + pos_in_buff, buff, to_copy);
+    }
+    return count;
 }
