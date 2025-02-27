@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 
+#include "drivers/io_driver.h"
 #include "libc/memory.h"
 #include "libc/proc.h"
 #include "libc/stdio.h"
@@ -31,9 +32,9 @@ typedef struct {
 } tar_file_t;
 
 struct tar_fs {
-    disk_t *     disk;
-    size_t       file_count;
-    tar_file_t * files;
+    io_device_t * disk;
+    size_t        file_count;
+    tar_file_t *  files;
 } __attribute__((packed));
 
 struct tar_fs_file {
@@ -48,7 +49,7 @@ static size_t       count_files(tar_fs_t * tar);
 static bool         load_headers(tar_fs_t * tar);
 static tar_file_t * find_filename(tar_fs_t * tar, const char * filename);
 
-tar_fs_t * tar_open(disk_t * disk) {
+tar_fs_t * tar_open(io_device_t * disk) {
     if (!disk) {
         return 0;
     }
@@ -213,7 +214,7 @@ size_t tar_file_read(tar_fs_file_t * file, char * buff, size_t count) {
         count = file->size - file->pos;
     }
 
-    return disk_read(file->tar->disk, buff, count, file->file->disk_pos + file->pos);
+    return io_device_read(file->tar->disk, buff, count, file->file->disk_pos + file->pos);
 }
 
 static size_t parse_octal(const char * str) {
@@ -241,7 +242,7 @@ static size_t count_files(tar_fs_t * tar) {
     size_t disk_pos = 0;
     size_t count    = 0;
     for (;;) {
-        size_t n_read = disk_read(tar->disk, (uint8_t *)&header, sizeof(raw_header_t), disk_pos);
+        size_t n_read = io_device_read(tar->disk, (uint8_t *)&header, sizeof(raw_header_t), disk_pos);
 
         if (!n_read) {
             break;
@@ -281,7 +282,7 @@ static bool load_headers(tar_fs_t * tar) {
     for (size_t i = 0; i < tar->file_count; i++) {
         tar_file_t * file = &tar->files[i];
 
-        size_t n_read = disk_read(tar->disk, (uint8_t *)&file->header, sizeof(raw_header_t), disk_pos);
+        size_t n_read = io_device_read(tar->disk, (uint8_t *)&file->header, sizeof(raw_header_t), disk_pos);
 
         if (!n_read) {
             break;

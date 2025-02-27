@@ -178,28 +178,28 @@ static int ret_cmd(size_t argc, char ** argv) {
 //     return 0;
 // }
 
-static int mount_cmd(size_t argc, char ** argv) {
-    if (tar) {
-        puts("Filesystem already mounted\n");
-        return 0;
-    }
+// static int mount_cmd(size_t argc, char ** argv) {
+//     if (tar) {
+//         puts("Filesystem already mounted\n");
+//         return 0;
+//     }
 
-    if (!disk) {
-        disk = disk_open(0, DISK_DRIVER_ATA);
-        if (!disk) {
-            puts("Failed to open disk\n");
-            return 1;
-        }
-    }
+//     if (!disk) {
+//         disk = disk_open(0, DISK_DRIVER_ATA);
+//         if (!disk) {
+//             puts("Failed to open disk\n");
+//             return 1;
+//         }
+//     }
 
-    tar = tar_open(disk);
-    if (!tar) {
-        puts("Failed to mount filesystem\n");
-        return 1;
-    }
+//     tar = tar_open(disk);
+//     if (!tar) {
+//         puts("Failed to mount filesystem\n");
+//         return 1;
+//     }
 
-    return 0;
-}
+//     return 0;
+// }
 
 static int unmount_cmd(size_t argc, char ** argv) {
     if (tar) {
@@ -761,8 +761,8 @@ void commands_init() {
     term_command_add("time", time_cmd);
     term_command_add("ret", ret_cmd);
     // term_command_add("format", format_cmd);
-    term_command_add("mount", mount_cmd);
-    term_command_add("unmount", unmount_cmd);
+    // term_command_add("mount", mount_cmd);
+    // term_command_add("unmount", unmount_cmd);
     // term_command_add("mem", mem_cmd);
     term_command_add("ls", ls_cmd);
     term_command_add("stat", stat_cmd);

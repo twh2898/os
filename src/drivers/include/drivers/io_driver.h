@@ -28,4 +28,7 @@ int register_io_device(const char * path, void * driver_data, const char * drive
 io_driver_t * get_io_driver(const char * name);
 io_device_t * get_io_device(const char * path);
 
+size_t io_device_read(io_device_t * device, char * buff, size_t count, size_t pos);
+size_t io_device_write(io_device_t * device, const char * buff, size_t count, size_t pos);
+
 #endif // IO_DRIVER_H

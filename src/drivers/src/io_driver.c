@@ -75,6 +75,22 @@ io_device_t * get_io_device(const char * path) {
     return 0;
 }
 
+size_t io_device_read(io_device_t * device, char * buff, size_t count, size_t pos) {
+    if (!device) {
+        return 0;
+    }
+
+    return device->driver->read_fn(device->driver_data, buff, count, pos);
+}
+
+size_t io_device_write(io_device_t * device, const char * buff, size_t count, size_t pos) {
+    if (!device || !device->driver->write_fn) {
+        return 0;
+    }
+
+    return device->driver->write_fn(device->driver_data, buff, count, pos);
+}
+
 static char * copy_string(const char * str) {
     char * copy_str = kmalloc(kstrlen(str) + 1);
     if (copy_str) {
