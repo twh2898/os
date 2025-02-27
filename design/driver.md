@@ -29,5 +29,5 @@ Using device
 ```c
 device_t * dev = get_io_driver("/dev/ata/0");
 
-io_driver_read(dev, 12);
+io_device_read(dev, buff, 12, 0);
 ```
