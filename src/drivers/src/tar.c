@@ -49,6 +49,21 @@ static size_t       count_files(tar_fs_t * tar);
 static bool         load_headers(tar_fs_t * tar);
 static tar_file_t * find_filename(tar_fs_t * tar, const char * filename);
 
+static size_t drv_read(void * ptr, char * buff, size_t count);
+static size_t drv_seek(void * ptr, size_t pos, int origin);
+static size_t drv_tell(void * ptr);
+
+void tar_register_driver() {
+    fs_driver_t tar_driver = {
+        .read_fn  = drv_read,
+        .write_fn = 0,
+        .seek_fn  = drv_seek,
+        .tell_fn  = drv_tell,
+    };
+
+    register_fs_driver("tar", &tar_driver);
+}
+
 tar_fs_t * tar_open(io_device_t * disk) {
     if (!disk) {
         return 0;
@@ -334,4 +349,22 @@ static tar_file_t * find_filename(tar_fs_t * tar, const char * filename) {
         }
     }
     return 0;
+}
+
+static size_t drv_read(void * ptr, char * buff, size_t count) {
+    if (!ptr) {
+        return 0;
+    }
+}
+
+static size_t drv_seek(void * ptr, size_t pos, int origin) {
+    if (!ptr) {
+        return 0;
+    }
+}
+
+static size_t drv_tell(void * ptr) {
+    if (!ptr) {
+        return 0;
+    }
 }

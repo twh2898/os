@@ -8,6 +8,7 @@
 #include "cpu/tss.h"
 #include "defs.h"
 #include "drivers/ata.h"
+#include "drivers/fs_driver.h"
 #include "drivers/io_driver.h"
 #include "drivers/keyboard.h"
 #include "drivers/ramdisk.h"
@@ -125,6 +126,7 @@ void kernel_main() {
     vga_puts("Welcome to kernel v0.1.1\n");
 
     init_io_drivers();
+    init_fs_drivers();
     ata_register_driver();
 
     ata_t * disk = ata_open(0);

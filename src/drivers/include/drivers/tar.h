@@ -5,6 +5,7 @@
 #include <stddef.h>
 
 #include "disk.h"
+#include "drivers/fs_driver.h"
 #include "drivers/io_driver.h"
 
 typedef struct tar_fs      tar_fs_t;
@@ -62,6 +63,8 @@ typedef struct {
 tar_fs_t * tar_open(io_device_t * disk);
 // REMEMBER THIS DOES NOT CLOSE THE DISK
 void tar_close(tar_fs_t * tar);
+
+void tar_register_driver();
 
 size_t       tar_file_count(tar_fs_t * tar);
 const char * tar_file_name(tar_fs_t * tar, size_t i);
