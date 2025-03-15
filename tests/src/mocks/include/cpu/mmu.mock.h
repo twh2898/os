@@ -19,11 +19,13 @@ DECLARE_FAKE_VALUE_FUNC(int, mmu_table_set_flags, mmu_table_t *, size_t, uint32_
 DECLARE_FAKE_VALUE_FUNC(int, mmu_table_set, mmu_table_t *, size_t, uint32_t, uint32_t);
 DECLARE_FAKE_VALUE_FUNC(uint32_t, mmu_table_get_addr, mmu_table_t *, size_t);
 DECLARE_FAKE_VALUE_FUNC(uint32_t, mmu_table_get_flags, mmu_table_t *, size_t);
+DECLARE_FAKE_VOID_FUNC(mmu_flush_tlb, uint32_t);
 DECLARE_FAKE_VOID_FUNC(mmu_enable_paging, uint32_t);
 DECLARE_FAKE_VOID_FUNC(mmu_disable_paging);
 DECLARE_FAKE_VALUE_FUNC(bool, mmu_paging_enabled);
 DECLARE_FAKE_VOID_FUNC(mmu_change_dir, uint32_t);
 DECLARE_FAKE_VALUE_FUNC(uint32_t, mmu_get_curr_dir);
+DECLARE_FAKE_VOID_FUNC(mmu_reload_dir);
 
 void reset_cpu_mmu_mock(void);
 
