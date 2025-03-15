@@ -60,9 +60,11 @@ protected:
 };
 
 TEST_F(Paging, paging_temp_map_calls_flush_tlb) {
-    EXPECT_NE(nullptr, paging_temp_map(0x1000));
+    void * ptr = paging_temp_map(0x1000);
+    EXPECT_NE(nullptr, ptr);
     EXPECT_EQ(24, paging_temp_available());
     EXPECT_EQ(1, mmu_flush_tlb_fake.call_count);
+    EXPECT_EQ((uint32_t)ptr, mmu_flush_tlb_fake.arg0_val);
 }
 
 TEST_F(Paging, paging_temp_map) {
@@ -272,7 +274,7 @@ TEST_F(Paging, paging_remove_pages) {
 
     EXPECT_EQ(0, paging_remove_pages(&dir, 1, 2));
     EXPECT_EQ(2, ram_page_free_fake.call_count);
-    EXPECT_EQ(1, mmu_flush_tlb_fake.call_count);
+    EXPECT_EQ(3, mmu_flush_tlb_fake.call_count); // +1 for paging_table_map call
     EXPECT_BALANCED();
 }
 

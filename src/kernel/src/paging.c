@@ -193,6 +193,7 @@ int paging_remove_pages(mmu_dir_t * dir, size_t start, size_t end) {
         uint32_t page_addr = mmu_table_get_addr(table, table_i);
 
         mmu_table_set(table, table_i, 0, 0);
+        mmu_flush_tlb(PAGE2ADDR(page_i));
         ram_page_free(page_addr);
         paging_temp_free(table_addr);
     }
