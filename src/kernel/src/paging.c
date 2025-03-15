@@ -37,8 +37,10 @@ void * paging_temp_map(uint32_t paddr) {
             size_t table_i = ADDR2PAGE(VADDR_TMP_PAGE) + i;
 
             mmu_table_t * table = (mmu_table_t *)VADDR_KERNEL_TABLE;
+            uint32_t      vaddr = PAGE2ADDR(table_i);
             mmu_table_set(table, table_i, paddr, MMU_TABLE_RW);
-            return UINT2PTR(PAGE2ADDR(table_i));
+            mmu_flush_tlb(vaddr);
+            return UINT2PTR(vaddr);
         }
     }
 

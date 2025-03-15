@@ -64,10 +64,13 @@ int mmu_table_set(mmu_table_t * table, size_t i, uint32_t addr, uint32_t flags);
 uint32_t mmu_table_get_addr(mmu_table_t * table, size_t i);
 uint32_t mmu_table_get_flags(mmu_table_t * table, size_t i);
 
+void mmu_flush_tlb(uint32_t addr);
+
 extern void     mmu_enable_paging(uint32_t addr);
 extern void     mmu_disable_paging(void);
 extern bool     mmu_paging_enabled(void);
 extern void     mmu_change_dir(uint32_t addr);
 extern uint32_t mmu_get_curr_dir(void);
+extern void     mmu_reload_dir(void);
 
 #endif // MMU_H

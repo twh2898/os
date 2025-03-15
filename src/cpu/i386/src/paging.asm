@@ -65,3 +65,11 @@ mmu_get_curr_dir:
     shl eax, 12
 
     ret
+
+; void mmu_reload_dir();
+global mmu_reload_dir
+mmu_reload_dir:
+    mov eax, cr3
+    mov cr3, eax
+
+    ret
