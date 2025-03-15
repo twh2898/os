@@ -123,6 +123,8 @@ uint32_t mmu_table_get_flags(mmu_table_t * table, size_t i) {
     return table->entries[i] & MASK_FLAGS;
 }
 
-void mmu_flush_tlb(uint32_t vaddr) { // GCOVR_EXCL_FUNCTION
+// GCOVR_EXCL_START
+void mmu_flush_tlb(uint32_t vaddr) {
     asm volatile("invlpg (%0)" ::"r"(vaddr) : "memory");
 }
+// GCOVR_EXCL_STOP
