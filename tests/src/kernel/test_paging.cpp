@@ -59,6 +59,12 @@ protected:
     }
 };
 
+TEST_F(Paging, paging_temp_map_calls_flush_tlb) {
+    EXPECT_NE(nullptr, paging_temp_map(0x1000));
+    EXPECT_EQ(24, paging_temp_available());
+    EXPECT_EQ(1, mmu_flush_tlb_fake.call_count);
+}
+
 TEST_F(Paging, paging_temp_map) {
     EXPECT_EQ(nullptr, paging_temp_map(0));
     EXPECT_EQ(nullptr, paging_temp_map(1));
@@ -225,7 +231,7 @@ TEST_F(Paging, paging_add_pages_HasTable) {
     ASSERT_RAM_ALLOC_BALANCE_OFFSET(2);
 }
 
-// Paging Remove Table
+// Paging Remove Page
 
 TEST_F(Paging, paging_remove_pages_InvalidParameters) {
     EXPECT_NE(0, paging_remove_pages(0, 1, 2));
@@ -266,6 +272,7 @@ TEST_F(Paging, paging_remove_pages) {
 
     EXPECT_EQ(0, paging_remove_pages(&dir, 1, 2));
     EXPECT_EQ(2, ram_page_free_fake.call_count);
+    EXPECT_EQ(1, mmu_flush_tlb_fake.call_count);
     EXPECT_BALANCED();
 }
 
