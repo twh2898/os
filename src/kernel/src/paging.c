@@ -37,8 +37,10 @@ void * paging_temp_map(uint32_t paddr) {
             size_t table_i = ADDR2PAGE(VADDR_TMP_PAGE) + i;
 
             mmu_table_t * table = (mmu_table_t *)VADDR_KERNEL_TABLE;
-            mmu_table_set(table, table_i, paddr, MMU_TABLE_RW_USER);
-            return UINT2PTR(PAGE2ADDR(table_i));
+            uint32_t      vaddr = PAGE2ADDR(table_i);
+            mmu_table_set(table, table_i, paddr, MMU_TABLE_RW);
+            mmu_flush_tlb(vaddr);
+            return UINT2PTR(vaddr);
         }
     }
 
@@ -105,7 +107,7 @@ int paging_add_pages(mmu_dir_t * dir, size_t start, size_t end) {
         return 0;
     }
 
-    uint32_t table_end = end / MMU_DIR_SIZE;
+    uint32_t table_end = end / MMU_TABLE_SIZE;
 
     if (table_end >= MMU_DIR_SIZE) {
         return -1;
@@ -120,7 +122,7 @@ int paging_add_pages(mmu_dir_t * dir, size_t start, size_t end) {
             return -1;
         }
 
-        uint32_t dir_i   = page_i / MMU_DIR_SIZE;
+        uint32_t dir_i   = page_i / MMU_TABLE_SIZE;
         uint32_t table_i = page_i % MMU_TABLE_SIZE;
 
         // Add table if needed
@@ -159,7 +161,7 @@ int paging_remove_pages(mmu_dir_t * dir, size_t start, size_t end) {
         return 0;
     }
 
-    uint32_t table_end = end / MMU_DIR_SIZE;
+    uint32_t table_end = end / MMU_TABLE_SIZE;
 
     if (table_end >= MMU_DIR_SIZE) {
         return -1;
@@ -167,7 +169,7 @@ int paging_remove_pages(mmu_dir_t * dir, size_t start, size_t end) {
 
     // Remove pages from tables
     for (size_t page_i = start; page_i <= end; page_i++) {
-        uint32_t dir_i   = page_i / MMU_DIR_SIZE;
+        uint32_t dir_i   = page_i / MMU_TABLE_SIZE;
         uint32_t table_i = page_i % MMU_TABLE_SIZE;
 
         // Table is not present
@@ -191,6 +193,7 @@ int paging_remove_pages(mmu_dir_t * dir, size_t start, size_t end) {
         uint32_t page_addr = mmu_table_get_addr(table, table_i);
 
         mmu_table_set(table, table_i, 0, 0);
+        mmu_flush_tlb(PAGE2ADDR(page_i));
         ram_page_free(page_addr);
         paging_temp_free(table_addr);
     }
@@ -210,7 +213,17 @@ int paging_add_table(mmu_dir_t * dir, size_t dir_i) {
             return -1;
         }
 
+        mmu_table_t * table = paging_temp_map(addr);
+
+        if (!table) {
+            ram_page_free(addr);
+            return -1;
+        }
+
+        mmu_table_clear(table);
         mmu_dir_set(dir, dir_i, addr, MMU_DIR_RW);
+
+        paging_temp_free(addr);
     }
 
     return 0;

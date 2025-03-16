@@ -1,7 +1,15 @@
-#ifndef BOOT_PARAMS_H
-#define BOOT_PARAMS_H
+#ifndef KERNEL_BOOT_PARAMS_H
+#define KERNEL_BOOT_PARAMS_H
 
 #include "defs.h"
+
+enum RAM_TYPE {
+    RAM_TYPE_USABLE           = 1,
+    RAM_TYPE_RESERVED         = 2,
+    RAM_TYPE_ACPI_RECLAIMABLE = 3,
+    RAM_TYPE_ACPI_NVS         = 4,
+    RAM_TYPE_BAD              = 5,
+};
 
 typedef struct {
     uint64_t base_addr;
@@ -18,4 +26,4 @@ typedef struct {
 
 boot_params_t * get_boot_params();
 
-#endif // BOOT_PARAMS_H
+#endif // KERNEL_BOOT_PARAMS_H

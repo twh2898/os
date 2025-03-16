@@ -1,56 +1,51 @@
 #include "exec.h"
 
 #include "cpu/mmu.h"
+#include "cpu/tss.h"
+#include "libc/memory.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
+#include "paging.h"
+#include "process.h"
 #include "ram.h"
 
 typedef int (*ff_t)(size_t argc, char ** argv);
 
-static void setup_user_space(size_t size);
-static void free_user_space();
+extern _Noreturn void jump_proc(uint32_t cr3, uint32_t esp, uint32_t call);
 
 int command_exec(uint8_t * buff, size_t size, size_t argc, char ** argv) {
-    setup_user_space(size);
+    process_t * proc = kmalloc(sizeof(process_t));
 
-    kmemcpy(UINT2PTR(VADDR_USER_MEM), buff, size);
+    if (process_create(proc)) {
+        puts("Failed to create process\n");
+        return -1;
+    }
+
+    if (process_load_heap(proc, buff, size)) {
+        puts("Failed to load\n");
+        process_free(proc);
+        return -1;
+    }
+
+    puts("Go for call\n");
 
     ff_t call = UINT2PTR(VADDR_USER_MEM);
 
+    // mmu_change_dir(proc->cr3);
+
+    tss_get_entry(0)->esp0 = proc->esp0;
+    tss_get_entry(0)->cr3  = proc->cr3;
+    tss_get_entry(0)->esp  = proc->esp;
+
+    jump_proc(proc->cr3, proc->esp, VADDR_USER_MEM);
+
     int res = call(argc, argv);
 
-    free_user_space();
+    puts("Done\n");
+
+    process_free(proc);
+
+    puts("All good!\n");
 
     return res;
-}
-
-static void setup_user_space(size_t size) {
-    mmu_dir_t *   dir        = UINT2PTR(VADDR_KERNEL_PAGE_DIR);
-    mmu_table_t * last_table = UINT2PTR(VADDR_KERNEL_TABLE);
-
-    uint32_t page = ram_page_alloc();
-    mmu_dir_set(dir, 1, page, MMU_DIR_RW);
-    mmu_table_set(last_table, 1, page, MMU_TABLE_RW);
-
-    // mmu_table_t * user_table = UINT2PTR(VADDR_FIRST_PAGE_TABLE + (1 << 12));
-
-    // size_t page_count = PAGE_ALIGNED(size) >> 12;
-    // for (size_t i = 0; i < page_count; i++) {
-    //     uint32_t page_paddr = ram_page_alloc();
-    //     mmu_table_set(user_table, i, page_paddr, MMU_TABLE_RW);
-    // }
-}
-
-static void free_user_space() {
-    mmu_dir_t * dir = UINT2PTR(VADDR_KERNEL_PAGE_DIR);
-    // mmu_table_t * last_table = UINT2PTR(VADDR_LAST_PAGE_TABLE);
-
-    // mmu_table_t * user_table = UINT2PTR(VADDR_FIRST_PAGE_TABLE + (1 << 12));
-    // mmu_table_clear(user_table);
-
-    // mmu_table_set(last_table, 1, 0, 0);
-    // mmu_dir_set(dir, 1, 0, 0);
-
-    // uint32_t page_paddr = mmu_table_get_addr(last_table, 1);
-    // ram_page_free(page_paddr);
 }

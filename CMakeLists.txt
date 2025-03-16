@@ -36,9 +36,13 @@ add_subdirectory(src)
 
 add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/os-image.bin
     COMMAND cat $<TARGET_OBJECTS:boot> ${CMAKE_BINARY_DIR}/src/kernel/kernel.bin > ${CMAKE_BINARY_DIR}/os-image.bin
+    COMMAND echo Size of os image is
+    COMMAND du -h ${CMAKE_BINARY_DIR}/os-image.bin
     DEPENDS
     $<TARGET_OBJECTS:boot>
     ${CMAKE_BINARY_DIR}/src/kernel/kernel.bin
 )
 
-add_custom_target(os_image ALL DEPENDS ${CMAKE_BINARY_DIR}/os-image.bin)
+add_custom_target(os_image ALL
+    DEPENDS ${CMAKE_BINARY_DIR}/os-image.bin
+)

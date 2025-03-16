@@ -26,4 +26,6 @@ void           proc_exit(uint8_t code);
 void           proc_abort(uint8_t code, const char * msg);
 NO_RETURN void proc_panic(const char * msg, const char * file, unsigned int line);
 
+int getpid(void);
+
 #endif // LIBC_PROC_H

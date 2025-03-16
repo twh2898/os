@@ -4,7 +4,19 @@
 #include <stddef.h>
 #include <stdint.h>
 
-typedef void (*signals_master_callback)(int);
+#include "libc/datastruct/array.h"
+
+typedef void (*signals_master_cb_t)(int);
+
+enum HANDLE_TYPE {
+    HANDLE_TYPE_FREE = 0,
+    HANDLE_TYPE_FILE,
+};
+
+typedef struct _handle {
+    int id;
+    int type;
+} handle_t;
 
 typedef struct _process {
     uint32_t pid;
@@ -17,7 +29,9 @@ typedef struct _process {
     uint32_t esp;
     uint32_t esp0;
 
-    signals_master_callback signals_callback;
+    signals_master_cb_t signals_callback;
+
+    arr_t io_handles; // array<handle_t>
 
     struct _process * next_proc;
 } process_t;
@@ -58,6 +72,27 @@ void * process_add_pages(process_t * proc, size_t count);
  * @return int 0 for success
  */
 int process_grow_stack(process_t * proc);
+
+/**
+ * @brief Allocate pages in the heap and copy data from `buff` into the pages.
+ *
+ * Pages are allocated using process_add_pages. If process_add_pages has not not
+ * yet been called, this will place the data at the start of the user memory.
+ * This is ideal for loading a process executable, as it has a fixed / known
+ * memory address to start execution.
+ *
+ * If process_add_pages or process_load_heap have been called, this function
+ * will begin allocating pages starting with the end of the heap. This is page
+ * aligned, so if the size of the last call process_load_heap was not page
+ * aligned, there will be a gap between the end of the last data and this new
+ * data.
+ *
+ * @param proc pointer to the process object
+ * @param buff pointer to the data
+ * @param size number of bytes to copy from buff
+ * @return int 0 for success
+ */
+int process_load_heap(process_t * proc, const char * buff, size_t size);
 
 /**
  * @brief Set the next PID value. All future PID's will be incremented from

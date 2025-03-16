@@ -40,3 +40,16 @@ jump_kernel_mode:
     ret
 
 .cb: dd 0
+
+; void jump_proc(uint32_t cr3, uint32_t esp, uint32_t call);
+global jump_proc
+jump_proc:
+    mov eax, [esp+4]  ; cr3
+    mov ebx, [esp+8]  ; esp
+    mov edx, [esp+12] ; call
+
+    mov cr3, eax
+    mov ebp, ebx
+    mov esp, ebx
+
+    jmp edx

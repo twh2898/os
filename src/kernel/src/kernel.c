@@ -13,7 +13,13 @@
 #include "drivers/rtc.h"
 #include "drivers/timer.h"
 #include "drivers/vga.h"
-#include "interrupts.h"
+#include "io/file.h"
+#include "kernel/boot_params.h"
+#include "kernel/system_call.h"
+#include "kernel/system_call_io.h"
+#include "kernel/system_call_mem.h"
+#include "kernel/system_call_proc.h"
+#include "kernel/system_call_stdio.h"
 #include "libc/memory.h"
 #include "libc/proc.h"
 #include "libc/stdio.h"
@@ -28,17 +34,13 @@ static kernel_t __kernel;
 
 extern _Noreturn void halt(void);
 
-static process_t * get_current_process();
-static void        id_map_range(mmu_table_t * table, size_t start, size_t end);
-static void        id_map_page(mmu_table_t * table, size_t page);
-static void        cursor();
-static void        irq_install();
-static uint32_t    int_mem_cb(uint16_t int_no, registers_t * regs);
-static uint32_t    int_proc_cb(uint16_t int_no, registers_t * regs);
-static uint32_t    int_tmp_stdio_cb(uint16_t int_no, registers_t * regs);
-static int         kill(size_t argc, char ** argv);
-static int         try_switch(size_t argc, char ** argv);
-static void        map_first_table(mmu_table_t * table);
+static void id_map_range(mmu_table_t * table, size_t start, size_t end);
+static void id_map_page(mmu_table_t * table, size_t page);
+static void cursor();
+static void irq_install();
+static int  kill(size_t argc, char ** argv);
+static int  try_switch(size_t argc, char ** argv);
+static void map_first_table(mmu_table_t * table);
 
 extern void jump_kernel_mode(void * fn);
 
@@ -48,12 +50,27 @@ void kernel_main() {
 
     kmemset(&__kernel, 0, sizeof(kernel_t));
 
+    boot_params_t * bparams = get_boot_params();
+
     // Init RAM
     __kernel.ram_table_addr = PADDR_RAM_TABLE;
-    ram_init((void *)__kernel.ram_table_addr, &__kernel.ram_table_count);
+    ram_init((void *)__kernel.ram_table_addr, (void *)VADDR_RAM_BITMASKS);
+
+    for (size_t i = 0; i < bparams->mem_entries_count; i++) {
+        upper_ram_t * entry = &bparams->mem_entries[i];
+
+        // End of second stage kernel
+        if (entry->base_addr <= 0x9fbff) {
+            continue;
+        }
+
+        if (entry->type == RAM_TYPE_USABLE || entry->type == RAM_TYPE_ACPI_RECLAIMABLE) {
+            ram_region_add_memory(entry->base_addr, entry->length);
+        }
+    }
 
     // Init Page Dir
-    __kernel.cr3     = PADDR_KERNEL_PAGE_DIR;
+    __kernel.cr3     = PADDR_KERNEL_DIR;
     mmu_dir_t * pdir = (mmu_dir_t *)__kernel.cr3;
     mmu_dir_clear(pdir);
 
@@ -70,15 +87,15 @@ void kernel_main() {
     mmu_dir_set(pdir, MMU_DIR_SIZE - 1, __kernel.cr3, MMU_DIR_RW);
 
     // Enter Paging
-    mmu_enable_paging(pdir);
+    mmu_enable_paging(__kernel.cr3);
 
     // GDT & TSS
     init_gdt();
     init_tss();
 
     // Kernel process used for memory allocation
-    __kernel.proc.next_heap_page = ADDR2PAGE(VADDR_RAM_BITMASKS) + __kernel.ram_table_count;
-    __kernel.proc.cr3            = PADDR_KERNEL_PAGE_DIR;
+    __kernel.proc.next_heap_page = ADDR2PAGE(VADDR_RAM_BITMASKS) + ram_region_table_count();
+    __kernel.proc.cr3            = PADDR_KERNEL_DIR;
 
     // Add isr stack to kernel's TSS
     set_kernel_stack(VADDR_ISR_STACK);
@@ -90,16 +107,22 @@ void kernel_main() {
     __kernel.pm.task_begin           = __kernel.pm.idle_task;
 
     isr_install();
-    irq_install();
 
-    init_system_interrupts(IRQ16);
-    system_interrupt_register(SYS_INT_FAMILY_MEM, int_mem_cb);
-    system_interrupt_register(SYS_INT_FAMILY_PROC, int_proc_cb);
-    system_interrupt_register(SYS_INT_FAMILY_STDIO, int_tmp_stdio_cb);
+    init_system_call(IRQ16);
+    system_call_register(SYS_INT_FAMILY_IO, sys_call_io_cb);
+    system_call_register(SYS_INT_FAMILY_MEM, sys_call_mem_cb);
+    system_call_register(SYS_INT_FAMILY_PROC, sys_call_proc_cb);
+    system_call_register(SYS_INT_FAMILY_STDIO, sys_call_tmp_stdio_cb);
 
     // Init kernel memory after system calls are registered
-    memory_init(&__kernel.kernel_memory, _page_alloc);
+    memory_init(&__kernel.kernel_memory, _sys_page_alloc);
     init_malloc(&__kernel.kernel_memory);
+
+    if (ebus_create(&__kernel.event_bus, 4096)) {
+        PANIC("Failed to init ebus\n");
+    }
+
+    irq_install();
 
     vga_puts("Welcome to kernel v0.1.1\n");
 
@@ -128,8 +151,17 @@ mmu_table_t * get_kernel_table() {
     return (mmu_table_t *)VADDR_KERNEL_TABLE;
 }
 
-static process_t * get_current_process() {
+process_t * get_current_process() {
     return __kernel.pm.curr_task;
+}
+
+ebus_t * get_kernel_ebus() {
+    return &__kernel.event_bus;
+}
+
+void tmp_register_signals_cb(signals_master_cb_t cb) {
+    __kernel.pm.curr_task->signals_callback = cb;
+    printf("Attached master signal callback at %p\n", __kernel.pm.curr_task->signals_callback);
 }
 
 static void cursor() {
@@ -143,115 +175,13 @@ static void cursor() {
 static void irq_install() {
     enable_interrupts();
     /* IRQ0: timer */
-    init_timer(1000); // milliseconds
+    init_timer(TIMER_FREQ_MS); // milliseconds
     /* IRQ1: keyboard */
     init_keyboard();
     /* IRQ14: ata disk */
     init_ata();
     /* IRQ8: real time clock */
     init_rtc(RTC_RATE_1024_HZ);
-}
-
-static uint32_t int_mem_cb(uint16_t int_no, registers_t * regs) {
-    uint32_t res = 0;
-
-    switch (int_no) {
-            // case SYS_INT_MEM_MALLOC: {
-            //     size_t size = regs->ebx;
-            //     res         = PTR2UINT(impl_kmalloc(size));
-            // } break;
-
-            // case SYS_INT_MEM_REALLOC: {
-            //     void * ptr  = UINT2PTR(regs->ebx);
-            //     size_t size = regs->ecx;
-            //     // res = PTR2UINT(krealloc(ptr, size));
-            // } break;
-
-            // case SYS_INT_MEM_FREE: {
-            //     void * ptr = UINT2PTR(regs->ebx);
-            //     impl_kfree(ptr);
-            // } break;
-
-        case SYS_INT_MEM_PAGE_ALLOC: {
-            size_t count = regs->ebx;
-
-            process_t * curr_proc = get_current_process();
-
-            res = PTR2UINT(process_add_pages(curr_proc, count));
-        } break;
-    }
-
-    return res;
-}
-
-static uint32_t int_proc_cb(uint16_t int_no, registers_t * regs) {
-    uint32_t res = 0;
-
-    switch (int_no) {
-        case SYS_INT_PROC_EXIT: {
-            uint8_t code = regs->ebx;
-            printf("Proc exit with code %u\n", code);
-            regs->eip = PTR2UINT(term_run);
-            // kernel_exit();
-        } break;
-
-        case SYS_INT_PROC_ABORT: {
-            uint8_t      code = regs->ebx;
-            const char * msg  = UINT2PTR(regs->ecx);
-            printf("Proc exit with code %u\n", code);
-            puts(msg);
-            regs->eip = PTR2UINT(term_run);
-            // kernel_exit();
-        } break;
-
-        case SYS_INT_PROC_PANIC: {
-            const char * msg  = UINT2PTR(regs->ebx);
-            const char * file = UINT2PTR(regs->ecx);
-            unsigned int line = regs->edx;
-            vga_color(VGA_FG_WHITE | VGA_BG_RED);
-            vga_puts("[PANIC]");
-            if (file) {
-                vga_putc('[');
-                vga_puts(file);
-                vga_puts("]:");
-                vga_putu(line);
-            }
-            if (msg) {
-                vga_putc(' ');
-                vga_puts(msg);
-            }
-            vga_cursor_hide();
-            asm("cli");
-            for (;;) {
-                asm("hlt");
-            }
-        } break;
-
-        case SYS_INT_PROC_REG_SIG: {
-            __kernel.pm.curr_task->signals_callback = (signals_master_callback)regs->ebx;
-            printf("Attached master signal callback at %p\n", __kernel.pm.curr_task->signals_callback);
-        } break;
-    }
-
-    return 0;
-}
-
-static uint32_t int_tmp_stdio_cb(uint16_t int_no, registers_t * regs) {
-    uint32_t res = 0;
-
-    switch (int_no) {
-        case SYS_INT_STDIO_PUTC: {
-            char c = regs->ebx;
-            res    = vga_putc(c);
-        } break;
-
-        case SYS_INT_STDIO_PUTS: {
-            char * str = UINT2PTR(regs->ebx);
-            res        = vga_puts(str);
-        } break;
-    }
-
-    return 0;
 }
 
 static int kill(size_t argc, char ** argv) {
@@ -284,8 +214,11 @@ static void map_first_table(mmu_table_t * table) {
     mmu_table_set(table, ADDR2PAGE(VADDR_KERNEL_TABLE), (uint32_t)table, MMU_TABLE_RW);
 
     // RAM region bitmasks
-    for (size_t i = 0; i < __kernel.ram_table_count; i++) {
-        mmu_table_set(table, ADDR2PAGE(VADDR_RAM_BITMASKS) + i, ram_bitmask_paddr(i), MMU_TABLE_RW);
+    ram_table_t * ram_table = (ram_table_t *)(__kernel.ram_table_addr);
+
+    for (size_t i = 0; i < ram_region_table_count(); i++) {
+        uint32_t bitmask_addr = ram_table->entries[i].addr_flags & MASK_ADDR;
+        mmu_table_set(table, ADDR2PAGE(VADDR_RAM_BITMASKS) + i, bitmask_addr, MMU_TABLE_RW);
     }
 }
 

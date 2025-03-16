@@ -14,13 +14,14 @@ int process_create(process_t * proc) {
 
     kmemset(proc, 0, sizeof(process_t));
 
-    proc->pid              = next_pid();
-    proc->next_heap_page   = VADDR_USER_MEM;
-    proc->stack_page_count = 1;
-
     proc->cr3 = ram_page_alloc();
 
     if (!proc->cr3) {
+        return -1;
+    }
+
+    if (arr_create(&proc->io_handles, 1, sizeof(handle_t))) {
+        ram_page_free(proc->cr3);
         return -1;
     }
 
@@ -32,31 +33,25 @@ int process_create(process_t * proc) {
         return -1;
     }
 
+    uint32_t kernel_table_addr = mmu_dir_get_addr((mmu_dir_t *)VADDR_KERNEL_DIR, 0);
+
     // Copy first page table from kernel page directory
     mmu_dir_clear(dir);
-    mmu_dir_set(dir, 0, VADDR_KERNEL_TABLE, MMU_DIR_RW);
-
-    // Setup stack table
-    uint32_t table_addr = ram_page_alloc();
-
-    if (!table_addr) {
-        paging_temp_free(proc->cr3);
-        ram_page_free(proc->cr3);
-        return -1;
-    }
-
-    mmu_dir_set(dir, MMU_DIR_SIZE - 1, table_addr, MMU_DIR_RW);
+    mmu_dir_set(dir, 0, kernel_table_addr, MMU_DIR_RW);
 
     proc->esp  = VADDR_USER_STACK;
     proc->esp0 = VADDR_ISR_STACK;
 
-    // Allocate pages for ISR stack
-    if (paging_add_pages(dir, ADDR2PAGE(proc->esp + 1), ADDR2PAGE(proc->esp0))) {
+    // Allocate pages for ISR stack + first page of user stack
+    if (paging_add_pages(dir, ADDR2PAGE(proc->esp), ADDR2PAGE(proc->esp0))) {
         paging_temp_free(proc->cr3);
         ram_page_free(proc->cr3);
-        ram_page_free(table_addr);
         return -1;
     }
+
+    proc->pid              = next_pid();
+    proc->next_heap_page   = ADDR2PAGE(VADDR_USER_MEM);
+    proc->stack_page_count = 1;
 
     paging_temp_free(proc->cr3);
 
@@ -67,6 +62,8 @@ int process_free(process_t * proc) {
     if (!proc) {
         return -1;
     }
+
+    arr_free(&proc->io_handles);
 
     mmu_dir_t * dir = paging_temp_map(proc->cr3);
 
@@ -155,6 +152,64 @@ int process_grow_stack(process_t * proc) {
     }
 
     proc->stack_page_count--;
+
+    paging_temp_free(proc->cr3);
+
+    return 0;
+}
+
+int process_load_heap(process_t * proc, const char * buff, size_t size) {
+    if (!proc || !buff || !size) {
+        return -1;
+    }
+
+    size_t page_count = ADDR2PAGE(size);
+    if (size & MASK_FLAGS) {
+        page_count++;
+    }
+
+    uint32_t heap_start = proc->next_heap_page;
+    void *   heap_alloc = process_add_pages(proc, page_count);
+
+    if (!heap_alloc) {
+        return -1;
+    }
+
+    mmu_dir_t * dir = paging_temp_map(proc->cr3);
+
+    if (!dir) {
+        return -1;
+    }
+
+    for (size_t i = 0; i < page_count; i++) {
+        uint32_t      table_addr = mmu_dir_get_addr(dir, (heap_start + i) / MMU_TABLE_SIZE);
+        mmu_table_t * table      = paging_temp_map(table_addr);
+
+        if (!table) {
+            paging_temp_free(proc->cr3);
+            return -1;
+        }
+
+        uint32_t addr     = mmu_table_get_addr(table, (heap_start + i) % MMU_TABLE_SIZE);
+        void *   tmp_page = paging_temp_map(addr);
+
+        if (!tmp_page) {
+            paging_temp_free(table_addr);
+            paging_temp_free(proc->cr3);
+            return -1;
+        }
+
+        size_t to_copy = PAGE_SIZE;
+
+        if (i == page_count - 1) {
+            to_copy = size % PAGE_SIZE;
+        }
+
+        kmemcpy(tmp_page, &buff[i * PAGE_SIZE], to_copy);
+
+        paging_temp_free(addr);
+        paging_temp_free(table_addr);
+    }
 
     paging_temp_free(proc->cr3);
 

@@ -97,11 +97,11 @@ size_t ltoa(int64_t n, char * str) {
 }
 
 size_t puts(const char * str) {
-    return _puts(str);
+    return _sys_puts(str);
 }
 
 size_t putc(char c) {
-    return _putc(c);
+    return _sys_putc(c);
 }
 
 size_t puti(int32_t num, uint8_t base, bool upper) {

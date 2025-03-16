@@ -29,6 +29,6 @@ setup:
 	cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DOS_TEST_COVERAGE_DARK=${DARK_MODE}
 
 build: setup
-	cmake --build build
+	cmake --build build -j
 
 .PHONY: setup build test test_cov coverage test-ci

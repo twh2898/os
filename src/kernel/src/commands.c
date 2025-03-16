@@ -11,10 +11,17 @@
 #include "drivers/tar.h"
 #include "drivers/timer.h"
 #include "drivers/vga.h"
+#include "ebus.h"
 #include "exec.h"
+#include "kernel.h"
+#include "libc/datastruct/array.h"
 #include "libc/memory.h"
+#include "libc/proc.h"
+#include "libc/signal.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
+#include "paging.h"
+#include "process.h"
 #include "ram.h"
 #include "term.h"
 
@@ -143,10 +150,35 @@ static int port_in_cmd(size_t argc, char ** argv) {
 }
 
 static int time_cmd(size_t argc, char ** argv) {
-    uint32_t ms = get_ticks();
-    printf("System ticks: %u ~= %u s\n", ms, ms / 1000);
+    uint32_t ticks = get_ticks();
+    uint32_t s     = get_time_s();
+    uint32_t ms    = get_time_ms();
+    uint32_t ns    = get_time_ns();
+    printf("System ticks: %u ~= %u ns ~= %u ms ~= %u s\n", ticks, ns, ms, s);
     printf("RTC time: %u us = %u ms = %u s\n", time_us(), time_ms(), time_s());
     return 0;
+}
+
+int sleep_handler;
+
+static void sleep_cb(const ebus_event_t * event) {
+    printf("Timer ended at %u\n", event->timer.time);
+    ebus_unregister_handler(get_kernel_ebus(), sleep_handler);
+    sleep_handler = 0;
+}
+
+static int sleep_cmd(size_t argc, char ** argv) {
+    if (sleep_handler) {
+        printf("Please wait for sleep to finish\n");
+        return 1;
+    }
+
+    ebus_handler_t handler = {0};
+    handler.callback_fn    = sleep_cb;
+    handler.event_id       = EBUS_EVENT_TIMER;
+
+    sleep_handler = ebus_register_handler(get_kernel_ebus(), &handler);
+    start_timer_ms(1000);
 }
 
 static int ret_cmd(size_t argc, char ** argv) {
@@ -216,48 +248,45 @@ static void print_64(uint64_t v) {
     printf("0x%08X%08X", u, l);
 }
 
-static void print_upper(uint64_t start, uint64_t end, uint64_t size, enum RAM_TYPE type) {
-    puts("| ");
-    print_64(start);
-    puts(" | ");
-    print_64(end);
-    puts(" | ");
-    print_64(size);
-    puts(" | ");
-    switch (type) {
-        case 1:
-            puts("Usable RAM");
-            break;
-        case 2:
-            puts("Reserved");
-            break;
-        case 3:
-            puts("ACPI Reclaimable");
-            break;
-        case 4:
-            puts("ACPI NVS");
-            break;
-        case 5:
-            puts("BAD MEMORY");
-            break;
-    }
-    putc('\n');
-}
+// static void print_upper(uint64_t start, uint64_t end, uint64_t size, enum RAM_TYPE type) {
+//     puts("| ");
+//     print_64(start);
+//     puts(" | ");
+//     print_64(end);
+//     puts(" | ");
+//     print_64(size);
+//     puts(" | ");
+//     switch (type) {
+//         case 1:
+//             puts("Usable RAM");
+//             break;
+//         case 2:
+//             puts("Reserved");
+//             break;
+//         case 3:
+//             puts("ACPI Reclaimable");
+//             break;
+//         case 4:
+//             puts("ACPI NVS");
+//             break;
+//         case 5:
+//             puts("BAD MEMORY");
+//             break;
+//     }
+//     putc('\n');
+// }
 
-static int mem_cmd(size_t argc, char ** argv) {
-    uint16_t low_mem = ram_lower_size();
-    printf("Lower memory is %u k\n", low_mem);
+// static int mem_cmd(size_t argc, char ** argv) {
+//     uint16_t count = ram_upper_count();
 
-    uint16_t count = ram_upper_count();
+//     printf("Total of %u blocks\n", count);
 
-    printf("Total of %u blocks\n", count);
-
-    puts("| Start              | End                | Size               | Type\n");
-    for (size_t i = 0; i < count; i++) {
-        print_upper(ram_upper_start(i), ram_upper_end(i), ram_upper_size(i), ram_upper_type(i));
-    }
-    return 0;
-}
+//     puts("| Start              | End                | Size               | Type\n");
+//     for (size_t i = 0; i < count; i++) {
+//         print_upper(ram_upper_start(i), ram_upper_end(i), ram_upper_size(i), ram_upper_type(i));
+//     }
+//     return 0;
+// }
 
 static void ls_print_file_size(size_t size) {
     size_t order = 0;
@@ -528,6 +557,195 @@ static int disk_size_cmd(size_t argc, char ** argv) {
     return 0;
 }
 
+static int ebus_send_cmd(size_t argc, char ** argv) {
+    static const char * msg = "Hello events";
+    ebus_event_t        event;
+    event.event_id     = EBUS_EVENT_USER_MSG;
+    event.user_msg.msg = msg;
+    queue_event(&event);
+    return 0;
+}
+
+static int ebus_size_cmd(size_t argc, char ** argv) {
+    int size = ebus_queue_size(get_kernel_ebus());
+    printf("Event queue size is %d\n", size);
+    return 0;
+}
+
+static int currdir(size_t argc, char ** argv) {
+    printf("Current dir is %p\n", mmu_get_curr_dir());
+    return 0;
+}
+
+static int hotswap(size_t argc, char ** argv) {
+    uint32_t curr_dir = mmu_get_curr_dir();
+
+    uint32_t addr = ram_page_alloc();
+    if (!addr) {
+        printf("Failed to allocate page\n");
+        return 1;
+    }
+
+    mmu_dir_t * dir = paging_temp_map(addr);
+    if (!dir) {
+        printf("Failed to temp map\n");
+        ram_page_free(addr);
+        return 2;
+    }
+
+    mmu_dir_clear(dir);
+    mmu_dir_set(dir, 0, mmu_dir_get_addr(UINT2PTR(VADDR_KERNEL_DIR), 0), MMU_DIR_RW);
+
+    kmemcpy(dir, UINT2PTR(VADDR_KERNEL_DIR), sizeof(mmu_dir_t));
+
+    printf("Switching to new dir %p\n", addr);
+
+    mmu_change_dir(addr);
+
+    paging_temp_free(addr);
+
+    if (curr_dir != 0x1000) {
+        ram_page_free(curr_dir);
+    }
+
+    return 0;
+}
+
+typedef struct {
+    uint32_t addr;
+    int      dir_i;
+    int      table_i;
+} little_t;
+
+static void assert_all_unique(uint32_t cr3) {
+    printf("Checking cr3 %p\n", cr3);
+
+    little_t little;
+
+    arr_t array;
+    arr_create(&array, 1024, sizeof(little_t));
+    little.addr    = cr3;
+    little.dir_i   = -1;
+    little.table_i = -1;
+    arr_insert(&array, arr_size(&array), &little);
+
+    mmu_dir_t * dir = paging_temp_map(cr3);
+
+    for (size_t i = 0; i < MMU_DIR_SIZE; i++) {
+        if (mmu_dir_get_flags(dir, i) & MMU_DIR_FLAG_PRESENT) {
+            uint32_t      table_addr = mmu_dir_get_addr(dir, i);
+            mmu_table_t * table      = paging_temp_map(table_addr);
+
+            little.addr    = table_addr;
+            little.dir_i   = i;
+            little.table_i = -1;
+            arr_insert(&array, arr_size(&array), &little);
+
+            for (size_t j = 0; j < MMU_TABLE_SIZE; j++) {
+                if (mmu_table_get_flags(table, j) & MMU_TABLE_FLAG_PRESENT) {
+                    uint32_t page_addr = mmu_table_get_addr(table, j);
+
+                    little.addr    = page_addr;
+                    little.dir_i   = i;
+                    little.table_i = j;
+                    arr_insert(&array, arr_size(&array), &little);
+                }
+            }
+
+            paging_temp_free(table_addr);
+        }
+    }
+
+    paging_temp_free(cr3);
+
+    puts("Checking pages\n");
+
+    for (size_t i = 0; i < arr_size(&array); i++) {
+        little_t * curr = arr_at(&array, i);
+
+        for (size_t j = i + 1; j < arr_size(&array); j++) {
+            little_t * search = arr_at(&array, j);
+
+            if (curr->addr == search->addr) {
+                printf("Found duplicate page %p src %i:%i dest %i:%i\n", curr->addr, curr->dir_i, curr->table_i, search->dir_i, search->table_i);
+            }
+        }
+    }
+
+    arr_free(&array);
+}
+
+static void assert_process_is(process_t * proc) {
+    printf("Checking process %p\n", proc->cr3);
+
+    mmu_dir_t * dir = paging_temp_map(proc->cr3);
+    printf("Temp map to %p\n", dir);
+
+    for (size_t i = 0; i < MMU_DIR_SIZE; i++) {
+        if (mmu_dir_get_flags(dir, i) & MMU_DIR_FLAG_PRESENT) {
+            uint32_t      table_addr = mmu_dir_get_addr(dir, i);
+            mmu_table_t * table      = paging_temp_map(table_addr);
+
+            printf("Entry %u present with address %p\n", i, table_addr);
+            size_t page_count = 0;
+            size_t are_zero   = 0;
+            for (size_t j = 0; j < MMU_TABLE_SIZE; j++) {
+                if (mmu_table_get_flags(table, j) & MMU_TABLE_FLAG_PRESENT) {
+                    uint32_t page_addr = mmu_table_get_addr(table, j);
+                    page_count++;
+                    if (!page_addr) {
+                        are_zero++;
+                    }
+                    else {
+                        printf("%p ", page_addr);
+                    }
+                }
+            }
+            printf("Found %u pages with %u zeros\n", page_count, are_zero);
+
+            paging_temp_free(table_addr);
+        }
+    }
+
+    paging_temp_free(proc->cr3);
+}
+
+static int procswap(size_t argc, char ** argv) {
+    static process_t * proc = 0;
+
+    process_t * next_proc = kmalloc(sizeof(process_t));
+
+    if (process_create(next_proc)) {
+        printf("Failed to do it\n");
+        kfree(next_proc);
+        return 1;
+    }
+
+    assert_all_unique(next_proc->cr3);
+    assert_process_is(next_proc);
+
+    // void * ptr1 = process_add_pages(next_proc, 1);
+
+    mmu_change_dir(next_proc->cr3);
+
+    // void * ptr2 = process_add_pages(next_proc, 1);
+
+    if (proc) {
+        printf("Free first\n");
+        process_free(proc);
+        kfree(proc);
+    }
+
+    // printf("Ptr1 = %p\n", ptr1);
+    // printf("Ptr2 = %p\n", ptr2);
+
+    proc = next_proc;
+
+    // assert_process_is(proc);
+
+    return 0;
+}
+
 static int command_lookup(size_t argc, char ** argv) {
     char * filename = argv[0];
 
@@ -571,8 +789,16 @@ static int command_lookup(size_t argc, char ** argv) {
     return res;
 }
 
+static void user_message_cb(const ebus_event_t * event) {
+    puts(event->user_msg.msg);
+}
+
 void commands_init() {
     set_command_lookup(command_lookup);
+
+    term_command_add("currdir", currdir);
+    term_command_add("hotswap", hotswap);
+    term_command_add("procswap", procswap);
 
     term_command_add("clear", clear_cmd);
     term_command_add("echo", echo_cmd);
@@ -581,11 +807,12 @@ void commands_init() {
     term_command_add("outb", port_out_cmd);
     term_command_add("inb", port_in_cmd);
     term_command_add("time", time_cmd);
+    term_command_add("sleep", sleep_cmd);
     term_command_add("ret", ret_cmd);
     // term_command_add("format", format_cmd);
     term_command_add("mount", mount_cmd);
     term_command_add("unmount", unmount_cmd);
-    term_command_add("mem", mem_cmd);
+    // term_command_add("mem", mem_cmd);
     term_command_add("ls", ls_cmd);
     term_command_add("stat", stat_cmd);
     // term_command_add("status", status_cmd);
@@ -594,4 +821,13 @@ void commands_init() {
     // term_command_add("read", disk_read_cmd);
     term_command_add("write", disk_write_cmd);
     term_command_add("size", disk_size_cmd);
+    term_command_add("send_event", ebus_send_cmd);
+    term_command_add("ebus_size", ebus_size_cmd);
+
+    ebus_handler_t handler = {0};
+    handler.callback_fn    = user_message_cb;
+    handler.event_id       = EBUS_EVENT_USER_MSG;
+    if (ebus_register_handler(get_kernel_ebus(), &handler) < 1) {
+        PANIC("Failed to register handler");
+    }
 }

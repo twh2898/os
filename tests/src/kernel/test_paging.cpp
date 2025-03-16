@@ -7,6 +7,18 @@ extern "C" {
 
 mmu_table_t table;
 mmu_dir_t   dir;
+
+int custom_mmu_dir_set(mmu_dir_t * dir, size_t i, uint32_t addr, uint32_t flags) {
+    if (!dir || i >= MMU_DIR_SIZE) {
+        return -1;
+    }
+
+    mmu_entry_t entry = (addr & MASK_ADDR) | (flags & MASK_FLAGS);
+
+    dir->entries[i] = entry;
+
+    return 0;
+}
 }
 
 #define EXPECT_BALANCED() EXPECT_EQ(25, paging_temp_available())
@@ -47,6 +59,14 @@ protected:
     }
 };
 
+TEST_F(Paging, paging_temp_map_calls_flush_tlb) {
+    void * ptr = paging_temp_map(0x1000);
+    EXPECT_NE(nullptr, ptr);
+    EXPECT_EQ(24, paging_temp_available());
+    EXPECT_EQ(1, mmu_flush_tlb_fake.call_count);
+    EXPECT_EQ((uint32_t)ptr, mmu_flush_tlb_fake.arg0_val);
+}
+
 TEST_F(Paging, paging_temp_map) {
     EXPECT_EQ(nullptr, paging_temp_map(0));
     EXPECT_EQ(nullptr, paging_temp_map(1));
@@ -60,7 +80,7 @@ TEST_F(Paging, paging_temp_map) {
     EXPECT_EQ((mmu_table_t *)VADDR_KERNEL_TABLE, mmu_table_set_fake.arg0_val);
     EXPECT_EQ(ADDR2PAGE(VADDR_TMP_PAGE), mmu_table_set_fake.arg1_val);
     EXPECT_EQ(0x1000, mmu_table_set_fake.arg2_val);
-    EXPECT_EQ(MMU_TABLE_RW_USER, mmu_table_set_fake.arg3_val);
+    EXPECT_EQ(MMU_TABLE_RW, mmu_table_set_fake.arg3_val);
 
     for (size_t i = 1; i < 25; i++) {
         EXPECT_NE(nullptr, paging_temp_map((i + 1) << 12)) << i;
@@ -178,19 +198,42 @@ TEST_F(Paging, paging_add_pages_NeedsTable_FailTempMap) {
     ASSERT_RAM_ALLOC_BALANCE_OFFSET(1); // Table is not freed
 }
 
+TEST_F(Paging, paging_add_pages_NeedsTable) {
+    mmu_dir_set_fake.custom_fake = custom_mmu_dir_set;
+
+    mmu_dir_get_addr_fake.return_val = 0x1000;
+    ram_page_alloc_fake.return_val   = 0x2000;
+
+    EXPECT_EQ(0, paging_add_pages(&dir, 1, 2));
+
+    EXPECT_EQ(0x2003, dir.entries[0]);
+
+    EXPECT_BALANCED();
+    ASSERT_RAM_ALLOC_BALANCE_OFFSET(4);
+}
+
 TEST_F(Paging, paging_add_pages_HasTable) {
     mmu_dir_get_flags_fake.return_val = MMU_DIR_FLAG_PRESENT;
     mmu_dir_get_addr_fake.return_val  = 0x1000;
     ram_page_alloc_fake.return_val    = 0x2000;
 
     EXPECT_EQ(0, paging_add_pages(&dir, 1, 2));
+
     EXPECT_EQ(2, ram_page_alloc_fake.call_count);
     EXPECT_EQ(3, mmu_table_set_fake.call_count); // Include call to paging_temp_free
+
+    EXPECT_EQ(1, mmu_table_set_fake.arg1_history[1]);
+    EXPECT_EQ(2, mmu_table_set_fake.arg1_history[2]);
+    EXPECT_EQ(0x2000, mmu_table_set_fake.arg2_history[1]);
+    EXPECT_EQ(0x2000, mmu_table_set_fake.arg2_history[2]);
+    EXPECT_EQ(0x3, mmu_table_set_fake.arg3_history[1]);
+    EXPECT_EQ(0x3, mmu_table_set_fake.arg3_history[2]);
+
     EXPECT_BALANCED();
     ASSERT_RAM_ALLOC_BALANCE_OFFSET(2);
 }
 
-// Paging Remove Table
+// Paging Remove Page
 
 TEST_F(Paging, paging_remove_pages_InvalidParameters) {
     EXPECT_NE(0, paging_remove_pages(0, 1, 2));
@@ -231,6 +274,7 @@ TEST_F(Paging, paging_remove_pages) {
 
     EXPECT_EQ(0, paging_remove_pages(&dir, 1, 2));
     EXPECT_EQ(2, ram_page_free_fake.call_count);
+    EXPECT_EQ(3, mmu_flush_tlb_fake.call_count); // +1 for paging_table_map call
     EXPECT_BALANCED();
 }
 
@@ -245,20 +289,37 @@ TEST_F(Paging, paging_add_table_FailPageAlloc) {
     EXPECT_NE(0, paging_add_table(&dir, 1));
 }
 
+TEST_F(Paging, paging_add_table_FailMapTable) {
+    ram_page_alloc_fake.return_val = 0x1001;
+
+    EXPECT_NE(0, paging_add_table(&dir, 1));
+    EXPECT_EQ(1, ram_page_free_fake.call_count);
+    ASSERT_RAM_ALLOC_BALANCED();
+}
+
 TEST_F(Paging, paging_add_table_HasTable) {
     mmu_dir_get_flags_fake.return_val = MMU_DIR_FLAG_PRESENT;
+    ram_page_alloc_fake.return_val    = 0x1000;
 
     EXPECT_EQ(0, paging_add_table(&dir, 1));
     EXPECT_EQ(0, ram_page_alloc_fake.call_count);
+    ASSERT_RAM_ALLOC_BALANCED();
 }
 
 TEST_F(Paging, paging_add_table_NeedsTable) {
     ram_page_alloc_fake.return_val = 0x1000;
 
     EXPECT_EQ(0, paging_add_table(&dir, 1));
+    EXPECT_EQ(1, mmu_table_set_fake.call_count);
+    EXPECT_EQ(0x1000, mmu_table_set_fake.arg2_val);
     EXPECT_EQ(1, mmu_dir_set_fake.call_count);
+    EXPECT_EQ(&dir, mmu_dir_set_fake.arg0_val);
+    EXPECT_EQ(1, mmu_dir_set_fake.arg1_val);
     EXPECT_EQ(0x1000, mmu_dir_set_fake.arg2_val);
+    EXPECT_EQ(0x3, mmu_dir_set_fake.arg3_val);
 }
+
+// Paging Remove Table
 
 TEST_F(Paging, paging_remove_table_InvalidParameters) {
     EXPECT_NE(0, paging_remove_table(0, 0));

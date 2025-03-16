@@ -83,10 +83,10 @@ void init_gdt();
 size_t        gdt_entry_count();
 gdt_entry_t * gdt_get_entry(size_t i);
 
-void gdt_set(size_t i, uint64_t base, uint64_t limit, uint8_t access, uint8_t flags);
-void gdt_set_base(size_t i, uint64_t base);
-void gdt_set_limit(size_t i, uint64_t limit);
-void gdt_set_access(size_t i, uint8_t access);
-void gdt_set_flags(size_t i, uint8_t flags);
+int gdt_set(size_t i, uint64_t base, uint64_t limit, uint8_t access, uint8_t flags);
+int gdt_set_base(size_t i, uint64_t base);
+int gdt_set_limit(size_t i, uint64_t limit);
+int gdt_set_access(size_t i, uint8_t access);
+int gdt_set_flags(size_t i, uint8_t flags);
 
 #endif // GDT_H

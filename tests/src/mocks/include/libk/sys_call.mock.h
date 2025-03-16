@@ -7,13 +7,15 @@ extern "C" {
 #include "fff.h"
 #include "libk/sys_call.h"
 
-DECLARE_FAKE_VALUE_FUNC(void *, _page_alloc, size_t);
-DECLARE_FAKE_VOID_FUNC(_proc_exit, uint8_t);
-DECLARE_FAKE_VOID_FUNC(_proc_abort, uint8_t, const char *);
-DECLARE_FAKE_VOID_FUNC(_proc_panic, const char *, const char *, unsigned int);
-DECLARE_FAKE_VOID_FUNC(_register_signals, void *);
-DECLARE_FAKE_VALUE_FUNC(size_t, _putc, char);
-DECLARE_FAKE_VALUE_FUNC(size_t, _puts, const char *);
+DECLARE_FAKE_VALUE_FUNC(void *, _sys_page_alloc, size_t);
+DECLARE_FAKE_VOID_FUNC(_sys_proc_exit, uint8_t);
+DECLARE_FAKE_VOID_FUNC(_sys_proc_abort, uint8_t, const char *);
+DECLARE_FAKE_VOID_FUNC(_sys_proc_panic, const char *, const char *, unsigned int);
+DECLARE_FAKE_VALUE_FUNC(int, _sys_proc_getpid);
+DECLARE_FAKE_VOID_FUNC(_sys_register_signals, void *);
+DECLARE_FAKE_VOID_FUNC(_sys_queue_event, ebus_event_t *);
+DECLARE_FAKE_VALUE_FUNC(size_t, _sys_putc, char);
+DECLARE_FAKE_VALUE_FUNC(size_t, _sys_puts, const char *);
 
 void reset_libk_sys_call_mock(void);
 

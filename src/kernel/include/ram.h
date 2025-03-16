@@ -1,50 +1,114 @@
-#ifndef RAM_H
-#define RAM_H
+#ifndef KERNEL_RAM_H
+#define KERNEL_RAM_H
+
+#include <stddef.h>
+#include <stdint.h>
 
 #include "defs.h"
 
-enum RAM_TYPE {
-    RAM_TYPE_USABLE           = 1,
-    RAM_TYPE_RESERVED         = 2,
-    RAM_TYPE_ACPI_RECLAIMABLE = 3,
-    RAM_TYPE_ACPI_NVS         = 4,
-    RAM_TYPE_BAD              = 5,
-};
+#define REGION_TABLE_SIZE (PAGE_SIZE / sizeof(ram_table_entry_t)) // 512
 
-// THIS IS IN PHYSICAL ADDRESS SPACE NOT VIRTUAL
-// Returns pointer to the pre-allocated pages (first page table, last page table, )
-void ram_init(void * ram_table, size_t * ram_table_count);
+typedef struct _ram_table_entry {
+    uint32_t addr_flags;
+    uint16_t page_count;
+    uint16_t free_count;
+} __attribute__((packed)) ram_table_entry_t;
 
-uint16_t ram_lower_size();
+typedef struct _ram_table {
+    ram_table_entry_t entries[REGION_TABLE_SIZE];
+} __attribute__((packed)) ram_table_t;
 
-uint16_t ram_upper_count();
+/**
+ * @brief Initialize physical memory allocator.
+ *
+ * The bitmask vaddr must be a continuous set of pages equal to the number of
+ * region tables * page size.
+ *
+ * @param ram_table pointer to the ram region table
+ * @param bitmasks virtual address of the bitmasks
+ * @return int 0 for success
+ */
+int ram_init(ram_table_t * ram_table, void * bitmasks);
 
-uint64_t ram_upper_start(uint16_t i);
-uint64_t ram_upper_end(uint16_t i);
-uint64_t ram_upper_size(uint16_t i);
+/**
+ * @brief Add a continuous, usable, physical memory address and length.
+ *
+ * This memory may be split into multiple regions if it is large enough to
+ * justify the split. In this case ram_region_table_count will return more than
+ * 1 per call to this function. There will be at least 1 per call to this
+ * function.
+ *
+ * Paging / virtual memory MUST BE DISABLED to call this function. It will fail
+ * if paging is enabled.
+ *
+ * `base` must be page aligned.
+ *
+ * @param base address of the memory
+ * @param length size in bytes of the memory
+ * @return int 0 for success
+ */
+int ram_region_add_memory(uint64_t base, uint64_t length);
 
-bool          ram_upper_usable(uint16_t i);
-enum RAM_TYPE ram_upper_type(uint16_t i);
-// END THIS IS IN PHYSICAL ADDRESS SPACE NOT VIRTUAL
+/**
+ * @brief Get the number of regions in the region table.
+ *
+ * @return size_t number of regions
+ */
+size_t ram_region_table_count();
 
-uint32_t ram_bitmask_paddr(size_t region_index);
-uint32_t ram_bitmask_vaddr(size_t region_index);
+/**
+ * @brief Get a total number of available pages.
+ *
+ * @return size_t number of free pages
+ */
+size_t ram_free_pages();
 
-/*
- Bits 12 - 31 of memory address (ie. page aligned pointer)
- Same as found in Page Table entry.
- 0 is error
+/**
+ * @brief Get a total number of pages.
+ *
+ * @return size_t total number of pages
+ */
+size_t ram_max_pages();
+
+/**
+ * @brief Allocate a single page and return it's physical address.
+ *
+ * The address will always be page aligned.
+ *
+ * Paging / virtual memory MUST BE ENABLED. If this function is called without
+ * paging, bad things will happen. There is no check for paging enabled /
+ * disabled state.
+ *
+ * @return uint32_t page addres or 0 for failure
  */
 uint32_t ram_page_alloc();
 
-// Allocate in physical address space (before paging)
+/**
+ * @brief Allocate a single page and return it's physical address.
+ *
+ * The address will always be page aligned.
+ *
+ * This function is the variant of `ram_page_alloc` for use before paging is
+ * enabled. Once paging is enabled this function will not work.
+ *
+ * Paging / virtual memory MUST BE DISABLED to call this function. Bad things
+ * will happen if paging is enabled. This function does have a check for paging
+ * since it is not intended to be used after paging is enabled.
+ *
+ * @return uint32_t page address or 0 for failure
+ */
 uint32_t ram_page_palloc();
 
-/*
- Bits 12 - 31 of memory address (ie. page aligned pointer)
- Same as found in Page Table entry.
- 0 is error
+/**
+ * @brief Free a page allocated by ram_page_alloc.
+ *
+ * Paging / virtual memory MUST BE ENABLED. If this function is called without
+ * paging, bad things will happen. There is no check for paging enabled /
+ * disabled state.
+ *
+ * @param addr physical address of the page
+ * @return int 0 for success
  */
-void ram_page_free(uint32_t addr);
+int ram_page_free(uint32_t addr);
 
-#endif // RAM_H
+#endif // KERNEL_RAM_H

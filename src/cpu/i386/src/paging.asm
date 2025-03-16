@@ -1,8 +1,8 @@
-; void mmu_enable_paging(mmu_dir_t * dir);
+; void mmu_enable_paging(uint32_t addr);
 global mmu_enable_paging
 mmu_enable_paging:
     push eax
-    mov  eax, [esp-4]
+    mov  eax, [esp+8]
 
     push eax
 
@@ -47,7 +47,7 @@ mmu_paging_enabled:
 global mmu_change_dir
 mmu_change_dir:
     push eax
-    mov  eax, [esp-4]
+    mov  eax, [esp+8]
 
     shr eax, 12
     shl eax, 12
@@ -63,5 +63,13 @@ mmu_get_curr_dir:
     mov eax, cr3
     shr eax, 12
     shl eax, 12
+
+    ret
+
+; void mmu_reload_dir();
+global mmu_reload_dir
+mmu_reload_dir:
+    mov eax, cr3
+    mov cr3, eax
 
     ret

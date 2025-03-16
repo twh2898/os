@@ -5,16 +5,17 @@
 #include <stdint.h>
 
 #include "cpu/mmu.h"
+#include "ebus.h"
 #include "memory_alloc.h"
 #include "process.h"
 
 typedef struct _kernel {
     uint32_t   ram_table_addr;
-    size_t     ram_table_count;
     uint32_t   cr3;
     process_t  proc;
     proc_man_t pm;
     memory_t   kernel_memory;
+    ebus_t     event_bus;
 } kernel_t;
 
 /**
@@ -36,5 +37,11 @@ mmu_dir_t * get_kernel_dir();
  * @return mmu_table_t* pointer to the kernel's page table of any page directory
  */
 mmu_table_t * get_kernel_table();
+
+process_t * get_current_process();
+
+ebus_t * get_kernel_ebus();
+
+void tmp_register_signals_cb(signals_master_cb_t cb);
 
 #endif // KERNEL_H

@@ -1,4 +1,5 @@
 #include "libc/memory.h"
+#include "libc/proc.h"
 #include "libc/stdio.h"
 
 int __start(size_t argc, char ** argv) {
@@ -15,6 +16,8 @@ int __start(size_t argc, char ** argv) {
     printf("\nMalloc memory got pointer %p\n", data);
     printf("Float number %f or shorter %3f or digits %.4f or lead %.04f\n", 3.14, 31.45, 3.14, 3.14);
     printf("%f\n", 12345678.0);
+
+    proc_exit(0);
 
     return 0;
 }
