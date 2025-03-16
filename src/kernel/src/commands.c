@@ -11,9 +11,13 @@
 #include "drivers/tar.h"
 #include "drivers/timer.h"
 #include "drivers/vga.h"
+#include "ebus.h"
 #include "exec.h"
+#include "kernel.h"
 #include "libc/datastruct/array.h"
 #include "libc/memory.h"
+#include "libc/proc.h"
+#include "libc/signal.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
 #include "paging.h"
@@ -528,6 +532,21 @@ static int disk_size_cmd(size_t argc, char ** argv) {
     return 0;
 }
 
+static int ebus_send_cmd(size_t argc, char ** argv) {
+    static const char * msg = "Hello events";
+    ebus_event_t        event;
+    event.event_id     = EBUS_EVENT_USER_MSG;
+    event.user_msg.msg = msg;
+    queue_event(&event);
+    return 0;
+}
+
+static int ebus_size_cmd(size_t argc, char ** argv) {
+    int size = ebus_queue_size(get_kernel_ebus());
+    printf("Event queue size is %d\n", size);
+    return 0;
+}
+
 static int currdir(size_t argc, char ** argv) {
     printf("Current dir is %p\n", mmu_get_curr_dir());
     return 0;
@@ -745,6 +764,10 @@ static int command_lookup(size_t argc, char ** argv) {
     return res;
 }
 
+static void user_message_cb(const ebus_event_t * event) {
+    puts(event->user_msg.msg);
+}
+
 void commands_init() {
     set_command_lookup(command_lookup);
 
@@ -772,4 +795,13 @@ void commands_init() {
     // term_command_add("read", disk_read_cmd);
     term_command_add("write", disk_write_cmd);
     term_command_add("size", disk_size_cmd);
+    term_command_add("send_event", ebus_send_cmd);
+    term_command_add("ebus_size", ebus_size_cmd);
+
+    ebus_handler_t handler = {0};
+    handler.callback_fn    = user_message_cb;
+    handler.event_id       = EBUS_EVENT_USER_MSG;
+    if (ebus_register_handler(get_kernel_ebus(), &handler) < 1) {
+        PANIC("Failed to register handler");
+    }
 }
