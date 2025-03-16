@@ -5,6 +5,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "ebus.h"
+
 #ifdef TESTING
 #define NO_RETURN
 #else
@@ -27,6 +29,7 @@ NO_RETURN void _sys_proc_panic(const char * msg, const char * file, unsigned int
 int _sys_proc_getpid(void);
 
 void _sys_register_signals(void * callback);
+void _sys_queue_event(ebus_event_t * event);
 
 size_t _sys_putc(char c);
 size_t _sys_puts(const char * str);
