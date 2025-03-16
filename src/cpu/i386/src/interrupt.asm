@@ -31,6 +31,7 @@ kernel_exit:
     mov esp, eax
 
     mov eax, [.eip]
+    sti
     jmp eax
 
 .eip: dd 0
