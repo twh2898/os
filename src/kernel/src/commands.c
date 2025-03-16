@@ -164,9 +164,15 @@ int sleep_handler;
 static void sleep_cb(const ebus_event_t * event) {
     printf("Timer ended at %u\n", event->timer.time);
     ebus_unregister_handler(get_kernel_ebus(), sleep_handler);
+    sleep_handler = 0;
 }
 
 static int sleep_cmd(size_t argc, char ** argv) {
+    if (sleep_handler) {
+        printf("Please wait for sleep to finish\n");
+        return 1;
+    }
+
     ebus_handler_t handler = {0};
     handler.callback_fn    = sleep_cb;
     handler.event_id       = EBUS_EVENT_TIMER;
