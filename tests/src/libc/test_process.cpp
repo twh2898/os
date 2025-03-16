@@ -38,3 +38,9 @@ TEST_F(LibC, proc_panic) {
     EXPECT_EQ((void *)_sys_proc_panic_fake.arg1_val, file);
     EXPECT_EQ(_sys_proc_panic_fake.arg2_val, 17);
 }
+
+TEST_F(LibC, proc_getpid) {
+    _sys_proc_getpid_fake.return_val = 3;
+    EXPECT_EQ(3, getpid());
+    EXPECT_EQ(1, _sys_proc_getpid_fake.call_count);
+}

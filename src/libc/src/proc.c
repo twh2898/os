@@ -13,3 +13,7 @@ void proc_abort(uint8_t code, const char * msg) {
 NO_RETURN void proc_panic(const char * msg, const char * file, unsigned int line) {
     _sys_proc_panic(msg, file, line);
 }
+
+int getpid(void) {
+    return _sys_proc_getpid();
+}
