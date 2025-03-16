@@ -303,7 +303,9 @@ static void exec_buff() {
 
     // Try command lookup
     else if (command_lookup) {
+        command_ready++;
         term_last_ret = command_lookup(argc, argv);
+        command_ready--;
     }
 
     // No match was found
