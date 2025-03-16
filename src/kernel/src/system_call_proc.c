@@ -62,7 +62,17 @@ int sys_call_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
             } args = *(struct _args *)args_data;
             tmp_register_signals_cb(args.cb);
         } break;
+
+        case SYS_INT_PROC_GETPID: {
+            process_t * p = get_current_process();
+            if (p) {
+                res = p->pid;
+            }
+            else {
+                res = -1;
+            }
+        } break;
     }
 
-    return 0;
+    return res;
 }
