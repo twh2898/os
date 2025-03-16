@@ -175,7 +175,7 @@ static void cursor() {
 static void irq_install() {
     enable_interrupts();
     /* IRQ0: timer */
-    init_timer(1000); // milliseconds
+    init_timer(TIMER_FREQ_MS); // milliseconds
     /* IRQ1: keyboard */
     init_keyboard();
     /* IRQ14: ata disk */

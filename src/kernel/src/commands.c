@@ -150,10 +150,29 @@ static int port_in_cmd(size_t argc, char ** argv) {
 }
 
 static int time_cmd(size_t argc, char ** argv) {
-    uint32_t ms = get_ticks();
-    printf("System ticks: %u ~= %u s\n", ms, ms / 1000);
+    uint32_t ticks = get_ticks();
+    uint32_t s     = get_time_s();
+    uint32_t ms    = get_time_ms();
+    uint32_t ns    = get_time_ns();
+    printf("System ticks: %u ~= %u ns ~= %u ms ~= %u s\n", ticks, ns, ms, s);
     printf("RTC time: %u us = %u ms = %u s\n", time_us(), time_ms(), time_s());
     return 0;
+}
+
+int sleep_handler;
+
+static void sleep_cb(const ebus_event_t * event) {
+    printf("Timer ended at %u\n", event->timer.time);
+    ebus_unregister_handler(get_kernel_ebus(), sleep_handler);
+}
+
+static int sleep_cmd(size_t argc, char ** argv) {
+    ebus_handler_t handler = {0};
+    handler.callback_fn    = sleep_cb;
+    handler.event_id       = EBUS_EVENT_TIMER;
+
+    sleep_handler = ebus_register_handler(get_kernel_ebus(), &handler);
+    start_timer_ms(1000);
 }
 
 static int ret_cmd(size_t argc, char ** argv) {
@@ -782,6 +801,7 @@ void commands_init() {
     term_command_add("outb", port_out_cmd);
     term_command_add("inb", port_in_cmd);
     term_command_add("time", time_cmd);
+    term_command_add("sleep", sleep_cmd);
     term_command_add("ret", ret_cmd);
     // term_command_add("format", format_cmd);
     term_command_add("mount", mount_cmd);
