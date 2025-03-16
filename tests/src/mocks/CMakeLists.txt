@@ -10,6 +10,7 @@ target_include_directories(${TARGET}
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${TEST_TARGET_ROOT}/src/cpu/include
     ${TEST_TARGET_ROOT}/src/drivers/include
+    ${TEST_TARGET_ROOT}/src/ebus/include
     ${TEST_TARGET_ROOT}/src/kernel/include
     ${TEST_TARGET_ROOT}/src/libc/include
     ${TEST_TARGET_ROOT}/src/libk/include

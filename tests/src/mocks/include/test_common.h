@@ -23,6 +23,7 @@ extern void * memset(void *, int, size_t);
 
 #include "cpu/mmu.mock.h"
 #include "cpu/ports.mock.h"
+#include "ebus.mock.h"
 #include "libc/datastruct/array.mock.h"
 #include "libc/memory.mock.h"
 #include "libc/string.mock.h"
