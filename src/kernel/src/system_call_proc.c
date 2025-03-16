@@ -18,8 +18,7 @@ int sys_call_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
                 uint8_t code;
             } args = *(struct _args *)args_data;
             printf("Proc exit with code %u\n", args.code);
-            // regs->eip = PTR2UINT(term_run);
-            // kernel_exit();
+            kernel_exit();
         } break;
 
         case SYS_INT_PROC_ABORT: {
@@ -27,10 +26,9 @@ int sys_call_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
                 uint8_t      code;
                 const char * msg;
             } args = *(struct _args *)args_data;
-            printf("Proc exit with code %u\n", args.code);
+            printf("Proc abort with code %u\n", args.code);
             puts(args.msg);
-            // regs->eip = PTR2UINT(term_run);
-            // kernel_exit();
+            kernel_exit();
         } break;
 
         case SYS_INT_PROC_PANIC: {
