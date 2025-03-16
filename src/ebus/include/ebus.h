@@ -21,6 +21,7 @@
 */
 
 enum EBUS_EVENT {
+    EBUS_EVENT_ANY      = 0,
     EBUS_EVENT_TIMER    = 1,
     EBUS_EVENT_USER_MSG = 2,
 };

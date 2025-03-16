@@ -78,6 +78,10 @@ void ebus_push(ebus_t * bus, ebus_event_t * event) {
         return;
     }
 
+    if (event->event_id < 1) {
+        return;
+    }
+
     if (cb_len(&bus->queue) == cb_buff_size(&bus->queue)) {
         cb_pop(&bus->queue, 0);
     }
@@ -111,7 +115,7 @@ static int handle_event(ebus_t * bus, ebus_event_t * event) {
             return -1;
         }
 
-        if (handler->event_id == event->event_id) {
+        if (!handler->event_id || handler->event_id == event->event_id) {
             handler->callback_fn(event);
         }
     }
