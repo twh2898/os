@@ -31,6 +31,7 @@ kernel_exit:
     mov esp, eax
 
     mov eax, [.eip]
+    ; TODO need to send command to pic 0x20 to 0x20 or 0xa0
     sti
     jmp eax
 
