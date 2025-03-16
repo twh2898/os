@@ -154,6 +154,16 @@ TEST_F(LibK, getpid) {
     EXPECT_EQ(0x304, send_call_fake.arg0_val);
 }
 
+TEST_F(LibK, queue_event) {
+    ebus_event_t event;
+    event.event_id   = EBUS_EVENT_TIMER;
+    event.timer.time = 2;
+    _sys_queue_event(&event);
+    ASSERT_EQ(1, send_call_fake.call_count);
+    EXPECT_EQ(0x305, send_call_fake.arg0_val);
+    EXPECT_EQ(&event, (void *)send_call_fake.arg1_val);
+}
+
 TEST_F(LibK, putc) {
     send_call_fake.return_val = 1;
     size_t olen               = _sys_putc('A');
