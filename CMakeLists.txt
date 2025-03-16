@@ -5,7 +5,16 @@ set(CPU_ARCH i386)
 set(CROSS_PREFIX "$ENV{HOME}/.local/opt/cross")
 set(CMAKE_TOOLCHAIN_FILE cmake/toolchain.cmake)
 
-project(os VERSION 0.1.0 LANGUAGES C)
+set(VERSION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.txt")
+if(EXISTS ${VERSION_FILE})
+    file(READ ${VERSION_FILE} PROJECT_VERSION)
+    message("Read file")
+else()
+    set(PROJECT_VERSION "0.0.0")
+    message("No file")
+endif()
+
+project(os VERSION "${PROJECT_VERSION}" LANGUAGES C)
 
 # set(CMAKE_VERBOSE_MAKEFILE on)
 
@@ -26,6 +35,10 @@ if(CMAKE_ASM_NASM_COMPILER_LOADED)
         $<TARGET_PROPERTY:NASM_OBJ_FORMAT>, ${CMAKE_ASM_NASM_OBJECT_FORMAT}>>"
     )
 endif()
+
+# Create config.h with project version numbers
+configure_File(cmake/config.h.in include/config.h)
+include_directories(PRIVATE ${CMAKE_BINARY_DIR}/include)
 
 include(cmake/targets.cmake)
 

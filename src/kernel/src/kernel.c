@@ -1,6 +1,7 @@
 #include "kernel.h"
 
 #include "commands.h"
+#include "config.h"
 #include "cpu/gdt.h"
 #include "cpu/isr.h"
 #include "cpu/mmu.h"
@@ -124,7 +125,7 @@ void kernel_main() {
 
     irq_install();
 
-    vga_puts("Welcome to kernel v0.1.1\n");
+    vga_puts("Welcome to kernel v" PROJECT_VERSION "\n");
 
     term_init();
     commands_init();

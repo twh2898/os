@@ -54,3 +54,44 @@ jobs:
         with:
           clang-format-version: "18"
           check-path: tests/src
+
+  increment_version:
+    name: Increment Version
+    runs-on: ubuntu-latest
+
+    needs: [test, lint]
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get next version
+        uses: reecetech/version-increment@2024.10.1
+        id: version
+        with:
+          scheme: conventional_commits
+
+      - name: Bump CMake Project Version
+        run: |
+          echo "set (PROJECT_VERSION ${{ steps.version.outputs.version }})" > cmake/version.cmake
+
+      - name: Update resources
+        id: version_file
+        uses: test-room-7/action-update-file@v1
+        with:
+          file-path: cmake/version.cmake
+          commit-msg: Version bump ${{ steps.version.outputs.version }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create tag
+        uses: actions/github-script@v5
+        with:
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'refs/tags/${{ steps.version.outputs.version }}',
+              sha: ${{ steps.version_file.outputs.commit-sha }}
+            })
