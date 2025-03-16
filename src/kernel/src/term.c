@@ -3,6 +3,8 @@
 #include "debug.h"
 #include "drivers/keyboard.h"
 #include "drivers/vga.h"
+#include "ebus.h"
+#include "kernel.h"
 #include "libc/datastruct/circular_buffer.h"
 #include "libc/memory.h"
 #include "libc/proc.h"
@@ -165,6 +167,7 @@ void term_run() {
 
     for (;;) {
         term_update();
+        ebus_cycle(get_kernel_ebus());
         asm("hlt");
     }
 }

@@ -4,6 +4,7 @@
 
 #include "defs.h"
 #include "drivers/vga.h"
+#include "ebus.h"
 #include "kernel.h"
 #include "libc/stdio.h"
 #include "libk/defs.h"
@@ -71,6 +72,14 @@ int sys_call_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
             else {
                 res = -1;
             }
+        } break;
+
+        case SYS_INT_PROC_QUEUE_EVENT: {
+            struct _args {
+                ebus_event_t * event;
+            } args = *(struct _args *)args_data;
+
+            ebus_push(get_kernel_ebus(), args.event);
         } break;
     }
 

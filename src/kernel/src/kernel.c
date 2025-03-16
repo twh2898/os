@@ -107,7 +107,6 @@ void kernel_main() {
     __kernel.pm.task_begin           = __kernel.pm.idle_task;
 
     isr_install();
-    irq_install();
 
     init_system_call(IRQ16);
     system_call_register(SYS_INT_FAMILY_IO, sys_call_io_cb);
@@ -118,6 +117,12 @@ void kernel_main() {
     // Init kernel memory after system calls are registered
     memory_init(&__kernel.kernel_memory, _sys_page_alloc);
     init_malloc(&__kernel.kernel_memory);
+
+    if (ebus_create(&__kernel.event_bus, 4096)) {
+        PANIC("Failed to init ebus\n");
+    }
+
+    irq_install();
 
     vga_puts("Welcome to kernel v0.1.1\n");
 
@@ -148,6 +153,10 @@ mmu_table_t * get_kernel_table() {
 
 process_t * get_current_process() {
     return __kernel.pm.curr_task;
+}
+
+ebus_t * get_kernel_ebus() {
+    return &__kernel.event_bus;
 }
 
 void tmp_register_signals_cb(signals_master_cb_t cb) {
