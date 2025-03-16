@@ -24,6 +24,8 @@ NO_RETURN void _sys_proc_exit(uint8_t code);
 NO_RETURN void _sys_proc_abort(uint8_t code, const char * msg);
 NO_RETURN void _sys_proc_panic(const char * msg, const char * file, unsigned int line);
 
+int _sys_proc_getpid(void);
+
 void _sys_register_signals(void * callback);
 
 size_t _sys_putc(char c);

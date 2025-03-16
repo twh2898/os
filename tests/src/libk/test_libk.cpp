@@ -147,6 +147,13 @@ TEST_F(LibK, register_signals) {
     EXPECT_EQ(send_call_fake.arg1_val, 1);
 }
 
+TEST_F(LibK, getpid) {
+    send_call_fake.return_val = 3;
+    EXPECT_EQ(3, _sys_proc_getpid());
+    ASSERT_EQ(1, send_call_fake.call_count);
+    EXPECT_EQ(0x304, send_call_fake.arg0_val);
+}
+
 TEST_F(LibK, putc) {
     send_call_fake.return_val = 1;
     size_t olen               = _sys_putc('A');

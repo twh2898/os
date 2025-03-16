@@ -33,6 +33,7 @@ An interrupt id is an 8 bit family + an 8 bit id.
 |                 | 0x0301 | `void abort(uint8_t code, const char * msg)`                         |
 |                 | 0x0302 | `void panic(const char * msg, const char * file, unsigned int line)` |
 |                 | 0x0303 | `int register_signals(void * callback)`                              |
+|                 | 0x0304 | `int getpid()`                                                       |
 | Tmp Std I/O     | 0x1000 | `size_t putc(char c)`                                                |
 |                 | 0x1001 | `size_t puts(const char * str)`                                      |
 |                 | 0x1002 | `size_t vprintf(const char * fmt, va_list params)`                   |

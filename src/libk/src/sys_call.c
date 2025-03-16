@@ -40,18 +40,22 @@ void * _sys_page_alloc(size_t count) {
 }
 
 void _sys_proc_exit(uint8_t code) {
-    _sys_puts("Proc exit\n");
+    _sys_puts("libk: Proc exit\n");
     send_call_noret(SYS_INT_PROC_EXIT, code);
 }
 
 void _sys_proc_abort(uint8_t code, const char * msg) {
-    _sys_puts("Proc abort\n");
+    _sys_puts("libk: Proc abort\n");
     send_call_noret(SYS_INT_PROC_ABORT, code, msg);
 }
 
 void _sys_proc_panic(const char * msg, const char * file, unsigned int line) {
-    _sys_puts("Proc panic\n");
+    _sys_puts("libk: Proc panic\n");
     send_call_noret(SYS_INT_PROC_PANIC, msg, file, line);
+}
+
+int _sys_proc_getpid(void) {
+    return send_call(SYS_INT_PROC_GETPID);
 }
 
 void _sys_register_signals(void * callback) {
