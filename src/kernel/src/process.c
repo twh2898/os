@@ -105,6 +105,14 @@ int process_free(process_t * proc) {
     return 0;
 }
 
+int process_set_entrypoint(process_t * proc, void * entrypoint) {
+    if (!proc || !entrypoint) {
+        return -1;
+    }
+
+    proc->eip = PTR2UINT(entrypoint);
+}
+
 void * process_add_pages(process_t * proc, size_t count) {
     if (!proc || !count) {
         return 0;
@@ -163,6 +171,8 @@ int process_load_heap(process_t * proc, const char * buff, size_t size) {
         return -1;
     }
 
+    proc->state = PROCESS_STATE_LOADING;
+
     size_t page_count = ADDR2PAGE(size);
     if (size & MASK_FLAGS) {
         page_count++;
@@ -212,6 +222,8 @@ int process_load_heap(process_t * proc, const char * buff, size_t size) {
     }
 
     paging_temp_free(proc->cr3);
+
+    proc->state = PROCESS_STATE_SUSPENDED;
 
     return 0;
 }

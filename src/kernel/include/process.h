@@ -18,6 +18,15 @@ typedef struct _handle {
     int type;
 } handle_t;
 
+enum PROCESS_STATE {
+    PROCESS_STATE_STARTING = 0,
+    PROCESS_STATE_LOADING,
+    PROCESS_STATE_SUSPENDED,
+    PROCESS_STATE_WAITING,
+    PROCESS_STATE_RUNNING,
+    PROCESS_STATE_DEAD,
+};
+
 typedef struct _process {
     uint32_t pid;
     uint32_t next_heap_page;
@@ -28,10 +37,15 @@ typedef struct _process {
     uint32_t cr3;
     uint32_t esp;
     uint32_t esp0;
+    uint32_t eip;
 
     signals_master_cb_t signals_callback;
 
     arr_t io_handles; // array<handle_t>
+
+    uint32_t filter_event;
+
+    enum PROCESS_STATE state;
 
     struct _process * next_proc;
 } process_t;
@@ -55,6 +69,8 @@ int process_create(process_t * proc);
  * @return int 0 for success
  */
 int process_free(process_t * proc);
+
+int process_set_entrypoint(process_t * proc, void * entrypoint);
 
 /**
  * @brief Add `count` pages to the process heap.
