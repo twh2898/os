@@ -1,6 +1,7 @@
 #include "libc/signal.h"
 
 #include "libc/memory.h"
+#include "libc/proc.h"
 #include "libk/sys_call.h"
 
 typedef struct _signal {
@@ -52,5 +53,6 @@ int register_signal(int sig_no, signal_handler callback) {
 }
 
 void queue_event(ebus_event_t * event) {
+    event->source_pid = getpid();
     _sys_queue_event(event);
 }

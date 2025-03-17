@@ -29,6 +29,7 @@ enum EBUS_EVENT {
 
 typedef struct _ebus_event {
     int event_id;
+    int source_pid;
     union {
         struct {
             int      id;
