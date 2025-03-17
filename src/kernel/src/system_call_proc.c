@@ -81,6 +81,15 @@ int sys_call_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
 
             ebus_push(get_kernel_ebus(), args.event);
         } break;
+
+        case SYS_INT_PROC_YIELD: {
+            struct _args {
+                int filter;
+            } args = *(struct _args *)args_data;
+
+            process_t * proc = get_current_process();
+            process_yield(proc, args.filter);
+        };
     }
 
     return res;
