@@ -86,6 +86,10 @@ static void key_cb(uint8_t code, char c, keyboard_event_t event, keyboard_mod_t 
     }
 }
 
+static void key_event_handler(const ebus_event_t * event) {
+    key_cb(event->key.keycode, event->key.c, event->key.event, event->key.mods);
+}
+
 static int help_cmd(size_t argc, char ** argv) {
     for (size_t i = 0; i < n_commands; i++) {
         puts(commands[i].command);
@@ -104,8 +108,12 @@ void term_init() {
     }
     command_ready = false;
 
-    // do last
-    keyboard_set_cb(&key_cb);
+    ebus_handler_t handler;
+    handler.callback_fn = key_event_handler;
+    handler.event_id    = EBUS_EVENT_KEY;
+    if (ebus_register_handler(get_kernel_ebus(), &handler) < 1) {
+        PANIC("Failed to register keyboard event handler");
+    }
 }
 
 void term_update() {

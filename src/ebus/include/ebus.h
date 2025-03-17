@@ -21,9 +21,10 @@
 */
 
 enum EBUS_EVENT {
-    EBUS_EVENT_ANY      = 0,
-    EBUS_EVENT_TIMER    = 1,
-    EBUS_EVENT_USER_MSG = 2,
+    EBUS_EVENT_ANY = 0,
+    EBUS_EVENT_TIMER,
+    EBUS_EVENT_USER_MSG,
+    EBUS_EVENT_KEY,
 };
 
 typedef struct _ebus_event {
@@ -35,6 +36,13 @@ typedef struct _ebus_event {
         struct {
             const char * msg;
         } user_msg;
+        struct {
+            uint8_t  event;
+            uint8_t  mods;
+            char     c;
+            uint32_t keycode;
+            uint32_t scancode;
+        } key;
     };
 } ebus_event_t;
 
@@ -62,6 +70,13 @@ void ebus_free(ebus_t * bus);
 
 int ebus_queue_size(ebus_t * bus);
 
+/**
+ * @brief
+ *
+ * @param bus
+ * @param handler
+ * @return int id, <= 0 for failure
+ */
 int  ebus_register_handler(ebus_t * bus, ebus_handler_t * handler);
 void ebus_unregister_handler(ebus_t * bus, int handler_id);
 
