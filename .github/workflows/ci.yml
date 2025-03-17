@@ -2,9 +2,14 @@ name: CI Tests
 
 on:
   push:
+    branches:
+      - main
 
-  # pull_request:
-  #   branches: ["main"]
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
 
 env:
   BUILD_DIR: "${{ github.workspace }}/build"
