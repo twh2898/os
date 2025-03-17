@@ -30,6 +30,7 @@ int _sys_proc_getpid(void);
 
 void _sys_register_signals(void * callback);
 void _sys_queue_event(ebus_event_t * event);
+int  _sys_yield(int filter);
 
 size_t _sys_putc(char c);
 size_t _sys_puts(const char * str);

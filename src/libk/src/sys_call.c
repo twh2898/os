@@ -66,6 +66,10 @@ void _sys_queue_event(ebus_event_t * event) {
     send_call(SYS_INT_PROC_QUEUE_EVENT, event);
 }
 
+int _sys_yield(int filter) {
+    return send_call(SYS_INT_PROC_YIELD, filter);
+}
+
 size_t _sys_putc(char c) {
     return send_call(SYS_INT_STDIO_PUTC, c);
 }

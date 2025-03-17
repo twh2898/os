@@ -51,8 +51,3 @@ int register_signal(int sig_no, signal_handler callback) {
     _sys_register_signals(signal_callback);
     return 0;
 }
-
-void queue_event(ebus_event_t * event) {
-    event->source_pid = getpid();
-    _sys_queue_event(event);
-}

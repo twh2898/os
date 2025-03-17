@@ -4,7 +4,7 @@
 #include "cpu/ports.h"
 #include "ebus.h"
 #include "libc/datastruct/array.h"
-#include "libc/signal.h"
+#include "libc/proc.h"
 #include "libc/stdio.h"
 
 // https://wiki.osdev.org/PIT

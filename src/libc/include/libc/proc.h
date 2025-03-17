@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #include "debug.h"
+#include "ebus.h"
 
 #ifdef TESTING
 #define NO_RETURN
@@ -25,6 +26,9 @@
 void           proc_exit(uint8_t code);
 void           proc_abort(uint8_t code, const char * msg);
 NO_RETURN void proc_panic(const char * msg, const char * file, unsigned int line);
+
+void queue_event(ebus_event_t * event);
+int  yield(int filter);
 
 int getpid(void);
 

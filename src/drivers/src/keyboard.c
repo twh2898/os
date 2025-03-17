@@ -2,7 +2,7 @@
 
 #include "cpu/isr.h"
 #include "cpu/ports.h"
-#include "libc/signal.h"
+#include "libc/proc.h"
 #include "libc/stdio.h"
 
 static uint8_t last_code = 0;
