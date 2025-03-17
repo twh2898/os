@@ -49,4 +49,13 @@ ebus_event_t * pull_event(int event_id);
 
 void kernel_next_task();
 
+#ifdef TESTING
+#define NO_RETURN
+#else
+#define NO_RETURN _Noreturn
+#endif
+
+#define KPANIC(MSG) kernel_panic((MSG), __FILE__, __LINE__)
+NO_RETURN void kernel_panic(const char * msg, const char * file, unsigned int line);
+
 #endif // KERNEL_H

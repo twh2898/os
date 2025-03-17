@@ -85,12 +85,6 @@ TCB_ESP0          equ 12
 
 current_task_TCB: dd  0
 
-global set_first_task
-set_first_task:
-    mov eax,                [esp + 4]
-    mov [current_task_TCB], eax
-    ret
-
 ; void start_task(uint32_t cr3, uint32_t esp, uint32_t esp0, uint32_t eip, const ebus_event_t * event)
 global start_task
 start_task:
@@ -110,23 +104,23 @@ start_task:
 ; void resume_task(uint32_t cr3, uint32_t esp, uint32_t esp0, const ebus_event_t * event)
 global resume_task
 resume_task:
-    mov esp, ebp
-    mov eax, [ebp+4]  ; cr3
-    mov esp, [ebp+8]  ; esp
-    mov ebx, [ebp+12] ; esp0
+    mov ebp, esp
+    mov ecx, [ebp+4]  ; cr3
+    mov ebx, [ebp+8]  ; esp
+    mov edx, [ebp+12] ; esp0
     mov eax, [ebp+16] ; event
-
-    ;Load next task's state
 
     ; TODO get tss and set it's esp0
     ; mov [TSS_ESP0], ebx ;Adjust the ESP0 field in the TSS (used by CPU for for CPL=3 -> CPL=0 privilege level changes)
-    mov ecx, cr3 ;ecx = previous task's virtual address space
+    mov edi, cr3 ;edi = previous task's virtual address space
 
-    cmp eax, ecx ;Does the virtual address space need to being changed?
-    je  .doneVAS ; no, virtual address space is the same, so don't reload it and cause TLB flushes
-    mov cr3, eax ; yes, load the next task's virtual address space
+    cmp ecx, edi ;Does the virtual address space need to being changed?
+    je  .done    ; no, virtual address space is the same, so don't reload it and cause TLB flushes
+    mov cr3, ecx ; yes, load the next task's virtual address space
 
-.doneVAS:
+.done:
+
+    mov esp, ebx
 
     ret ;Load next task's EIP from its kernel stack
 

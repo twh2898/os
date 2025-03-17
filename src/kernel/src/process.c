@@ -137,7 +137,7 @@ int process_resume(process_t * proc, const ebus_event_t * event) {
     if (!proc->filter_event || !event || proc->filter_event == event->event_id) {
         proc->state            = PROCESS_STATE_RUNNING;
         tss_get_entry(0)->esp0 = proc->esp0;
-        switch_to_task(proc);
+        resume_task(proc->cr3, proc->esp, proc->esp0, event);
     }
     return -1;
 }
@@ -252,7 +252,7 @@ int process_load_heap(process_t * proc, const char * buff, size_t size) {
 
     paging_temp_free(proc->cr3);
 
-    proc->state = PROCESS_STATE_SUSPENDED;
+    proc->state = PROCESS_STATE_LOADED;
 
     return 0;
 }

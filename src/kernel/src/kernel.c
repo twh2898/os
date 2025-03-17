@@ -124,7 +124,7 @@ void kernel_main() {
     __kernel.pm.curr_task   = &__kernel.proc;
 
     if (ebus_create(&__kernel.event_bus, 4096)) {
-        PANIC("Failed to init ebus\n");
+        KPANIC("Failed to init ebus\n");
     }
 
     irq_install();
@@ -144,12 +144,12 @@ void kernel_main() {
 
     process_resume(__kernel.pm.idle_task, 0);
 
-    PANIC("switch didn't happen\n");
+    KPANIC("switch didn't happen\n");
 
     // jump_usermode(term_run);
     jump_kernel_mode(term_run);
 
-    PANIC("You shouldn't be here!");
+    KPANIC("You shouldn't be here!");
 }
 
 mmu_dir_t * get_kernel_dir() {
@@ -193,14 +193,14 @@ void kernel_next_task() {
     // TODO interrupt back to process for sigint
 
     if (process_resume(__kernel.pm.curr_task, 0)) {
-        PANIC("Failed to resume task");
+        KPANIC("Failed to resume task");
     }
 }
 
 static void init_idle_proc() {
     process_t * proc = kmalloc(sizeof(process_t));
     if (process_create(proc)) {
-        PANIC("Failed to create idle task");
+        KPANIC("Failed to create idle task");
     }
 
     // Kernel process used for memory allocation
@@ -217,6 +217,26 @@ void idle() {
     for (;;) {
         term_update();
         ebus_cycle(get_kernel_ebus());
+        asm("hlt");
+    }
+}
+
+NO_RETURN void kernel_panic(const char * msg, const char * file, unsigned int line) {
+    vga_color(VGA_FG_WHITE | VGA_BG_RED);
+    vga_puts("[KERNEL PANIC]");
+    if (file) {
+        vga_putc('[');
+        vga_puts(file);
+        vga_puts("]:");
+        vga_putu(line);
+    }
+    if (msg) {
+        vga_putc(' ');
+        vga_puts(msg);
+    }
+    vga_cursor_hide();
+    asm("cli");
+    for (;;) {
         asm("hlt");
     }
 }
@@ -244,7 +264,7 @@ static void irq_install() {
 static int kill(size_t argc, char ** argv) {
     printf("Leaving process now\n");
     kernel_exit();
-    PANIC("Never return!");
+    KPANIC("Never return!");
     return 0;
 }
 
@@ -281,7 +301,7 @@ static void map_first_table(mmu_table_t * table) {
 
 static void id_map_range(mmu_table_t * table, size_t start, size_t end) {
     if (end > 1023) {
-        PANIC("End is past table limits");
+        KPANIC("End is past table limits");
         end = 1023;
     }
 
