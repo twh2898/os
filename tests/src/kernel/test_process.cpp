@@ -4,8 +4,6 @@
 #include "test_common.h"
 
 extern "C" {
-#define _Noreturn
-
 #include "addr.h"
 #include "cpu/mmu.h"
 #include "libc/datastruct/array.h"
