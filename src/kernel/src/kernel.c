@@ -28,6 +28,7 @@
 #include "libk/defs.h"
 #include "libk/sys_call.h"
 #include "process.h"
+#include "process_manager.h"
 #include "ram.h"
 #include "term.h"
 
@@ -35,6 +36,7 @@ static kernel_t __kernel;
 
 extern _Noreturn void halt(void);
 
+static void init_kernel_proc();
 static void id_map_range(mmu_table_t * table, size_t start, size_t end);
 static void id_map_page(mmu_table_t * table, size_t page);
 static void cursor();
@@ -94,20 +96,14 @@ void kernel_main() {
     init_gdt();
     init_tss();
 
-    // Kernel process used for memory allocation
-    __kernel.proc.next_heap_page = ADDR2PAGE(VADDR_RAM_BITMASKS) + ram_region_table_count();
-    __kernel.proc.cr3            = PADDR_KERNEL_DIR;
-
     // Add isr stack to kernel's TSS
     set_kernel_stack(VADDR_ISR_STACK);
 
-    // Setup kernel process as idle process
-    __kernel.pm.idle_task            = &__kernel.proc;
-    __kernel.pm.idle_task->next_proc = __kernel.pm.idle_task;
-    __kernel.pm.curr_task            = __kernel.pm.idle_task;
-    __kernel.pm.task_begin           = __kernel.pm.idle_task;
-
     isr_install();
+
+    pm_create(&__kernel.pm);
+
+    init_kernel_proc();
 
     init_system_call(IRQ16);
     system_call_register(SYS_INT_FAMILY_IO, sys_call_io_cb);
@@ -134,9 +130,11 @@ void kernel_main() {
 
     ramdisk_create(4096);
 
-    // set_first_task(proc);
+    set_first_task(__kernel.pm.curr_task);
 
-    // switch_to_task(proc);
+    switch_to_task(__kernel.pm.curr_task);
+
+    PANIC("switch didn't happen\n");
 
     // jump_usermode(term_run);
     jump_kernel_mode(term_run);
@@ -163,6 +161,45 @@ ebus_t * get_kernel_ebus() {
 void tmp_register_signals_cb(signals_master_cb_t cb) {
     __kernel.pm.curr_task->signals_callback = cb;
     printf("Attached master signal callback at %p\n", __kernel.pm.curr_task->signals_callback);
+}
+
+ebus_event_t * pull_event(int event_id) {
+    process_t * proc   = get_current_process();
+    proc->filter_event = event_id;
+    kernel_next_task();
+
+    return 0;
+}
+
+void kernel_next_task() {
+    process_t * curr = get_current_process();
+    process_t * next = curr->next_proc;
+    if (!next) {
+        next = __kernel.pm.idle_task;
+    }
+
+    // TODO save state of current task
+
+    __kernel.pm.curr_task = next;
+
+    // TODO load state of next task
+
+    // TODO probably won't return after above
+}
+
+static void init_kernel_proc() {
+    process_t * proc = &__kernel.proc;
+    if (process_create(proc)) {
+        PANIC("Failed to create idle task");
+    }
+
+    // Kernel process used for memory allocation
+    proc->next_heap_page = ADDR2PAGE(VADDR_RAM_BITMASKS) + ram_region_table_count();
+
+    // Setup kernel process as idle process
+    __kernel.pm.idle_task = proc;
+    __kernel.pm.curr_task = proc;
+    pm_add_proc(&__kernel.pm, proc);
 }
 
 static void cursor() {

@@ -125,10 +125,4 @@ void set_next_pid(uint32_t next);
 extern void set_first_task(process_t * next_proc);
 extern void switch_to_task(process_t * next_proc);
 
-typedef struct _proc_man {
-    process_t * idle_task;
-    process_t * task_begin;
-    process_t * curr_task;
-} proc_man_t;
-
 #endif // KERNEL_PROCESS_H

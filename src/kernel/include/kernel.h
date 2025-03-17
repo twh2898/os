@@ -8,6 +8,7 @@
 #include "ebus.h"
 #include "memory_alloc.h"
 #include "process.h"
+#include "process_manager.h"
 
 typedef struct _kernel {
     uint32_t   ram_table_addr;
@@ -43,5 +44,9 @@ process_t * get_current_process();
 ebus_t * get_kernel_ebus();
 
 void tmp_register_signals_cb(signals_master_cb_t cb);
+
+ebus_event_t * pull_event(int event_id);
+
+void kernel_next_task();
 
 #endif // KERNEL_H
