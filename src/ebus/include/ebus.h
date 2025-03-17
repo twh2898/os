@@ -23,7 +23,6 @@
 enum EBUS_EVENT {
     EBUS_EVENT_ANY = 0,
     EBUS_EVENT_TIMER,
-    EBUS_EVENT_USER_MSG,
     EBUS_EVENT_KEY,
 };
 
@@ -34,9 +33,6 @@ typedef struct _ebus_event {
             int      id;
             uint32_t time;
         } timer;
-        struct {
-            const char * msg;
-        } user_msg;
         struct {
             uint8_t  event;
             uint8_t  mods;
