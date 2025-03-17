@@ -31,6 +31,7 @@ typedef struct _ebus_event {
     int event_id;
     union {
         struct {
+            int      id;
             uint32_t time;
         } timer;
         struct {

@@ -10,9 +10,17 @@ enum TIMER_FREQ {
 
 void init_timer(uint32_t freq);
 
-void start_timer(uint32_t ticks);
-void start_timer_ns(uint32_t ns);
-void start_timer_ms(uint32_t ms);
+/**
+ * @brief
+ *
+ * @param ticks
+ * @return int id, < 0 for fail
+ */
+int start_timer(uint32_t ticks);
+int start_timer_ns(uint32_t ns);
+int start_timer_ms(uint32_t ms);
+
+void stop_timer(int id);
 
 uint32_t get_ticks();
 
