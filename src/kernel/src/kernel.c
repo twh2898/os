@@ -36,7 +36,8 @@ static kernel_t __kernel;
 
 extern _Noreturn void halt(void);
 
-static void init_kernel_proc();
+static void init_idle_proc();
+static void idle();
 static void id_map_range(mmu_table_t * table, size_t start, size_t end);
 static void id_map_page(mmu_table_t * table, size_t page);
 static void cursor();
@@ -96,14 +97,17 @@ void kernel_main() {
     init_gdt();
     init_tss();
 
+    pm_create(&__kernel.pm);
+
+    // Kernel process used for memory allocation
+    __kernel.proc.next_heap_page = ADDR2PAGE(VADDR_RAM_BITMASKS) + ram_region_table_count();
+    __kernel.proc.cr3            = PADDR_KERNEL_DIR;
+    __kernel.pm.curr_task        = &__kernel.proc;
+
     // Add isr stack to kernel's TSS
     set_kernel_stack(VADDR_ISR_STACK);
 
     isr_install();
-
-    pm_create(&__kernel.pm);
-
-    init_kernel_proc();
 
     init_system_call(IRQ16);
     system_call_register(SYS_INT_FAMILY_IO, sys_call_io_cb);
@@ -114,6 +118,10 @@ void kernel_main() {
     // Init kernel memory after system calls are registered
     memory_init(&__kernel.kernel_memory, _sys_page_alloc);
     init_malloc(&__kernel.kernel_memory);
+
+    init_idle_proc();
+    __kernel.proc.next_proc = __kernel.pm.idle_task;
+    __kernel.pm.curr_task   = &__kernel.proc;
 
     if (ebus_create(&__kernel.event_bus, 4096)) {
         PANIC("Failed to init ebus\n");
@@ -130,9 +138,11 @@ void kernel_main() {
 
     ramdisk_create(4096);
 
-    set_first_task(__kernel.pm.curr_task);
+    // set_first_task(__kernel.pm.curr_task);
 
-    switch_to_task(__kernel.pm.curr_task);
+    // switch_to_task(__kernel.pm.curr_task);
+
+    process_resume(__kernel.pm.idle_task, 0);
 
     PANIC("switch didn't happen\n");
 
@@ -178,28 +188,37 @@ void kernel_next_task() {
         next = __kernel.pm.idle_task;
     }
 
-    // TODO save state of current task
-
     __kernel.pm.curr_task = next;
 
-    // TODO load state of next task
+    // TODO interrupt back to process for sigint
 
-    // TODO probably won't return after above
+    if (process_resume(__kernel.pm.curr_task, 0)) {
+        PANIC("Failed to resume task");
+    }
 }
 
-static void init_kernel_proc() {
-    process_t * proc = &__kernel.proc;
+static void init_idle_proc() {
+    process_t * proc = kmalloc(sizeof(process_t));
     if (process_create(proc)) {
         PANIC("Failed to create idle task");
     }
 
     // Kernel process used for memory allocation
     proc->next_heap_page = ADDR2PAGE(VADDR_RAM_BITMASKS) + ram_region_table_count();
+    process_set_entrypoint(proc, idle);
 
     // Setup kernel process as idle process
     __kernel.pm.idle_task = proc;
-    __kernel.pm.curr_task = proc;
-    pm_add_proc(&__kernel.pm, proc);
+    // __kernel.pm.task_begin = proc;
+}
+
+void idle() {
+    vga_puts("Start idle task\n");
+    for (;;) {
+        term_update();
+        ebus_cycle(get_kernel_ebus());
+        asm("hlt");
+    }
 }
 
 static void cursor() {

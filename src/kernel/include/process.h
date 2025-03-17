@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "ebus.h"
 #include "libc/datastruct/array.h"
 
 typedef void (*signals_master_cb_t)(int);
@@ -28,16 +29,17 @@ enum PROCESS_STATE {
 };
 
 typedef struct _process {
+    uint32_t cr3;
+    uint32_t esp;
+    uint32_t esp0;
+
     uint32_t pid;
     uint32_t next_heap_page;
     uint32_t stack_page_count;
 
     // TODO heap & stack limits
 
-    uint32_t cr3;
-    uint32_t esp;
-    uint32_t esp0;
-    uint32_t eip;
+    uint32_t entrypoint;
 
     signals_master_cb_t signals_callback;
 
@@ -71,6 +73,10 @@ int process_create(process_t * proc);
 int process_free(process_t * proc);
 
 int process_set_entrypoint(process_t * proc, void * entrypoint);
+
+void process_yield(process_t * proc, uint32_t esp, int filter);
+
+int process_resume(process_t * proc, const ebus_event_t * event);
 
 /**
  * @brief Add `count` pages to the process heap.
@@ -120,9 +126,8 @@ int process_load_heap(process_t * proc, const char * buff, size_t size);
  */
 void set_next_pid(uint32_t next);
 
-// Old
-
-extern void set_first_task(process_t * next_proc);
-extern void switch_to_task(process_t * next_proc);
+extern _Noreturn void start_task(uint32_t cr3, uint32_t esp, uint32_t esp0, uint32_t eip, const ebus_event_t * event);
+extern _Noreturn void resume_task(uint32_t cr3, uint32_t esp, uint32_t esp0, const ebus_event_t * event);
+extern _Noreturn void switch_to_task(process_t * next_proc);
 
 #endif // KERNEL_PROCESS_H

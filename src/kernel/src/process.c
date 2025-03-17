@@ -1,6 +1,8 @@
 #include "process.h"
 
 #include "cpu/mmu.h"
+#include "cpu/tss.h"
+#include "kernel.h"
 #include "libc/string.h"
 #include "paging.h"
 #include "ram.h"
@@ -110,7 +112,34 @@ int process_set_entrypoint(process_t * proc, void * entrypoint) {
         return -1;
     }
 
-    proc->eip = PTR2UINT(entrypoint);
+    proc->entrypoint = PTR2UINT(entrypoint);
+}
+
+void process_yield(process_t * proc, uint32_t esp, int filter) {
+    proc->filter_event = filter;
+    proc->esp          = esp;
+    proc->state        = PROCESS_STATE_WAITING;
+    kernel_next_task();
+}
+
+int process_resume(process_t * proc, const ebus_event_t * event) {
+    if (!proc) {
+        return -1;
+    }
+
+    if (proc->state < PROCESS_STATE_SUSPENDED) {
+        proc->state            = PROCESS_STATE_RUNNING;
+        tss_get_entry(0)->esp0 = proc->esp0;
+        start_task(proc->cr3, proc->esp, proc->esp0, proc->entrypoint, event);
+    }
+
+    // TODO implement this
+    if (!proc->filter_event || !event || proc->filter_event == event->event_id) {
+        proc->state            = PROCESS_STATE_RUNNING;
+        tss_get_entry(0)->esp0 = proc->esp0;
+        switch_to_task(proc);
+    }
+    return -1;
 }
 
 void * process_add_pages(process_t * proc, size_t count) {
