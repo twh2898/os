@@ -4,6 +4,7 @@
 #include "cpu/tss.h"
 #include "kernel.h"
 #include "libc/memory.h"
+#include "libc/proc.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
 #include "paging.h"
@@ -34,16 +35,24 @@ int command_exec(uint8_t * buff, size_t size, size_t argc, char ** argv) {
 
     kernel_add_task(proc);
 
-    puts("Go for call\n");
+    ebus_event_t event;
+    event.event_id                  = EBUS_EVENT_TASK_SWITCH;
+    event.task_switch.next_task_pid = proc->pid;
 
-    if (process_resume(proc, 0)) {
-        KPANIC("Failed to resume process");
-    }
+    queue_event(&event);
 
-    // if process_resume does not fail, it will not return
-    KPANIC("How did you get here?");
+    // kernel_set_current_task(proc);
 
-    process_free(proc);
+    // puts("Go for call\n");
 
-    return -1;
+    // if (process_resume(proc, 0)) {
+    //     KPANIC("Failed to resume process");
+    // }
+
+    // // if process_resume does not fail, it will not return
+    // KPANIC("How did you get here?");
+
+    // process_free(proc);
+
+    return 0;
 }

@@ -123,22 +123,22 @@ void process_yield(process_t * proc, uint32_t esp, int filter) {
 }
 
 int process_resume(process_t * proc, const ebus_event_t * event) {
-    if (!proc) {
+    if (!proc || proc->state == PROCESS_STATE_DEAD) {
         return -1;
     }
 
-    if (proc->state < PROCESS_STATE_SUSPENDED) {
-        proc->state            = PROCESS_STATE_RUNNING;
-        tss_get_entry(0)->esp0 = proc->esp0;
-        start_task(proc->cr3, proc->esp, proc->esp0, proc->entrypoint, event);
-    }
+    // if (proc->state < PROCESS_STATE_SUSPENDED) {
+    proc->state            = PROCESS_STATE_RUNNING;
+    tss_get_entry(0)->esp0 = proc->esp0;
+    start_task(proc->cr3, proc->esp, proc->entrypoint, event);
+    // }
 
-    // TODO implement this
-    if (!proc->filter_event || !event || proc->filter_event == event->event_id) {
-        proc->state            = PROCESS_STATE_RUNNING;
-        tss_get_entry(0)->esp0 = proc->esp0;
-        resume_task(proc->cr3, proc->esp, proc->esp0, event);
-    }
+    // // TODO implement this
+    // else if (!proc->filter_event || !event || proc->filter_event == event->event_id) {
+    //     proc->state            = PROCESS_STATE_RUNNING;
+    //     tss_get_entry(0)->esp0 = proc->esp0;
+    //     start_task(proc->cr3, proc->esp, proc->entrypoint, event);
+    // }
     return -1;
 }
 

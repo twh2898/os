@@ -36,6 +36,7 @@ static kernel_t __kernel;
 
 extern _Noreturn void halt(void);
 
+static void early_boot();
 static void init_idle_proc();
 static void idle();
 static void id_map_range(mmu_table_t * table, size_t start, size_t end);
@@ -49,53 +50,7 @@ static void map_first_table(mmu_table_t * table);
 extern void jump_kernel_mode(void * fn);
 
 void kernel_main() {
-    init_vga(UINT2PTR(PADDR_VGA));
-    vga_clear();
-
-    kmemset(&__kernel, 0, sizeof(kernel_t));
-
-    boot_params_t * bparams = get_boot_params();
-
-    // Init RAM
-    __kernel.ram_table_addr = PADDR_RAM_TABLE;
-    ram_init((void *)__kernel.ram_table_addr, (void *)VADDR_RAM_BITMASKS);
-
-    for (size_t i = 0; i < bparams->mem_entries_count; i++) {
-        upper_ram_t * entry = &bparams->mem_entries[i];
-
-        // End of second stage kernel
-        if (entry->base_addr <= 0x9fbff) {
-            continue;
-        }
-
-        if (entry->type == RAM_TYPE_USABLE || entry->type == RAM_TYPE_ACPI_RECLAIMABLE) {
-            ram_region_add_memory(entry->base_addr, entry->length);
-        }
-    }
-
-    // Init Page Dir
-    __kernel.cr3     = PADDR_KERNEL_DIR;
-    mmu_dir_t * pdir = (mmu_dir_t *)__kernel.cr3;
-    mmu_dir_clear(pdir);
-
-    // Init first table
-    uint32_t first_table_addr = ram_page_palloc();
-    mmu_dir_set(pdir, 0, first_table_addr, MMU_DIR_RW);
-
-    // Map first table
-    mmu_table_t * first_table = UINT2PTR(first_table_addr);
-    mmu_table_clear(first_table);
-    map_first_table(first_table);
-
-    // Map last table to dir for access to tables
-    mmu_dir_set(pdir, MMU_DIR_SIZE - 1, __kernel.cr3, MMU_DIR_RW);
-
-    // Enter Paging
-    mmu_enable_paging(__kernel.cr3);
-
-    // GDT & TSS
-    init_gdt();
-    init_tss();
+    early_boot();
 
     pm_create(&__kernel.pm);
 
@@ -226,6 +181,60 @@ int kernel_close_process(process_t * proc) {
     process_free(proc);
 
     return 0;
+}
+
+int kernel_set_current_task(process_t * proc) {
+    __kernel.pm.curr_task = proc;
+}
+
+static void early_boot() {
+    init_vga(UINT2PTR(PADDR_VGA));
+    vga_clear();
+
+    kmemset(&__kernel, 0, sizeof(kernel_t));
+
+    boot_params_t * bparams = get_boot_params();
+
+    // Init RAM
+    __kernel.ram_table_addr = PADDR_RAM_TABLE;
+    ram_init((void *)__kernel.ram_table_addr, (void *)VADDR_RAM_BITMASKS);
+
+    for (size_t i = 0; i < bparams->mem_entries_count; i++) {
+        upper_ram_t * entry = &bparams->mem_entries[i];
+
+        // End of second stage kernel
+        if (entry->base_addr <= 0x9fbff) {
+            continue;
+        }
+
+        if (entry->type == RAM_TYPE_USABLE || entry->type == RAM_TYPE_ACPI_RECLAIMABLE) {
+            ram_region_add_memory(entry->base_addr, entry->length);
+        }
+    }
+
+    // Init Page Dir
+    __kernel.cr3     = PADDR_KERNEL_DIR;
+    mmu_dir_t * pdir = (mmu_dir_t *)__kernel.cr3;
+    mmu_dir_clear(pdir);
+
+    // Init first table
+    uint32_t first_table_addr = ram_page_palloc();
+    mmu_dir_set(pdir, 0, first_table_addr, MMU_DIR_RW);
+
+    // Map first table
+    mmu_table_t * first_table = UINT2PTR(first_table_addr);
+    mmu_table_clear(first_table);
+    map_first_table(first_table);
+
+    // Map last table to dir for access to tables
+    mmu_dir_set(pdir, MMU_DIR_SIZE - 1, __kernel.cr3, MMU_DIR_RW);
+
+    // Enter Paging
+    mmu_enable_paging(__kernel.cr3);
+
+    // GDT & TSS
+    init_gdt();
+    init_tss();
 }
 
 static void init_idle_proc() {

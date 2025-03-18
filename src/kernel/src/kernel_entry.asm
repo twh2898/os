@@ -85,13 +85,12 @@ TCB_ESP0          equ 12
 
 current_task_TCB: dd  0
 
-; void start_task(uint32_t cr3, uint32_t esp, uint32_t esp0, uint32_t eip, const ebus_event_t * event)
+; void start_task(uint32_t cr3, uint32_t esp, uint32_t eip, const ebus_event_t * event)
 global start_task
 start_task:
     mov ebp, esp
     mov ecx, [ebp+4]  ; cr3
     mov ebx, [ebp+8]  ; esp
-    mov edx, [ebp+12] ; esp0
     mov edi, [ebp+16] ; eip
     mov eax, [ebp+20] ; event
 
@@ -101,7 +100,7 @@ start_task:
     jmp edi
 
 
-; void resume_task(uint32_t cr3, uint32_t esp, uint32_t esp0, const ebus_event_t * event)
+; void resume_task(uint32_t cr3, uint32_t esp, const ebus_event_t * event)
 global resume_task
 resume_task:
     mov ebp, esp

@@ -50,6 +50,7 @@ ebus_event_t * pull_event(int event_id);
 int kernel_add_task(process_t * proc);
 int kernel_next_task();
 int kernel_close_process(process_t * proc);
+int kernel_set_current_task(process_t * proc);
 
 #ifdef TESTING
 #define NO_RETURN

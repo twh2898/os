@@ -133,8 +133,8 @@ void set_next_pid(uint32_t next);
 #define NO_RETURN _Noreturn
 #endif
 
-extern NO_RETURN void start_task(uint32_t cr3, uint32_t esp, uint32_t esp0, uint32_t eip, const ebus_event_t * event);
-extern NO_RETURN void resume_task(uint32_t cr3, uint32_t esp, uint32_t esp0, const ebus_event_t * event);
+extern NO_RETURN void start_task(uint32_t cr3, uint32_t esp, uint32_t eip, const ebus_event_t * event);
+extern NO_RETURN void resume_task(uint32_t cr3, uint32_t esp, const ebus_event_t * event);
 extern NO_RETURN void switch_to_task(process_t * next_proc);
 
 #endif // KERNEL_PROCESS_H
