@@ -19,7 +19,11 @@ int sys_call_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
                 uint8_t code;
             } * args = (struct _args *)args_data;
             printf("Proc exit with code %u\n", args->code);
-            kernel_exit();
+            if (kernel_close_process(get_current_process())) {
+                KPANIC("Kernel could not close process");
+            }
+            kernel_next_task();
+            KPANIC("Unexpected return from kernel_close_process");
         } break;
 
         case SYS_INT_PROC_ABORT: {
@@ -29,7 +33,11 @@ int sys_call_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
             } * args = (struct _args *)args_data;
             printf("Proc abort with code %u\n", args->code);
             puts(args->msg);
-            kernel_exit();
+            if (kernel_close_process(get_current_process())) {
+                KPANIC("Kernel could not close process");
+            }
+            kernel_next_task();
+            KPANIC("Unexpected return from kernel_close_process");
         } break;
 
         case SYS_INT_PROC_PANIC: {
@@ -66,12 +74,10 @@ int sys_call_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
 
         case SYS_INT_PROC_GETPID: {
             process_t * p = get_current_process();
-            if (p) {
-                res = p->pid;
+            if (!p) {
+                KPANIC("Failed to find current process");
             }
-            else {
-                res = -1;
-            }
+            res = p->pid;
         } break;
 
         case SYS_INT_PROC_QUEUE_EVENT: {
@@ -87,6 +93,7 @@ int sys_call_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
                 int filter;
             } * args = (struct _args *)args_data;
 
+            // TODO clear iret from stack?
             process_t * proc = get_current_process();
             process_yield(proc, regs->esp, args->filter);
         };

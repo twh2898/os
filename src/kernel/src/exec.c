@@ -32,6 +32,8 @@ int command_exec(uint8_t * buff, size_t size, size_t argc, char ** argv) {
 
     process_add_pages(proc, 32);
 
+    kernel_add_task(proc);
+
     puts("Go for call\n");
 
     if (process_resume(proc, 0)) {

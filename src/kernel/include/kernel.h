@@ -47,7 +47,9 @@ void tmp_register_signals_cb(signals_master_cb_t cb);
 
 ebus_event_t * pull_event(int event_id);
 
-void kernel_next_task();
+int kernel_add_task(process_t * proc);
+int kernel_next_task();
+int kernel_close_process(process_t * proc);
 
 #ifdef TESTING
 #define NO_RETURN

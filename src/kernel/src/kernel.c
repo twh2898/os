@@ -122,6 +122,7 @@ void kernel_main() {
     init_idle_proc();
     __kernel.proc.next_proc = __kernel.pm.idle_task;
     __kernel.pm.curr_task   = &__kernel.proc;
+    __kernel.pm.task_begin  = &__kernel.proc;
 
     if (ebus_create(&__kernel.event_bus, 4096)) {
         KPANIC("Failed to init ebus\n");
@@ -181,7 +182,20 @@ ebus_event_t * pull_event(int event_id) {
     return 0;
 }
 
-void kernel_next_task() {
+int kernel_add_task(process_t * proc) {
+    if (!proc) {
+        return -1;
+    }
+    process_t * curr = __kernel.pm.task_begin;
+    while (curr->next_proc && curr->next_proc != __kernel.pm.idle_task) {
+        curr = curr->next_proc;
+    }
+    curr->next_proc = proc;
+    proc->next_proc = __kernel.pm.idle_task;
+    return 0;
+}
+
+int kernel_next_task() {
     process_t * curr = get_current_process();
     process_t * next = curr->next_proc;
     if (!next) {
@@ -195,6 +209,23 @@ void kernel_next_task() {
     if (process_resume(__kernel.pm.curr_task, 0)) {
         KPANIC("Failed to resume task");
     }
+
+    return 0;
+}
+
+int kernel_close_process(process_t * proc) {
+    if (!proc) {
+        return -1;
+    }
+
+    if (pm_remove_proc(&__kernel.pm, proc)) {
+        KPANIC("Failed to remove process from pm");
+        return -1;
+    }
+
+    process_free(proc);
+
+    return 0;
 }
 
 static void init_idle_proc() {

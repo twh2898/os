@@ -29,6 +29,33 @@ int pm_add_proc(proc_man_t * pm, process_t * proc) {
 }
 
 int pm_remove_proc(proc_man_t * pm, process_t * proc) {
+    if (!pm || !proc) {
+        return -1;
+    }
+
+    if (!proc->pid || proc->pid == pm->idle_task->pid) {
+        return -1;
+    }
+
+    if (pm->curr_task->pid == proc->pid) {
+        pm->curr_task = pm->curr_task->next_proc;
+    }
+
     // TODO not yet implemented, because idk how this struct will be
+    process_t * curr = pm->task_begin;
+
+    if (curr->pid == proc->pid) {
+        pm->task_begin = curr->next_proc;
+        return 0;
+    }
+
+    while (curr->next_proc && curr->next_proc != pm->idle_task && curr->next_proc != pm->curr_task) {
+        if (curr->next_proc->pid == proc->pid) {
+            curr->next_proc = curr->next_proc->next_proc;
+            return 0;
+        }
+        curr = curr->next_proc;
+    }
+
     return -1;
 }
