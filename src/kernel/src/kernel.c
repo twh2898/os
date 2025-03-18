@@ -139,14 +139,14 @@ void kernel_main() {
         KPANIC("Failed to init ebus\n");
     }
 
-    ebus_handler_t launch_handler;
-    launch_handler.callback_fn = handle_launch;
-    launch_handler.event_id    = EBUS_EVENT_TASK_SWITCH;
+    ebus_handler_t launch_handler = {0};
+    launch_handler.callback_fn    = handle_launch;
+    launch_handler.event_id       = EBUS_EVENT_TASK_SWITCH;
     ebus_register_handler(&__kernel.event_bus, &launch_handler);
 
-    ebus_handler_t kill_handler;
-    kill_handler.callback_fn = handle_kill;
-    kill_handler.event_id    = EBUS_EVENT_TASK_KILL;
+    ebus_handler_t kill_handler = {0};
+    kill_handler.callback_fn    = handle_kill;
+    kill_handler.event_id       = EBUS_EVENT_TASK_KILL;
     ebus_register_handler(&__kernel.event_bus, &kill_handler);
 
     irq_install();
@@ -189,6 +189,25 @@ static void handle_kill(const ebus_event_t * event) {
     }
 
     process_free(proc);
+}
+
+int kernel_call_as_proc(int pid, _proc_call_t fn, void * data) {
+    if (!fn) {
+        return -1;
+    }
+
+    process_t * curr = get_current_process();
+    if (curr->pid != pid) {
+        kernel_switch_task(pid);
+    }
+
+    int res = fn(data);
+
+    if (curr->pid != pid) {
+        kernel_switch_task(curr->pid);
+    }
+
+    return res;
 }
 
 int kernel_switch_task(int next_pid) {

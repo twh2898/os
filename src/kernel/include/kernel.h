@@ -52,6 +52,10 @@ int kernel_next_task();
 int kernel_close_process(process_t * proc);
 int kernel_set_current_task(process_t * proc);
 
+typedef int (*_proc_call_t)(void * data);
+
+int kernel_call_as_proc(int pid, _proc_call_t fn, void * data);
+
 int kernel_switch_task(int next_pid);
 
 #ifdef TESTING
