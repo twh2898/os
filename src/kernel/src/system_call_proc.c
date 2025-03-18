@@ -19,7 +19,9 @@ int sys_call_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
                 uint8_t code;
             } * args = (struct _args *)args_data;
             printf("Proc exit with code %u\n", args->code);
-            if (kernel_close_process(get_current_process())) {
+            process_t * proc = get_current_process();
+            enable_interrupts();
+            if (kernel_close_process(proc)) {
                 KPANIC("Kernel could not close process");
             }
             kernel_next_task();
@@ -33,7 +35,9 @@ int sys_call_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
             } * args = (struct _args *)args_data;
             printf("Proc abort with code %u\n", args->code);
             puts(args->msg);
-            if (kernel_close_process(get_current_process())) {
+            process_t * proc = get_current_process();
+            enable_interrupts();
+            if (kernel_close_process(proc)) {
                 KPANIC("Kernel could not close process");
             }
             kernel_next_task();

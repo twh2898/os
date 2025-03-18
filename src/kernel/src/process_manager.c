@@ -12,6 +12,30 @@ int pm_create(proc_man_t * pm) {
     return 0;
 }
 
+process_t * pm_get_pid(proc_man_t * pm, int pid) {
+    if (!pm || pid < 1) {
+        return 0;
+    }
+
+    if (pm->idle_task->pid == pid) {
+        return pm->idle_task;
+    }
+
+    if (pm->curr_task->pid == pid) {
+        return pm->curr_task;
+    }
+
+    process_t * curr = pm->task_begin;
+    while (curr && curr->pid != pm->idle_task->pid) {
+        if (curr->pid == pid) {
+            return curr;
+        }
+        curr = curr->next_proc;
+    }
+
+    return 0;
+}
+
 int pm_add_proc(proc_man_t * pm, process_t * proc) {
     if (!pm || !proc) {
         return -1;

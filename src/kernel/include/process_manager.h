@@ -14,6 +14,8 @@ typedef struct _proc_man {
 
 int pm_create(proc_man_t * pm);
 
+process_t * pm_get_pid(proc_man_t * pm, int pid);
+
 int pm_add_proc(proc_man_t * pm, process_t * proc);
 int pm_remove_proc(proc_man_t * pm, process_t * proc);
 

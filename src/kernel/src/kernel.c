@@ -36,6 +36,8 @@ static kernel_t __kernel;
 
 extern _Noreturn void halt(void);
 
+static void handle_launch(const ebus_event_t * event);
+static void handle_kill(const ebus_event_t * event);
 static void init_idle_proc();
 static void idle();
 static void id_map_range(mmu_table_t * table, size_t start, size_t end);
@@ -137,6 +139,16 @@ void kernel_main() {
         KPANIC("Failed to init ebus\n");
     }
 
+    ebus_handler_t launch_handler;
+    launch_handler.callback_fn = handle_launch;
+    launch_handler.event_id    = EBUS_EVENT_TASK_SWITCH;
+    ebus_register_handler(&__kernel.event_bus, &launch_handler);
+
+    ebus_handler_t kill_handler;
+    kill_handler.callback_fn = handle_kill;
+    kill_handler.event_id    = EBUS_EVENT_TASK_KILL;
+    ebus_register_handler(&__kernel.event_bus, &kill_handler);
+
     irq_install();
 
     vga_puts("Welcome to kernel v" PROJECT_VERSION "\n");
@@ -160,6 +172,36 @@ void kernel_main() {
     jump_kernel_mode(term_run);
 
     KPANIC("You shouldn't be here!");
+}
+
+static void handle_launch(const ebus_event_t * event) {
+    printf("Start task %u\n", event->task_switch.next_task_pid);
+    process_t * proc      = pm_get_pid(&__kernel.pm, event->task_switch.next_task_pid);
+    __kernel.pm.curr_task = proc;
+    process_resume(proc, 0);
+}
+
+static void handle_kill(const ebus_event_t * event) {
+    printf("Kill task %u\n", event->task_switch.next_task_pid);
+    process_t * proc = pm_get_pid(&__kernel.pm, event->task_kill.task_pid);
+    if (pm_remove_proc(&__kernel.pm, proc)) {
+        KPANIC("Failed to remove process from pm");
+    }
+
+    process_free(proc);
+}
+
+int kernel_switch_task(int next_pid) {
+    process_t * proc = pm_get_pid(&__kernel.pm, next_pid);
+    if (!proc || proc->state == PROCESS_STATE_DEAD) {
+        return -1;
+    }
+
+    __kernel.pm.curr_task = proc;
+    proc->state           = PROCESS_STATE_RUNNING;
+    set_kernel_stack(proc->esp0);
+    mmu_change_dir(proc->cr3);
+    return 0;
 }
 
 mmu_dir_t * get_kernel_dir() {
@@ -227,12 +269,24 @@ int kernel_close_process(process_t * proc) {
         return -1;
     }
 
-    if (pm_remove_proc(&__kernel.pm, proc)) {
-        KPANIC("Failed to remove process from pm");
-        return -1;
+    proc->state = PROCESS_STATE_DEAD;
+
+    process_t * next = __kernel.pm.curr_task->next_proc;
+    if (!next) {
+        next = __kernel.pm.idle_task;
     }
 
-    process_free(proc);
+    ebus_event_t launch_event;
+    launch_event.event_id                  = EBUS_EVENT_TASK_SWITCH;
+    launch_event.task_switch.next_task_pid = next->pid;
+
+    queue_event(&launch_event);
+
+    ebus_event_t kill_event;
+    kill_event.event_id           = EBUS_EVENT_TASK_KILL;
+    kill_event.task_kill.task_pid = proc->pid;
+
+    queue_event(&kill_event);
 
     return 0;
 }

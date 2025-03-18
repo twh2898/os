@@ -1,5 +1,6 @@
 #include "ebus.h"
 
+#include "kernel.h"
 #include "libc/proc.h"
 #include "libc/stdio.h"
 
@@ -114,6 +115,8 @@ static int handle_event(ebus_t * bus, ebus_event_t * event) {
         if (!handler) {
             return -1;
         }
+
+        kernel_switch_task(handler->pid);
 
         if (!handler->event_id || handler->event_id == event->event_id) {
             handler->callback_fn(event);

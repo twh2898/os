@@ -52,6 +52,8 @@ int kernel_next_task();
 int kernel_close_process(process_t * proc);
 int kernel_set_current_task(process_t * proc);
 
+int kernel_switch_task(int next_pid);
+
 #ifdef TESTING
 #define NO_RETURN
 #else
