@@ -6,6 +6,7 @@
 
 #include "ebus.h"
 #include "libc/datastruct/array.h"
+#include "memory_alloc.h"
 
 typedef void (*signals_master_cb_t)(int);
 
@@ -43,14 +44,13 @@ typedef struct _process {
     uint32_t entrypoint;
 
     signals_master_cb_t signals_callback;
+    arr_t               io_handles; // array<handle_t>
+    ebus_t              event_queue;
+    memory_t            memory;
 
-    arr_t io_handles; // array<handle_t>
-
-    uint32_t filter_event;
-
+    uint32_t           filter_event;
     enum PROCESS_STATE state;
-
-    struct _process * next_proc;
+    struct _process *  next_proc;
 } process_t;
 
 /**

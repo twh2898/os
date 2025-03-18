@@ -4,6 +4,7 @@
 #include "cpu/tss.h"
 #include "kernel.h"
 #include "libc/string.h"
+#include "libk/sys_call.h"
 #include "paging.h"
 #include "ram.h"
 
@@ -27,10 +28,25 @@ int process_create(process_t * proc) {
         return -1;
     }
 
+    if (ebus_create(&proc->event_queue, 4096)) {
+        arr_free(&proc->io_handles);
+        ram_page_free(proc->cr3);
+        return -1;
+    }
+
+    if (memory_init(&proc->memory, _sys_page_alloc)) {
+        ebus_free(&proc->event_queue);
+        arr_free(&proc->io_handles);
+        ram_page_free(proc->cr3);
+        return -1;
+    }
+
     // Setup page directory
     mmu_dir_t * dir = paging_temp_map(proc->cr3);
 
     if (!dir) {
+        ebus_free(&proc->event_queue);
+        arr_free(&proc->io_handles);
         ram_page_free(proc->cr3);
         return -1;
     }
@@ -46,6 +62,8 @@ int process_create(process_t * proc) {
 
     // Allocate pages for ISR stack + first page of user stack
     if (paging_add_pages(dir, ADDR2PAGE(proc->esp), ADDR2PAGE(proc->esp0))) {
+        ebus_free(&proc->event_queue);
+        arr_free(&proc->io_handles);
         paging_temp_free(proc->cr3);
         ram_page_free(proc->cr3);
         return -1;
@@ -128,8 +146,8 @@ int process_resume(process_t * proc, const ebus_event_t * event) {
     }
 
     // if (proc->state < PROCESS_STATE_SUSPENDED) {
-    proc->state            = PROCESS_STATE_RUNNING;
-    tss_get_entry(0)->esp0 = proc->esp0;
+    proc->state = PROCESS_STATE_RUNNING;
+    set_kernel_stack(proc->esp0);
     start_task(proc->cr3, proc->esp, proc->entrypoint, event);
     // }
 

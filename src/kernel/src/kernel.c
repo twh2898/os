@@ -97,6 +97,14 @@ void kernel_main() {
     init_gdt();
     init_tss();
 
+    // if (process_create(&__kernel.proc)) {
+    //     KPANIC("Failed to create kernel process");
+    // }
+
+    // process_set_entrypoint(&__kernel.proc, idle);
+    // process_resume(&__kernel.proc, 0);
+    // halt();
+
     pm_create(&__kernel.pm);
 
     // Kernel process used for memory allocation
@@ -104,6 +112,7 @@ void kernel_main() {
     __kernel.proc.cr3            = PADDR_KERNEL_DIR;
     __kernel.pm.curr_task        = &__kernel.proc;
 
+    // TODO make this part of task switching code
     // Add isr stack to kernel's TSS
     set_kernel_stack(VADDR_ISR_STACK);
 
@@ -270,10 +279,7 @@ NO_RETURN void kernel_panic(const char * msg, const char * file, unsigned int li
         vga_puts(msg);
     }
     vga_cursor_hide();
-    asm("cli");
-    for (;;) {
-        asm("hlt");
-    }
+    halt();
 }
 
 static void cursor() {

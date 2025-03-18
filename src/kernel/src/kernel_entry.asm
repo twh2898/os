@@ -90,14 +90,14 @@ global start_task
 start_task:
     mov ebp, esp
     mov ecx, [ebp+4]  ; cr3
-    mov ebx, [ebp+8]  ; esp
-    mov edi, [ebp+16] ; eip
-    mov eax, [ebp+20] ; event
+    mov edx, [ebp+8]  ; esp
+    mov ebx, [ebp+12] ; eip
+    mov eax, [ebp+16] ; event
 
-    mov esp, ebx
+    mov esp, edx
     mov cr3, ecx
 
-    jmp edi
+    jmp ebx
 
 
 ; void resume_task(uint32_t cr3, uint32_t esp, const ebus_event_t * event)
@@ -106,8 +106,7 @@ resume_task:
     mov ebp, esp
     mov ecx, [ebp+4]  ; cr3
     mov ebx, [ebp+8]  ; esp
-    mov edx, [ebp+12] ; esp0
-    mov eax, [ebp+16] ; event
+    mov eax, [ebp+12] ; event
 
     ; TODO get tss and set it's esp0
     ; mov [TSS_ESP0], ebx ;Adjust the ESP0 field in the TSS (used by CPU for for CPL=3 -> CPL=0 privilege level changes)

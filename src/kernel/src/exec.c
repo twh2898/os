@@ -35,11 +35,11 @@ int command_exec(uint8_t * buff, size_t size, size_t argc, char ** argv) {
 
     kernel_add_task(proc);
 
-    ebus_event_t event;
-    event.event_id                  = EBUS_EVENT_TASK_SWITCH;
-    event.task_switch.next_task_pid = proc->pid;
+    // ebus_event_t event;
+    // event.event_id                  = EBUS_EVENT_TASK_SWITCH;
+    // event.task_switch.next_task_pid = proc->pid;
 
-    queue_event(&event);
+    // queue_event(&event);
 
     // kernel_set_current_task(proc);
 
