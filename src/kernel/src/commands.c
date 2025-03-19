@@ -562,6 +562,11 @@ static int currdir(size_t argc, char ** argv) {
     return 0;
 }
 
+static int currproc(size_t argc, char ** argv) {
+    printf("Current pid is %p\n", get_current_process()->pid);
+    return 0;
+}
+
 static int hotswap(size_t argc, char ** argv) {
     uint32_t curr_dir = mmu_get_curr_dir();
 
@@ -778,6 +783,7 @@ void commands_init() {
     set_command_lookup(command_lookup);
 
     term_command_add("currdir", currdir);
+    term_command_add("pid", currproc);
     term_command_add("hotswap", hotswap);
     term_command_add("procswap", procswap);
 
