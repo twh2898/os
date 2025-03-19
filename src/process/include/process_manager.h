@@ -7,9 +7,11 @@
 #include "process.h"
 
 typedef struct _proc_man {
-    process_t * idle_task;
-    process_t * task_begin;
-    process_t * curr_task;
+    arr_t task_list; // process_t *
+
+    /// Waiting for an event
+    arr_t       waiting; // process_t *
+    process_t * active;
 } proc_man_t;
 
 int pm_create(proc_man_t * pm);
