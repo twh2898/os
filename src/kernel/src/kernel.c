@@ -160,6 +160,16 @@ void kernel_main() {
 
     ramdisk_create(4096);
 
+    __kernel.disk = disk_open(0, DISK_DRIVER_ATA);
+    if (!__kernel.disk) {
+        KPANIC("Failed to open ATA disk");
+    }
+
+    __kernel.tar = tar_open(__kernel.disk);
+    if (!__kernel.tar) {
+        KPANIC("Failed to open tar");
+    }
+
     // set_first_task(__kernel.pm.curr_task);
 
     // switch_to_task(__kernel.pm.curr_task);
@@ -237,6 +247,14 @@ process_t * get_current_process() {
 
 ebus_t * get_kernel_ebus() {
     return &__kernel.event_bus;
+}
+
+disk_t * kernel_get_disk() {
+    return __kernel.disk;
+}
+
+tar_fs_t * kernel_get_tar() {
+    return __kernel.tar;
 }
 
 void tmp_register_signals_cb(signals_master_cb_t cb) {

@@ -5,6 +5,8 @@
 #include <stdint.h>
 
 #include "cpu/mmu.h"
+#include "drivers/disk.h"
+#include "drivers/tar.h"
 #include "ebus.h"
 #include "memory_alloc.h"
 #include "process.h"
@@ -17,6 +19,8 @@ typedef struct _kernel {
     proc_man_t pm;
     memory_t   kernel_memory;
     ebus_t     event_bus;
+    disk_t *   disk;
+    tar_fs_t * tar;
 } kernel_t;
 
 /**
@@ -38,6 +42,9 @@ mmu_dir_t * get_kernel_dir();
  * @return mmu_table_t* pointer to the kernel's page table of any page directory
  */
 mmu_table_t * get_kernel_table();
+
+disk_t *   kernel_get_disk();
+tar_fs_t * kernel_get_tar();
 
 process_t * get_current_process();
 
