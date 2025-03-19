@@ -19,4 +19,20 @@ process_t * pm_get_pid(proc_man_t * pm, int pid);
 int pm_add_proc(proc_man_t * pm, process_t * proc);
 int pm_remove_proc(proc_man_t * pm, process_t * proc);
 
+int pm_switch_process(proc_man_t * pm);
+int pm_resume_process(proc_man_t * pm);
+
+process_t * get_current_process();
+
+int kernel_add_task(process_t * proc);
+int kernel_next_task();
+int kernel_close_process(process_t * proc);
+int kernel_set_current_task(process_t * proc);
+
+typedef int (*_proc_call_t)(void * data);
+
+int kernel_call_as_proc(int pid, _proc_call_t fn, void * data);
+
+int kernel_switch_task(int next_pid);
+
 #endif // KERNEL_PROCESS_MANAGER_H

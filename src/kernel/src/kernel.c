@@ -184,65 +184,12 @@ void kernel_main() {
     KPANIC("You shouldn't be here!");
 }
 
-static void handle_launch(const ebus_event_t * event) {
-    printf("Start task %u\n", event->task_switch.next_task_pid);
-    process_t * proc      = pm_get_pid(&__kernel.pm, event->task_switch.next_task_pid);
-    __kernel.pm.curr_task = proc;
-    process_resume(proc, 0);
-}
-
-static void handle_kill(const ebus_event_t * event) {
-    printf("Kill task %u\n", event->task_switch.next_task_pid);
-    process_t * proc = pm_get_pid(&__kernel.pm, event->task_kill.task_pid);
-    if (pm_remove_proc(&__kernel.pm, proc)) {
-        KPANIC("Failed to remove process from pm");
-    }
-
-    process_free(proc);
-}
-
-int kernel_call_as_proc(int pid, _proc_call_t fn, void * data) {
-    if (!fn) {
-        return -1;
-    }
-
-    process_t * curr = get_current_process();
-    if (curr->pid != pid) {
-        kernel_switch_task(pid);
-    }
-
-    int res = fn(data);
-
-    if (curr->pid != pid) {
-        kernel_switch_task(curr->pid);
-    }
-
-    return res;
-}
-
-int kernel_switch_task(int next_pid) {
-    process_t * proc = pm_get_pid(&__kernel.pm, next_pid);
-    if (!proc || proc->state == PROCESS_STATE_DEAD) {
-        return -1;
-    }
-
-    __kernel.pm.curr_task = proc;
-    proc->state           = PROCESS_STATE_RUNNING;
-    set_kernel_stack(proc->esp0);
-    mmu_change_dir(proc->cr3);
-    return 0;
-}
-
 mmu_dir_t * get_kernel_dir() {
     return (mmu_dir_t *)__kernel.cr3;
 }
 
 mmu_table_t * get_kernel_table() {
     return (mmu_table_t *)VADDR_KERNEL_TABLE;
-}
-
-process_t * get_current_process() {
-    return __kernel.pm.curr_task;
 }
 
 ebus_t * get_kernel_ebus() {
@@ -266,64 +213,6 @@ ebus_event_t * pull_event(int event_id) {
     process_t * proc   = get_current_process();
     proc->filter_event = event_id;
     kernel_next_task();
-
-    return 0;
-}
-
-int kernel_add_task(process_t * proc) {
-    if (!proc) {
-        return -1;
-    }
-    process_t * curr = __kernel.pm.task_begin;
-    while (curr->next_proc && curr->next_proc != __kernel.pm.idle_task) {
-        curr = curr->next_proc;
-    }
-    curr->next_proc = proc;
-    proc->next_proc = __kernel.pm.idle_task;
-    return 0;
-}
-
-int kernel_next_task() {
-    process_t * curr = get_current_process();
-    process_t * next = curr->next_proc;
-    if (!next) {
-        next = __kernel.pm.idle_task;
-    }
-
-    __kernel.pm.curr_task = next;
-
-    // TODO interrupt back to process for sigint
-
-    if (process_resume(__kernel.pm.curr_task, 0)) {
-        KPANIC("Failed to resume task");
-    }
-
-    return 0;
-}
-
-int kernel_close_process(process_t * proc) {
-    if (!proc) {
-        return -1;
-    }
-
-    proc->state = PROCESS_STATE_DEAD;
-
-    process_t * next = __kernel.pm.curr_task->next_proc;
-    if (!next) {
-        next = __kernel.pm.idle_task;
-    }
-
-    ebus_event_t launch_event;
-    launch_event.event_id                  = EBUS_EVENT_TASK_SWITCH;
-    launch_event.task_switch.next_task_pid = next->pid;
-
-    queue_event(&launch_event);
-
-    ebus_event_t kill_event;
-    kill_event.event_id           = EBUS_EVENT_TASK_KILL;
-    kill_event.task_kill.task_pid = proc->pid;
-
-    queue_event(&kill_event);
 
     return 0;
 }
