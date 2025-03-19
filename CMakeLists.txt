@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.15..3.20)
 
+# No longer used, keeping here for future use
 set(CPU_ARCH i386)
 
 set(CROSS_PREFIX "$ENV{HOME}/.local/opt/cross")

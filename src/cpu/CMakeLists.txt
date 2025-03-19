@@ -1,5 +1,4 @@
 set(TARGET cpu)
 
-add_subdirectory(${CPU_ARCH}) # defined in root CMakeLists.txt
+cross_target(${TARGET}) # defined in parent CMakeLists.txt
 target_link_libraries(${TARGET} libk libc util)
-target_include_directories(${TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
