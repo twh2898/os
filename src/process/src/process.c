@@ -83,6 +83,7 @@ int process_free(process_t * proc) {
         return -1;
     }
 
+    ebus_free(&proc->event_queue);
     arr_free(&proc->io_handles);
 
     mmu_dir_t * dir = paging_temp_map(proc->cr3);
