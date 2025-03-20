@@ -11,7 +11,7 @@
 typedef struct _proc_man {
     arr_t task_list; // process_t *
     /// Waiting for an event
-    arr_t       waiting; // process_t *
+    // arr_t       waiting; // process_t *
     process_t * active;
 } proc_man_t;
 
@@ -25,10 +25,13 @@ process_t * pm_find_pid(proc_man_t * pm, int pid);
 int pm_add_proc(proc_man_t * pm, process_t * proc);
 int pm_remove_proc(proc_man_t * pm, int pid);
 
+int pm_activate_process(proc_man_t * pm, int pid);
 int pm_switch_process(proc_man_t * pm);
 int pm_resume_process(proc_man_t * pm, int pid, ebus_event_t * event);
 
 process_t * pm_get_next(proc_man_t * pm);
+
+int pm_push_event(proc_man_t * pm, ebus_event_t * event);
 
 int kernel_add_task(process_t * proc);
 int kernel_next_task();

@@ -42,10 +42,13 @@ mmu_dir_t * get_kernel_dir();
  */
 mmu_table_t * get_kernel_table();
 
-disk_t *   kernel_get_disk();
-tar_fs_t * kernel_get_tar();
+disk_t *     kernel_get_disk();
+tar_fs_t *   kernel_get_tar();
+proc_man_t * kernel_get_proc_man();
 
 process_t * get_current_process();
+process_t * kernel_find_pid(int pid);
+int         set_current_process(process_t * proc);
 
 ebus_t * get_kernel_ebus();
 

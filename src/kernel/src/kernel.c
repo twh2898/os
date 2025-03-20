@@ -14,6 +14,7 @@
 #include "drivers/rtc.h"
 #include "drivers/timer.h"
 #include "drivers/vga.h"
+#include "idle.h"
 #include "io/file.h"
 #include "kernel/boot_params.h"
 #include "kernel/system_call.h"
@@ -130,6 +131,9 @@ void kernel_main() {
     memory_init(&__kernel.kernel_memory, _sys_page_alloc);
     init_malloc(&__kernel.kernel_memory);
 
+    process_t * idle = init_idle();
+    pm_add_proc(&__kernel.pm, idle);
+
     init_idle_proc();
     __kernel.proc.next_proc = __kernel.pm.idle_task;
     __kernel.pm.curr_task   = &__kernel.proc;
@@ -174,7 +178,9 @@ void kernel_main() {
 
     // switch_to_task(__kernel.pm.curr_task);
 
-    process_resume(__kernel.pm.idle_task, 0);
+    pm_resume_process(&__kernel.pm, idle->pid, 0);
+
+    // process_resume(__kernel.pm.idle_task, 0);
 
     KPANIC("switch didn't happen\n");
 
@@ -204,8 +210,24 @@ tar_fs_t * kernel_get_tar() {
     return __kernel.tar;
 }
 
+proc_man_t * kernel_get_proc_man() {
+    return &__kernel.pm;
+}
+
 process_t * get_current_process() {
     return pm_get_active(&__kernel.pm);
+}
+
+process_t * kernel_find_pid(int pid) {
+    return pm_find_pid(&__kernel.pm, pid);
+}
+
+int set_current_process(process_t * proc) {
+    if (!proc) {
+        return -1;
+    }
+
+    return pm_activate_process(&__kernel.pm, proc->pid);
 }
 
 void tmp_register_signals_cb(signals_master_cb_t cb) {

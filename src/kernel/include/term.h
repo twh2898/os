@@ -5,11 +5,13 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "process.h"
+
 typedef int (*command_cb_t)(size_t argc, char ** argv);
 
 extern int term_last_ret;
 
-void term_init();
+process_t * term_init();
 
 void term_update();
 

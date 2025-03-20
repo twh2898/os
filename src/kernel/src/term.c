@@ -98,13 +98,23 @@ static int help_cmd(size_t argc, char ** argv) {
     return 0;
 }
 
-void term_init() {
+process_t * term_init() {
+    process_t * proc = kmalloc(sizeof(process_t));
+    if (!proc || process_create(proc)) {
+        return 0;
+    }
+
+    if (process_set_entrypoint(proc, term_run)) {
+        kfree(proc);
+        return 0;
+    }
+
     command_lookup = 0;
 
     term_command_add("help", help_cmd);
 
     if (cb_create(&keybuff, MAX_CHARS, 1)) {
-        return;
+        return 0;
     }
     command_ready = false;
 
@@ -112,7 +122,20 @@ void term_init() {
     handler.callback_fn = key_event_handler;
     handler.event_id    = EBUS_EVENT_KEY;
     if (ebus_register_handler(get_kernel_ebus(), &handler) < 1) {
-        PANIC("Failed to register keyboard event handler");
+        kfree(proc);
+        return 0;
+    }
+
+    return proc;
+}
+
+void term_run() {
+    vga_color(RESET);
+    vga_puts("> ");
+
+    for (;;) {
+        term_update();
+        yield(0);
     }
 }
 
@@ -167,17 +190,6 @@ void term_update() {
 
     vga_color(RESET);
     vga_puts("> ");
-}
-
-void term_run() {
-    vga_color(RESET);
-    vga_puts("> ");
-
-    for (;;) {
-        term_update();
-        ebus_cycle(get_kernel_ebus());
-        asm("hlt");
-    }
 }
 
 bool term_command_add(const char * command, command_cb_t cb) {
