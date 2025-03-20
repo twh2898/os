@@ -126,7 +126,7 @@ int kernel_call_as_proc(int pid, _proc_call_t fn, void * data) {
 
 int kernel_switch_task(int next_pid) {
     process_t * proc = pm_get_pid(&__kernel.pm, next_pid);
-    if (!proc || proc->state == PROCESS_STATE_DEAD) {
+    if (!proc || proc->state >= PROCESS_STATE_DEAD) {
         return -1;
     }
 

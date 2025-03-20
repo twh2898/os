@@ -152,7 +152,7 @@ void process_yield(process_t * proc, uint32_t esp, int filter) {
 }
 
 int process_resume(process_t * proc, const ebus_event_t * event) {
-    if (!proc || proc->state == PROCESS_STATE_DEAD) {
+    if (!proc || proc->state >= PROCESS_STATE_DEAD) {
         return -1;
     }
 
