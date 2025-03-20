@@ -4,11 +4,11 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "libc/datastruct/array.h"
 #include "process.h"
 
 typedef struct _proc_man {
     arr_t task_list; // process_t *
-
     /// Waiting for an event
     arr_t       waiting; // process_t *
     process_t * active;
@@ -19,7 +19,7 @@ int pm_create(proc_man_t * pm);
 process_t * pm_get_pid(proc_man_t * pm, int pid);
 
 int pm_add_proc(proc_man_t * pm, process_t * proc);
-int pm_remove_proc(proc_man_t * pm, process_t * proc);
+int pm_remove_proc(proc_man_t * pm, int pid);
 
 int pm_switch_process(proc_man_t * pm);
 int pm_resume_process(proc_man_t * pm);

@@ -133,6 +133,17 @@ int process_set_entrypoint(process_t * proc, void * entrypoint) {
     proc->entrypoint = PTR2UINT(entrypoint);
 }
 
+int process_activate(process_t * proc) {
+    if (!proc) {
+        return -1;
+    }
+
+    set_kernel_stack(proc->esp0); // just updates tss 0
+    mmu_change_dir(proc->cr3);
+
+    return 0;
+}
+
 void process_yield(process_t * proc, uint32_t esp, int filter) {
     proc->filter_event = filter;
     proc->esp          = esp;
@@ -145,18 +156,11 @@ int process_resume(process_t * proc, const ebus_event_t * event) {
         return -1;
     }
 
-    // if (proc->state < PROCESS_STATE_SUSPENDED) {
+    process_activate(proc);
     proc->state = PROCESS_STATE_RUNNING;
-    set_kernel_stack(proc->esp0);
     start_task(proc->cr3, proc->esp, proc->entrypoint, event);
-    // }
 
-    // // TODO implement this
-    // else if (!proc->filter_event || !event || proc->filter_event == event->event_id) {
-    //     proc->state            = PROCESS_STATE_RUNNING;
-    //     tss_get_entry(0)->esp0 = proc->esp0;
-    //     start_task(proc->cr3, proc->esp, proc->entrypoint, event);
-    // }
+    proc->state = PROCESS_STATE_ERROR;
     return -1;
 }
 
@@ -279,6 +283,7 @@ static uint32_t __pid;
 
 static uint32_t next_pid() {
     static int pid_set = 0;
+    // Handle initializing __pid because there is no static init
     if (!pid_set) {
         __pid   = 1;
         pid_set = 1;

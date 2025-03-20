@@ -1,5 +1,6 @@
 #include "process_manager.h"
 
+#include "libc/proc.h"
 #include "libc/stdio.h"
 
 int pm_create(proc_man_t * pm) {
@@ -7,9 +8,16 @@ int pm_create(proc_man_t * pm) {
         return -1;
     }
 
-    pm->idle_task  = 0;
-    pm->task_begin = 0;
-    pm->curr_task  = 0;
+    if (arr_create(&pm->task_list, 4, sizeof(process_t *))) {
+        return -1;
+    }
+
+    if (arr_create(&pm->waiting, 4, sizeof(process_t *))) {
+        arr_free(&pm->task_list);
+        return -1;
+    }
+
+    pm->active = 0;
 
     return 0;
 }
@@ -19,20 +27,13 @@ process_t * pm_get_pid(proc_man_t * pm, int pid) {
         return 0;
     }
 
-    if (pm->idle_task->pid == pid) {
-        return pm->idle_task;
-    }
+    for (size_t i = 0; i < arr_size(&pm->task_list); i++) {
+        process_t * p;
+        arr_get(&pm->task_list, i, &p);
 
-    if (pm->curr_task->pid == pid) {
-        return pm->curr_task;
-    }
-
-    process_t * curr = pm->task_begin;
-    while (curr && curr->pid != pm->idle_task->pid) {
-        if (curr->pid == pid) {
-            return curr;
+        if (p->pid == pid) {
+            return p;
         }
-        curr = curr->next_proc;
     }
 
     return 0;
@@ -43,44 +44,45 @@ int pm_add_proc(proc_man_t * pm, process_t * proc) {
         return -1;
     }
 
-    process_t * curr = pm->curr_task;
-    while (curr->next_proc && curr->next_proc != pm->idle_task) {
-        curr = curr->next_proc;
+    if (arr_insert(&pm->task_list, arr_size(&pm->task_list), &proc)) {
+        return -1;
     }
-
-    curr->next_proc = proc;
-    proc->next_proc = pm->idle_task;
 
     return 0;
 }
 
-int pm_remove_proc(proc_man_t * pm, process_t * proc) {
-    if (!pm || !proc) {
-        return -1;
-    }
-
-    if (!proc->pid || proc->pid == pm->idle_task->pid) {
-        return -1;
-    }
-
-    if (pm->curr_task->pid == proc->pid) {
-        pm->curr_task = pm->curr_task->next_proc;
-    }
-
-    // TODO not yet implemented, because idk how this struct will be
-    process_t * curr = pm->task_begin;
-
-    if (curr->pid == proc->pid) {
-        pm->task_begin = curr->next_proc;
+int pm_remove_proc(proc_man_t * pm, int pid) {
+    if (!pm || pid < 1) {
         return 0;
     }
 
-    while (curr->next_proc && curr->next_proc != pm->idle_task && curr->next_proc != pm->curr_task) {
-        if (curr->next_proc->pid == proc->pid) {
-            curr->next_proc = curr->next_proc->next_proc;
+    if (pid == pm->active->pid) {
+        return -1;
+    }
+
+    for (size_t i = 0; i < arr_size(&pm->waiting); i++) {
+        process_t * p;
+        arr_get(&pm->waiting, i, &p);
+
+        if (p->pid == pid) {
+            if (arr_remove(&pm->waiting, i, 0)) {
+                return -1;
+            }
+            break;
+        }
+    }
+
+    for (size_t i = 0; i < arr_size(&pm->task_list); i++) {
+        process_t * p;
+        arr_get(&pm->task_list, i, &p);
+
+        if (p->pid == pid) {
+            if (arr_remove(&pm->task_list, i, 0)) {
+                return -1;
+            }
+            process_free(p);
             return 0;
         }
-        curr = curr->next_proc;
     }
 
     return -1;
@@ -97,7 +99,7 @@ static void handle_kill(const ebus_event_t * event) {
     printf("Kill task %u\n", event->task_switch.next_task_pid);
     process_t * proc = pm_get_pid(&__kernel.pm, event->task_kill.task_pid);
     if (pm_remove_proc(&__kernel.pm, proc)) {
-        KPANIC("Failed to remove process from pm");
+        PANIC("Failed to remove process from pm");
     }
 
     process_free(proc);
