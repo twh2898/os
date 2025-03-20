@@ -204,9 +204,13 @@ tar_fs_t * kernel_get_tar() {
     return __kernel.tar;
 }
 
+process_t * get_current_process() {
+    return pm_get_active(&__kernel.pm);
+}
+
 void tmp_register_signals_cb(signals_master_cb_t cb) {
-    __kernel.pm.curr_task->signals_callback = cb;
-    printf("Attached master signal callback at %p\n", __kernel.pm.curr_task->signals_callback);
+    get_current_process()->signals_callback = cb;
+    printf("Attached master signal callback at %p\n", get_current_process()->signals_callback);
 }
 
 ebus_event_t * pull_event(int event_id) {
@@ -215,10 +219,6 @@ ebus_event_t * pull_event(int event_id) {
     kernel_next_task();
 
     return 0;
-}
-
-int kernel_set_current_task(process_t * proc) {
-    __kernel.pm.curr_task = proc;
 }
 
 static void init_idle_proc() {
@@ -265,31 +265,32 @@ NO_RETURN void kernel_panic(const char * msg, const char * file, unsigned int li
 static void handle_launch(const ebus_event_t * event) {
     printf("Start task %u\n", event->task_switch.next_task_pid);
     process_t * proc = pm_find_pid(&__kernel.pm, event->task_switch.next_task_pid);
-    KPANIC("TODO IMPLEMENT THIS BETTER")
+    KPANIC("TODO IMPLEMENT THIS BETTER");
     // __kernel.pm.active = proc;
+    pm_resume_process(&__kernel.pm, proc->pid, 0);
     process_resume(proc, 0);
 }
 
 static void handle_kill(const ebus_event_t * event) {
     printf("Kill task %u\n", event->task_switch.next_task_pid);
     process_t * proc = pm_find_pid(&__kernel.pm, event->task_kill.task_pid);
-    if (pm_remove_proc(&__kernel.pm, proc)) {
+    if (pm_remove_proc(&__kernel.pm, proc->pid)) {
         PANIC("Failed to remove process from pm");
     }
 
     process_free(proc);
 }
 
-static int kernel_close_process(process_t * proc) {
+int kernel_close_process(process_t * proc) {
     if (!proc) {
         return -1;
     }
 
     proc->state = PROCESS_STATE_DEAD;
 
-    process_t * next = __kernel.pm.curr_task->next_proc;
+    process_t * next = pm_get_next(&__kernel.pm);
     if (!next) {
-        next = __kernel.pm.idle_task;
+        KPANIC("No tasks remaining");
     }
 
     ebus_event_t launch_event;

@@ -24,7 +24,7 @@ int pm_create(proc_man_t * pm) {
     return 0;
 }
 
-process_t * get_current_process(proc_man_t * pm) {
+process_t * pm_get_active(proc_man_t * pm) {
     if (!pm) {
         return 0;
     }
@@ -111,6 +111,16 @@ int pm_resume_process(proc_man_t * pm, int pid, ebus_event_t * event) {
     }
 
     return process_resume(proc, event);
+}
+
+process_t * pm_get_next(proc_man_t * pm) {
+    if (!pm) {
+        return 0;
+    }
+
+    // TODO implement this
+
+    return 0;
 }
 
 static int pid_arr_index(arr_t * arr, int pid) {
