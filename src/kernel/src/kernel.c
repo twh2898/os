@@ -262,6 +262,51 @@ NO_RETURN void kernel_panic(const char * msg, const char * file, unsigned int li
     halt();
 }
 
+static void handle_launch(const ebus_event_t * event) {
+    printf("Start task %u\n", event->task_switch.next_task_pid);
+    process_t * proc = pm_find_pid(&__kernel.pm, event->task_switch.next_task_pid);
+    KPANIC("TODO IMPLEMENT THIS BETTER")
+    // __kernel.pm.active = proc;
+    process_resume(proc, 0);
+}
+
+static void handle_kill(const ebus_event_t * event) {
+    printf("Kill task %u\n", event->task_switch.next_task_pid);
+    process_t * proc = pm_find_pid(&__kernel.pm, event->task_kill.task_pid);
+    if (pm_remove_proc(&__kernel.pm, proc)) {
+        PANIC("Failed to remove process from pm");
+    }
+
+    process_free(proc);
+}
+
+static int kernel_close_process(process_t * proc) {
+    if (!proc) {
+        return -1;
+    }
+
+    proc->state = PROCESS_STATE_DEAD;
+
+    process_t * next = __kernel.pm.curr_task->next_proc;
+    if (!next) {
+        next = __kernel.pm.idle_task;
+    }
+
+    ebus_event_t launch_event;
+    launch_event.event_id                  = EBUS_EVENT_TASK_SWITCH;
+    launch_event.task_switch.next_task_pid = next->pid;
+
+    queue_event(&launch_event);
+
+    ebus_event_t kill_event;
+    kill_event.event_id           = EBUS_EVENT_TASK_KILL;
+    kill_event.task_kill.task_pid = proc->pid;
+
+    queue_event(&kill_event);
+
+    return 0;
+}
+
 static void cursor() {
     vga_cursor(3, 3);
 
