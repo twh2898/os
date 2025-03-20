@@ -97,4 +97,6 @@ void print_trace(registers_t * r);
 void disable_interrupts();
 void enable_interrupts();
 
+void reset_pic(int slave);
+
 #endif // ISR_H

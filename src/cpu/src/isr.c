@@ -210,6 +210,13 @@ void enable_interrupts() {
     asm("sti");
 }
 
+void reset_pic(int slave) {
+    if (slave) {
+        port_byte_out(0xA0, 0x20); /* slave */
+    }
+    port_byte_out(0x20, 0x20); /* master */
+}
+
 static void print_cr0(uint32_t cr0) {
     puts("[ ");
     if (cr0 & (1 << 0)) {
