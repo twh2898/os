@@ -9,9 +9,7 @@
 #include "process.h"
 
 typedef struct _proc_man {
-    arr_t task_list; // process_t *
-    /// Waiting for an event
-    // arr_t       waiting; // process_t *
+    arr_t       task_list; // process_t *
     process_t * active;
 } proc_man_t;
 

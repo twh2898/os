@@ -14,11 +14,6 @@ int pm_create(proc_man_t * pm) {
         return -1;
     }
 
-    // if (arr_create(&pm->waiting, 4, sizeof(process_t *))) {
-    //     arr_free(&pm->task_list);
-    //     return -1;
-    // }
-
     pm->active = 0;
 
     return 0;
@@ -69,12 +64,7 @@ int pm_remove_proc(proc_man_t * pm, int pid) {
         return -1;
     }
 
-    // int i = pid_arr_index(&pm->waiting, pid);
-    // if (i < 0 || arr_remove(&pm->waiting, i, 0)) {
-    //     return -1;
-    // }
-
-    i = pid_arr_index(&pm->task_list, pid);
+    int i = pid_arr_index(&pm->task_list, pid);
     if (i < 0 || arr_remove(&pm->task_list, i, 0)) {
         return -1;
     }
@@ -119,15 +109,17 @@ int pm_switch_process(proc_man_t * pm) {
         return -1;
     }
 
-    // TODO implement
+    int last_pid = pm->active->pid;
 
-    /*
-    Find next task
-    Make current inactive
-    Update current status to suspended
-    Make next active
-    Update pm
-    */
+    do {
+        pm->active = pm_get_next(pm);
+
+        if (pm->active->pid == last_pid) {
+            PANIC("Process loop detected");
+        }
+    } while (pm->active->state < PROCESS_STATE_DEAD);
+
+    pm_activate_process(pm, pm->active->pid);
 
     return -1;
 }
