@@ -111,9 +111,9 @@ void kernel_main() {
     pm_create(&__kernel.pm);
 
     // Kernel process used for memory allocation
-    __kernel.proc.next_heap_page = ADDR2PAGE(VADDR_RAM_BITMASKS) + ram_region_table_count();
-    __kernel.proc.cr3            = PADDR_KERNEL_DIR;
-    __kernel.pm.curr_task        = &__kernel.proc;
+    // __kernel.proc.next_heap_page = ADDR2PAGE(VADDR_RAM_BITMASKS) + ram_region_table_count();
+    // __kernel.proc.cr3            = PADDR_KERNEL_DIR;
+    // __kernel.pm.curr_task        = &__kernel.proc;
 
     // TODO make this part of task switching code
     // Add isr stack to kernel's TSS
@@ -135,9 +135,6 @@ void kernel_main() {
     pm_add_proc(&__kernel.pm, idle);
 
     init_idle_proc();
-    __kernel.proc.next_proc = __kernel.pm.idle_task;
-    __kernel.pm.curr_task   = &__kernel.proc;
-    __kernel.pm.task_begin  = &__kernel.proc;
 
     if (ebus_create(&__kernel.event_bus, 4096)) {
         KPANIC("Failed to init ebus\n");
@@ -252,10 +249,6 @@ static void init_idle_proc() {
     // Kernel process used for memory allocation
     proc->next_heap_page = ADDR2PAGE(VADDR_RAM_BITMASKS) + ram_region_table_count();
     process_set_entrypoint(proc, idle);
-
-    // Setup kernel process as idle process
-    __kernel.pm.idle_task = proc;
-    // __kernel.pm.task_begin = proc;
 }
 
 void idle() {
@@ -301,6 +294,14 @@ static void handle_kill(const ebus_event_t * event) {
     }
 
     process_free(proc);
+}
+
+int kernel_add_task(process_t * proc) {
+    return pm_add_proc(&__kernel.pm, proc);
+}
+
+int kernel_next_task() {
+    return pm_switch_process(&__kernel.pm);
 }
 
 int kernel_close_process(process_t * proc) {

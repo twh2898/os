@@ -31,12 +31,4 @@ process_t * pm_get_next(proc_man_t * pm);
 
 int pm_push_event(proc_man_t * pm, ebus_event_t * event);
 
-int kernel_add_task(process_t * proc);
-int kernel_next_task();
-int kernel_close_process(process_t * proc);
-
-typedef int (*_proc_call_t)(void * data);
-
-int kernel_switch_task(int next_pid);
-
 #endif // KERNEL_PROCESS_MANAGER_H
