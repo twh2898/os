@@ -44,3 +44,26 @@ TEST_F(LibC, proc_getpid) {
     EXPECT_EQ(3, getpid());
     EXPECT_EQ(1, _sys_proc_getpid_fake.call_count);
 }
+
+TEST_F(LibC, queue_event) {
+    ebus_event_t event;
+    memset(&event, 0, sizeof(ebus_event_t));
+    _sys_proc_getpid_fake.return_val = 2;
+    queue_event(&event);
+    EXPECT_EQ(2, event.source_pid);
+    ASSERT_EQ(1, _sys_queue_event_fake.call_count);
+    EXPECT_EQ(&event, _sys_queue_event_fake.arg0_val);
+}
+
+TEST_F(LibC, yield) {
+    _sys_yield_fake.return_val = 2;
+    EXPECT_EQ(2, yield(3));
+    ASSERT_EQ(1, _sys_yield_fake.call_count);
+    EXPECT_EQ(3, _sys_yield_fake.arg0_val);
+}
+
+TEST_F(LibC, getpid) {
+    _sys_proc_getpid_fake.return_val = 2;
+    EXPECT_EQ(2, getpid());
+    ASSERT_EQ(1, _sys_proc_getpid_fake.call_count);
+}
