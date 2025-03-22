@@ -28,6 +28,7 @@ enum PROCESS_STATE {
     PROCESS_STATE_WAITING,
     PROCESS_STATE_RUNNING,
     PROCESS_STATE_DEAD,
+    PROCESS_STATE_ERROR,
 };
 
 typedef struct _process {
@@ -74,6 +75,9 @@ int process_create(process_t * proc);
 int process_free(process_t * proc);
 
 int process_set_entrypoint(process_t * proc, void * entrypoint);
+
+// Load page table and esp0, don't resume
+int process_activate(process_t * proc);
 
 void process_yield(process_t * proc, uint32_t esp, int filter);
 
