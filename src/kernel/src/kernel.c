@@ -288,7 +288,10 @@ int kernel_add_task(process_t * proc) {
 }
 
 int kernel_next_task() {
-    return pm_switch_process(&__kernel.pm);
+    if (pm_switch_process(&__kernel.pm)) {
+        return -1;
+    }
+    return pm_resume_process(&__kernel.pm, __kernel.pm.active->pid, 0);
     // process_t * curr = get_current_process();
     // process_t * next = curr->next_proc;
     // if (!next) {

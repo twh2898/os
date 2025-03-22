@@ -119,9 +119,11 @@ int pm_switch_process(proc_man_t * pm) {
         }
     } while (pm->active->state >= PROCESS_STATE_DEAD);
 
-    pm_activate_process(pm, pm->active->pid);
+    if (pm_activate_process(pm, pm->active->pid)) {
+        return -1;
+    }
 
-    return -1;
+    return 0;
 }
 
 int pm_resume_process(proc_man_t * pm, int pid, ebus_event_t * event) {
