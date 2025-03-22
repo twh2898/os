@@ -14,6 +14,7 @@
 #include "ebus.h"
 #include "exec.h"
 #include "kernel.h"
+#include "kmem.h"
 #include "libc/datastruct/array.h"
 #include "libc/memory.h"
 #include "libc/proc.h"
@@ -393,20 +394,20 @@ static int fs_read_cmd(size_t argc, char ** argv) {
     }
 
     ls_print_file(&stat);
-    uint8_t * buff = malloc(stat.size);
+    uint8_t * buff = kmalloc(stat.size);
     if (!buff) {
         return 1;
     }
 
     tar_fs_file_t * file = tar_file_open(kernel_get_tar(), filename);
     if (!file) {
-        free(buff);
+        kfree(buff);
         return 1;
     }
 
     if (!tar_file_read(file, buff, stat.size)) {
         tar_file_close(file);
-        free(buff);
+        kfree(buff);
         return 1;
     }
     print_hexblock(buff, stat.size, 0);
@@ -416,7 +417,7 @@ static int fs_read_cmd(size_t argc, char ** argv) {
     }
 
     tar_file_close(file);
-    free(buff);
+    kfree(buff);
 
     return 0;
 }
@@ -440,20 +441,20 @@ static int fs_cat_cmd(size_t argc, char ** argv) {
         return 1;
     }
 
-    uint8_t * buff = malloc(stat.size);
+    uint8_t * buff = kmalloc(stat.size);
     if (!buff) {
         return 1;
     }
 
     tar_fs_file_t * file = tar_file_open(kernel_get_tar(), filename);
     if (!file) {
-        free(buff);
+        kfree(buff);
         return 1;
     }
 
     if (!tar_file_read(file, buff, stat.size)) {
         tar_file_close(file);
-        free(buff);
+        kfree(buff);
         return 1;
     }
     for (size_t i = 0; i < stat.size; i++) {
@@ -465,7 +466,7 @@ static int fs_cat_cmd(size_t argc, char ** argv) {
     }
 
     tar_file_close(file);
-    free(buff);
+    kfree(buff);
 
     return 0;
 }
@@ -700,11 +701,11 @@ static void assert_process_is(process_t * proc) {
 static int procswap(size_t argc, char ** argv) {
     static process_t * proc = 0;
 
-    process_t * next_proc = malloc(sizeof(process_t));
+    process_t * next_proc = kmalloc(sizeof(process_t));
 
     if (process_create(next_proc)) {
         printf("Failed to do it\n");
-        free(next_proc);
+        kfree(next_proc);
         return 1;
     }
 
@@ -720,7 +721,7 @@ static int procswap(size_t argc, char ** argv) {
     if (proc) {
         printf("Free first\n");
         process_free(proc);
-        free(proc);
+        kfree(proc);
     }
 
     // printf("Ptr1 = %p\n", ptr1);
@@ -747,20 +748,20 @@ static int command_lookup(size_t argc, char ** argv) {
         return 1;
     }
 
-    uint8_t * buff = malloc(stat.size);
+    uint8_t * buff = kmalloc(stat.size);
     if (!buff) {
         return 1;
     }
 
     tar_fs_file_t * file = tar_file_open(kernel_get_tar(), filename);
     if (!file) {
-        free(buff);
+        kfree(buff);
         return 1;
     }
 
     if (!tar_file_read(file, buff, stat.size)) {
         tar_file_close(file);
-        free(buff);
+        kfree(buff);
         return 1;
     }
 
@@ -771,7 +772,7 @@ static int command_lookup(size_t argc, char ** argv) {
     }
 
     tar_file_close(file);
-    free(buff);
+    kfree(buff);
 
     return res;
 }

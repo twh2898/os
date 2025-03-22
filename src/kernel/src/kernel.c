@@ -79,8 +79,9 @@ void kernel_main() {
     }
 
     // Init Page Dir
-    __kernel.cr3     = PADDR_KERNEL_DIR;
-    mmu_dir_t * pdir = (mmu_dir_t *)__kernel.cr3;
+    __kernel.cr3            = PADDR_KERNEL_DIR;
+    __kernel.next_heap_page = ADDR2PAGE(VADDR_RAM_BITMASKS) + ram_region_table_count();
+    mmu_dir_t * pdir        = (mmu_dir_t *)__kernel.cr3;
     mmu_dir_clear(pdir);
 
     // Init first table
@@ -275,7 +276,7 @@ static void * kernel_page_alloc(size_t count) {
 }
 
 static void init_idle_proc() {
-    process_t * proc = malloc(sizeof(process_t));
+    process_t * proc = kmalloc(sizeof(process_t));
     if (process_create(proc)) {
         KPANIC("Failed to create idle task");
     }

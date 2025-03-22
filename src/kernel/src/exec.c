@@ -3,6 +3,7 @@
 #include "cpu/mmu.h"
 #include "cpu/tss.h"
 #include "kernel.h"
+#include "kmem.h"
 #include "libc/memory.h"
 #include "libc/proc.h"
 #include "libc/stdio.h"
@@ -16,7 +17,7 @@ typedef int (*ff_t)(size_t argc, char ** argv);
 extern _Noreturn void jump_proc(uint32_t cr3, uint32_t esp, uint32_t call);
 
 int command_exec(uint8_t * buff, size_t size, size_t argc, char ** argv) {
-    process_t * proc = malloc(sizeof(process_t));
+    process_t * proc = kmalloc(sizeof(process_t));
 
     if (process_create(proc)) {
         puts("Failed to create process\n");

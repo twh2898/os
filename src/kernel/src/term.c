@@ -5,6 +5,7 @@
 #include "drivers/vga.h"
 #include "ebus.h"
 #include "kernel.h"
+#include "kmem.h"
 #include "libc/datastruct/circular_buffer.h"
 #include "libc/memory.h"
 #include "libc/proc.h"
@@ -99,13 +100,13 @@ static int help_cmd(size_t argc, char ** argv) {
 }
 
 process_t * term_init() {
-    process_t * proc = malloc(sizeof(process_t));
+    process_t * proc = kmalloc(sizeof(process_t));
     if (!proc || process_create(proc)) {
         return 0;
     }
 
     if (process_set_entrypoint(proc, term_run)) {
-        free(proc);
+        kfree(proc);
         return 0;
     }
 
@@ -122,7 +123,7 @@ process_t * term_init() {
     handler.callback_fn = key_event_handler;
     handler.event_id    = EBUS_EVENT_KEY;
     if (ebus_register_handler(get_kernel_ebus(), &handler) < 1) {
-        free(proc);
+        kfree(proc);
         return 0;
     }
 
@@ -336,9 +337,9 @@ static void exec_buff() {
 
     // Free parsed args
     for (size_t i = 0; i < argc; i++) {
-        free(argv[i]);
+        kfree(argv[i]);
     }
-    free(argv);
+    kfree(argv);
 }
 
 static bool is_ws(char c) {
@@ -408,7 +409,7 @@ static char ** parse_args(const char * line, size_t * out_len) {
     }
 
     *out_len      = len;
-    char ** args  = malloc(sizeof(char *) * len);
+    char ** args  = kmalloc(sizeof(char *) * len);
     size_t  arg_i = 0;
 
     while (*line) {
@@ -439,7 +440,7 @@ static char ** parse_args(const char * line, size_t * out_len) {
 
             line++;
 
-            args[arg_i] = malloc(sizeof(char) * next);
+            args[arg_i] = kmalloc(sizeof(char) * next);
             kmemcpy(args[arg_i], line, next - 1);
             args[arg_i][next - 1] = 0;
             arg_i++;
@@ -455,7 +456,7 @@ static char ** parse_args(const char * line, size_t * out_len) {
         }
 
         size_t word_len = line - start;
-        args[arg_i]     = malloc(sizeof(char) * word_len + 1);
+        args[arg_i]     = kmalloc(sizeof(char) * word_len + 1);
         kmemcpy(args[arg_i], start, word_len);
         args[arg_i][word_len] = 0;
         arg_i++;
