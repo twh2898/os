@@ -106,6 +106,17 @@ int process_activate(process_t * proc);
  */
 int process_yield(process_t * proc, uint32_t esp, uint32_t eip, int filter);
 
+/**
+ * @brief Activate and jump to the process.
+ *
+ * If the jump is successful this function will never return. Returning from
+ * this function signals an error. If this is the first call, the entrypoint is
+ * used. If this is resuming from a yield, the last eip will be used.
+ *
+ * @param proc pointer to the process object
+ * @param event ebus event to return from yield or 0
+ * @return int No Return, if this function returns it is an error
+ */
 int process_resume(process_t * proc, const ebus_event_t * event);
 
 /**

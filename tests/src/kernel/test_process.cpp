@@ -252,6 +252,47 @@ TEST_F(Process, process_yield) {
     EXPECT_EQ(3, proc.filter_event);
 }
 
+// Process Resume
+
+TEST_F(Process, process_resume_InvalidParameters) {
+    EXPECT_NE(0, process_resume(0, 0));
+    EXPECT_EQ(0, set_kernel_stack_fake.call_count);
+    EXPECT_EQ(0, mmu_change_dir_fake.call_count);
+    proc.state = PROCESS_STATE_DEAD;
+    EXPECT_NE(0, process_resume(0, 0));
+}
+
+TEST_F(Process, process_resume_ProcessDead) {
+    proc.state = PROCESS_STATE_DEAD;
+    EXPECT_NE(0, process_resume(&proc, 0));
+    proc.state = PROCESS_STATE_ERROR;
+    EXPECT_NE(0, process_resume(&proc, 0));
+}
+
+static void custom_start_task(uint32_t cr3, uint32_t esp, uint32_t eip, const ebus_event_t * event) {
+    ASSERT_EQ(PROCESS_STATE_RUNNING, proc.state);
+}
+
+TEST_F(Process, process_resume) {
+    proc.esp                    = 1;
+    proc.eip                    = 2;
+    proc.esp0                   = 3;
+    proc.cr3                    = 4;
+    start_task_fake.custom_fake = custom_start_task;
+    EXPECT_NE(0, process_resume(&proc, (ebus_event_t *)5));
+    ASSERT_EQ(1, set_kernel_stack_fake.call_count);
+    EXPECT_EQ(3, set_kernel_stack_fake.arg0_val);
+    ASSERT_EQ(1, mmu_change_dir_fake.call_count);
+    EXPECT_EQ(4, mmu_change_dir_fake.arg0_val);
+    ASSERT_EQ(1, start_task_fake.call_count);
+    EXPECT_EQ(4, start_task_fake.arg0_val);
+    EXPECT_EQ(1, start_task_fake.arg1_val);
+    EXPECT_EQ(2, start_task_fake.arg2_val);
+    EXPECT_EQ((ebus_event_t *)5, start_task_fake.arg3_val);
+
+    EXPECT_EQ(PROCESS_STATE_ERROR, proc.state);
+}
+
 // Process Add Pages
 
 TEST_F(Process, process_add_pages_InvalidParameters) {
