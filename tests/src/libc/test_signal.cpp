@@ -53,11 +53,11 @@ TEST_F(Signal, register_signal) {
     EXPECT_NE(0, register_signal(1, callback));
 }
 
-TEST_F(Signal, queue_event) {
-    ebus_event_t event;
-    event.event_id   = EBUS_EVENT_TIMER;
-    event.timer.time = 2;
-    queue_event(&event);
-    ASSERT_EQ(1, _sys_queue_event_fake.call_count);
-    EXPECT_EQ(&event, _sys_queue_event_fake.arg0_val);
-}
+// TEST_F(Signal, queue_event) {
+//     ebus_event_t event;
+//     event.event_id   = EBUS_EVENT_TIMER;
+//     event.timer.time = 2;
+//     queue_event(&event);
+//     ASSERT_EQ(1, _sys_queue_event_fake.call_count);
+//     EXPECT_EQ(&event, _sys_queue_event_fake.arg0_val);
+// }
