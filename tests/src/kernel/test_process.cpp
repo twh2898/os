@@ -219,7 +219,7 @@ TEST_F(Process, process_set_entrypoint) {
 
 // Process Activate
 
-TEST_F(Process, process_set_activate_InvalidParameters) {
+TEST_F(Process, process_activate_InvalidParameters) {
     EXPECT_NE(0, process_activate(0));
 }
 
