@@ -3,7 +3,6 @@
 #include "cpu/mmu.h"
 #include "cpu/tss.h"
 #include "kernel.h"
-#include "libc/stdio.h"
 #include "libc/string.h"
 #include "libk/sys_call.h"
 #include "paging.h"
@@ -140,29 +139,28 @@ int process_activate(process_t * proc) {
         return -1;
     }
 
-    printf("a%u ", proc->pid);
-
     set_kernel_stack(proc->esp0); // just updates tss 0
     mmu_change_dir(proc->cr3);
 
     return 0;
 }
 
-void process_yield(process_t * proc, uint32_t esp, int filter) {
-    printf("y%u ", proc->pid);
+int process_yield(process_t * proc, uint32_t esp, int filter) {
+    if (!proc || !esp) {
+        return -1;
+    }
 
     proc->filter_event = filter;
     proc->esp          = esp;
     proc->state        = PROCESS_STATE_SUSPENDED;
-    kernel_next_task();
+
+    return 0;
 }
 
 int process_resume(process_t * proc, const ebus_event_t * event) {
     if (!proc || proc->state >= PROCESS_STATE_DEAD) {
         return -1;
     }
-
-    printf("r%u ", proc->pid);
 
     process_activate(proc);
     proc->state = PROCESS_STATE_RUNNING;

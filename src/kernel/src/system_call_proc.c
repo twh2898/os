@@ -102,6 +102,7 @@ int sys_call_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
             proc->entrypoint = regs->eip;
             enable_interrupts();
             process_yield(proc, regs->esp, args->filter);
+            // TODO switch task
         };
     }
 

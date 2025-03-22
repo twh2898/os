@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "libc/memory.mock.h"
+#include "libc/proc.mock.h"
 #include "libc/string.mock.h"
 
 // libc/memory.h
@@ -19,6 +20,16 @@ void reset_libc_memory_mock(void) {
     kmalloc_fake.custom_fake  = malloc;
     krealloc_fake.custom_fake = realloc;
     kfree_fake.custom_fake    = free;
+}
+
+// libc/proc.h
+
+DEFINE_FAKE_VOID_FUNC(set_next_pid, uint32_t);
+DEFINE_FAKE_VOID_FUNC(queue_event, ebus_event_t *);
+
+void reset_libc_proc_mock(void) {
+    RESET_FAKE(set_next_pid);
+    RESET_FAKE(queue_event);
 }
 
 // libc/string.h

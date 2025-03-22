@@ -79,7 +79,7 @@ int process_set_entrypoint(process_t * proc, void * entrypoint);
 // Load page table and esp0, don't resume
 int process_activate(process_t * proc);
 
-void process_yield(process_t * proc, uint32_t esp, int filter);
+int process_yield(process_t * proc, uint32_t esp, int filter);
 
 int process_resume(process_t * proc, const ebus_event_t * event);
 
@@ -138,7 +138,5 @@ void set_next_pid(uint32_t next);
 #endif
 
 extern NO_RETURN void start_task(uint32_t cr3, uint32_t esp, uint32_t eip, const ebus_event_t * event);
-extern NO_RETURN void resume_task(uint32_t cr3, uint32_t esp, const ebus_event_t * event);
-extern NO_RETURN void switch_to_task(process_t * next_proc);
 
 #endif // KERNEL_PROCESS_H
