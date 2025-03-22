@@ -164,6 +164,14 @@ TEST_F(LibK, queue_event) {
     EXPECT_EQ(&event, (void *)send_call_fake.arg1_val);
 }
 
+TEST_F(LibK, yield) {
+    send_call_fake.return_val = 2;
+    EXPECT_EQ(2, _sys_yield(5));
+    ASSERT_EQ(1, send_call_fake.call_count);
+    EXPECT_EQ(0x306, send_call_fake.arg0_val);
+    EXPECT_EQ(5, send_call_fake.arg1_val);
+}
+
 TEST_F(LibK, putc) {
     send_call_fake.return_val = 1;
     size_t olen               = _sys_putc('A');

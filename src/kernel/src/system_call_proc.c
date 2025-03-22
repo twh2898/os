@@ -99,9 +99,8 @@ int sys_call_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
 
             // TODO clear iret from stack?
             process_t * proc = get_current_process();
-            proc->eip        = regs->eip;
-            enable_interrupts();
             process_yield(proc, regs->esp, regs->eip, args->filter);
+            enable_interrupts();
             // TODO switch task
         };
     }
