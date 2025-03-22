@@ -129,7 +129,6 @@ void kernel_main() {
 
     // Init kernel memory after system calls are registered
     memory_init(&__kernel.kernel_memory, _sys_page_alloc);
-    init_malloc(&__kernel.kernel_memory);
 
     process_t * idle = init_idle();
     pm_add_proc(&__kernel.pm, idle);
@@ -217,6 +216,18 @@ process_t * get_current_process() {
 
 process_t * kernel_find_pid(int pid) {
     return pm_find_pid(&__kernel.pm, pid);
+}
+
+void * kmalloc(size_t size) {
+    memory_alloc(&__kernel.kernel_memory, size);
+}
+
+void * krealloc(void * ptr, size_t size) {
+    memory_realloc(&__kernel.kernel_memory, ptr, size);
+}
+
+void kfree(void * ptr) {
+    memory_free(&__kernel.kernel_memory, ptr);
 }
 
 int set_current_process(process_t * proc) {
