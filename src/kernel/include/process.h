@@ -85,7 +85,14 @@ int process_free(process_t * proc);
  */
 int process_set_entrypoint(process_t * proc, void * entrypoint);
 
-// Load page table and esp0, don't resume
+/**
+ * @brief Load process without entering.
+ *
+ * Load the cr3 and esp0. This does not start or resume the process.
+ *
+ * @param proc pointer to the process object
+ * @return int 0 for success
+ */
 int process_activate(process_t * proc);
 
 int process_yield(process_t * proc, uint32_t esp, int filter);

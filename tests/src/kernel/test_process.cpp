@@ -217,6 +217,22 @@ TEST_F(Process, process_set_entrypoint) {
     EXPECT_EQ(3, proc.entrypoint);
 }
 
+// Process Activate
+
+TEST_F(Process, process_set_activate_InvalidParameters) {
+    EXPECT_NE(0, process_activate(0));
+}
+
+TEST_F(Process, process_activate) {
+    proc.esp0 = 3;
+    proc.cr3  = 4;
+    EXPECT_EQ(0, process_activate(&proc));
+    ASSERT_EQ(1, set_kernel_stack_fake.call_count);
+    EXPECT_EQ(3, set_kernel_stack_fake.arg0_val);
+    ASSERT_EQ(1, mmu_change_dir_fake.call_count);
+    EXPECT_EQ(4, mmu_change_dir_fake.arg0_val);
+}
+
 // Process Add Pages
 
 TEST_F(Process, process_add_pages_InvalidParameters) {
