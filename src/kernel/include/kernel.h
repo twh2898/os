@@ -16,7 +16,8 @@ typedef struct _kernel {
     uint32_t   ram_table_addr;
     uint32_t   cr3;
     proc_man_t pm;
-    memory_t   kernel_memory;
+    uint32_t   next_heap_page;
+    memory_t   memory;
     ebus_t     event_bus;
     disk_t *   disk;
     tar_fs_t * tar;

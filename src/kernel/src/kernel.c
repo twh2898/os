@@ -28,6 +28,7 @@
 #include "libc/string.h"
 #include "libk/defs.h"
 #include "libk/sys_call.h"
+#include "paging.h"
 #include "process.h"
 #include "process_manager.h"
 #include "ram.h"
@@ -37,17 +38,18 @@ static kernel_t __kernel;
 
 extern _Noreturn void halt(void);
 
-static void handle_launch(const ebus_event_t * event);
-static void handle_kill(const ebus_event_t * event);
-static void init_idle_proc();
-static void idle();
-static void id_map_range(mmu_table_t * table, size_t start, size_t end);
-static void id_map_page(mmu_table_t * table, size_t page);
-static void cursor();
-static void irq_install();
-static int  kill(size_t argc, char ** argv);
-static int  try_switch(size_t argc, char ** argv);
-static void map_first_table(mmu_table_t * table);
+static void * kernel_page_alloc(size_t count);
+static void   handle_launch(const ebus_event_t * event);
+static void   handle_kill(const ebus_event_t * event);
+static void   init_idle_proc();
+static void   idle();
+static void   id_map_range(mmu_table_t * table, size_t start, size_t end);
+static void   id_map_page(mmu_table_t * table, size_t page);
+static void   cursor();
+static void   irq_install();
+static int    kill(size_t argc, char ** argv);
+static int    try_switch(size_t argc, char ** argv);
+static void   map_first_table(mmu_table_t * table);
 
 extern void jump_kernel_mode(void * fn);
 
@@ -128,7 +130,7 @@ void kernel_main() {
     system_call_register(SYS_INT_FAMILY_STDIO, sys_call_tmp_stdio_cb);
 
     // Init kernel memory after system calls are registered
-    memory_init(&__kernel.kernel_memory, _sys_page_alloc);
+    memory_init(&__kernel.memory, kernel_page_alloc);
 
     process_t * idle = init_idle();
     pm_add_proc(&__kernel.pm, idle);
@@ -219,15 +221,15 @@ process_t * kernel_find_pid(int pid) {
 }
 
 void * kmalloc(size_t size) {
-    memory_alloc(&__kernel.kernel_memory, size);
+    memory_alloc(&__kernel.memory, size);
 }
 
 void * krealloc(void * ptr, size_t size) {
-    memory_realloc(&__kernel.kernel_memory, ptr, size);
+    memory_realloc(&__kernel.memory, ptr, size);
 }
 
 void kfree(void * ptr) {
-    memory_free(&__kernel.kernel_memory, ptr);
+    memory_free(&__kernel.memory, ptr);
 }
 
 int set_current_process(process_t * proc) {
@@ -249,6 +251,27 @@ ebus_event_t * pull_event(int event_id) {
     kernel_next_task();
 
     return 0;
+}
+
+static void * kernel_page_alloc(size_t count) {
+    if (!count) {
+        return 0;
+    }
+
+    if (__kernel.next_heap_page + count >= MMU_DIR_SIZE * MMU_TABLE_SIZE) {
+        return 0;
+    }
+
+    mmu_dir_t * dir = get_kernel_dir();
+
+    if (paging_add_pages(dir, __kernel.next_heap_page, __kernel.next_heap_page + count)) {
+        return 0;
+    }
+
+    void * ptr = UINT2PTR(PAGE2ADDR(__kernel.next_heap_page));
+    __kernel.next_heap_page += count;
+
+    return ptr;
 }
 
 static void init_idle_proc() {
