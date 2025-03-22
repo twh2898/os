@@ -233,6 +233,25 @@ TEST_F(Process, process_activate) {
     EXPECT_EQ(4, mmu_change_dir_fake.arg0_val);
 }
 
+// Process Yield
+
+TEST_F(Process, process_yield_InvalidParameters) {
+    EXPECT_NE(0, process_yield(0, 0, 0, 0));
+    EXPECT_NE(0, process_yield(&proc, 0, 0, 0));
+    EXPECT_NE(0, process_yield(0, 1, 0, 0));
+    EXPECT_NE(0, process_yield(0, 0, 1, 0));
+    EXPECT_NE(0, process_yield(&proc, 1, 0, 0));
+    EXPECT_NE(0, process_yield(&proc, 0, 1, 0));
+    EXPECT_NE(0, process_yield(0, 1, 1, 0));
+}
+
+TEST_F(Process, process_yield) {
+    EXPECT_EQ(0, process_yield(&proc, 1, 2, 3));
+    EXPECT_EQ(1, proc.esp);
+    EXPECT_EQ(2, proc.eip);
+    EXPECT_EQ(3, proc.filter_event);
+}
+
 // Process Add Pages
 
 TEST_F(Process, process_add_pages_InvalidParameters) {

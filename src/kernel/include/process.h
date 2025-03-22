@@ -95,7 +95,16 @@ int process_set_entrypoint(process_t * proc, void * entrypoint);
  */
 int process_activate(process_t * proc);
 
-int process_yield(process_t * proc, uint32_t esp, int filter);
+/**
+ * @brief Store the current process state for later use when resuming.
+ *
+ * @param proc pointer to the process object
+ * @param esp stack pointer
+ * @param eip instruction pointer
+ * @param filter ebus event type if polling for an event, 0 for no filter
+ * @return int 0 for success
+ */
+int process_yield(process_t * proc, uint32_t esp, uint32_t eip, int filter);
 
 int process_resume(process_t * proc, const ebus_event_t * event);
 

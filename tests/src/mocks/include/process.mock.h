@@ -11,7 +11,7 @@ DECLARE_FAKE_VALUE_FUNC(int, process_create, process_t *);
 DECLARE_FAKE_VALUE_FUNC(int, process_free, process_t *);
 DECLARE_FAKE_VALUE_FUNC(int, process_set_entrypoint, process_t *, void *);
 DECLARE_FAKE_VALUE_FUNC(int, process_activate, process_t *);
-DECLARE_FAKE_VALUE_FUNC(int, process_yield, process_t *, uint32_t, int);
+DECLARE_FAKE_VALUE_FUNC(int, process_yield, process_t *, uint32_t, uint32_t, int);
 DECLARE_FAKE_VALUE_FUNC(int, process_resume, process_t *, const ebus_event_t *);
 DECLARE_FAKE_VALUE_FUNC(void *, process_add_pages, process_t *, size_t);
 DECLARE_FAKE_VALUE_FUNC(int, process_grow_stack, process_t *);

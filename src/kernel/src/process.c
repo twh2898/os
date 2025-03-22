@@ -146,11 +146,12 @@ int process_activate(process_t * proc) {
     return 0;
 }
 
-int process_yield(process_t * proc, uint32_t esp, int filter) {
-    if (!proc || !esp) {
+int process_yield(process_t * proc, uint32_t esp, uint32_t eip, int filter) {
+    if (!proc || !esp || !eip) {
         return -1;
     }
 
+    proc->eip          = eip;
     proc->filter_event = filter;
     proc->esp          = esp;
     proc->state        = PROCESS_STATE_SUSPENDED;
