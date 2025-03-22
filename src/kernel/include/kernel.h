@@ -48,7 +48,9 @@ tar_fs_t * kernel_get_tar();
 
 process_t * get_current_process();
 
-ebus_t * get_kernel_ebus();
+ebus_t *     get_kernel_ebus();
+proc_man_t * kernel_get_proc_man();
+process_t *  kernel_find_pid(int pid);
 
 void tmp_register_signals_cb(signals_master_cb_t cb);
 

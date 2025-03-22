@@ -183,6 +183,8 @@ int pm_push_event(proc_man_t * pm, ebus_event_t * event) {
         return -1;
     }
 
+    printf("Task list size is %u\n", pm->task_list.size);
+
     for (size_t i = 0; i < arr_size(&pm->task_list); i++) {
         process_t * proc;
         arr_get(&pm->task_list, i, &proc);
@@ -192,6 +194,7 @@ int pm_push_event(proc_man_t * pm, ebus_event_t * event) {
         }
 
         ebus_push(&proc->event_queue, event);
+        printf("Proc %u size is %u\n", proc->pid, proc->event_queue.queue.size);
         if (proc->filter_event && event && event->event_id == proc->filter_event) {
             proc->state = PROCESS_STATE_SUSPENDED;
         }

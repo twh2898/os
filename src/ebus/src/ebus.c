@@ -101,7 +101,12 @@ int ebus_cycle(ebus_t * bus) {
             return -1;
         }
 
-        if (handle_event(bus, &event)) {
+        // if (handle_event(bus, &event)) {
+        //     // Handler consumed event
+        //     continue;
+        // }
+
+        if (pm_push_event(kernel_get_proc_man(), &event)) {
             return -1;
         }
     }
@@ -110,6 +115,8 @@ int ebus_cycle(ebus_t * bus) {
 }
 
 static int handle_event(ebus_t * bus, ebus_event_t * event) {
+    process_t * curr = get_current_process();
+
     for (size_t i = 0; i < arr_size(&bus->handlers); i++) {
         ebus_handler_t * handler = arr_at(&bus->handlers, i);
         if (!handler) {
@@ -117,9 +124,19 @@ static int handle_event(ebus_t * bus, ebus_event_t * event) {
         }
 
         if (!handler->event_id || handler->event_id == event->event_id) {
-            kernel_call_as_proc(handler->pid, (_proc_call_t)(handler->callback_fn), (void *)event);
+            process_t * proc = kernel_find_pid(handler->pid);
+            if (!proc) {
+                PANIC("Handler does not exist");
+            }
+
+            // TODO push to process and mark as ready
+
+            // set_current_process(proc);
+            // handler->callback_fn(event);
         }
     }
+
+    pm_activate_process(kernel_get_proc_man(), curr->pid);
 
     return 0;
 }

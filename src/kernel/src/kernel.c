@@ -108,8 +108,6 @@ void kernel_main() {
     // process_resume(&__kernel.proc, 0);
     // halt();
 
-    pm_create(&__kernel.pm);
-
     // Kernel process used for memory allocation
     __kernel.proc.next_heap_page = ADDR2PAGE(VADDR_RAM_BITMASKS) + ram_region_table_count();
     __kernel.proc.cr3            = PADDR_KERNEL_DIR;
@@ -131,11 +129,16 @@ void kernel_main() {
     memory_init(&__kernel.kernel_memory, _sys_page_alloc);
     init_malloc(&__kernel.kernel_memory);
 
-    process_t * idle        = init_idle();
+    pm_create(&__kernel.pm);
+    __kernel.pm.active = &__kernel.proc;
+
+    process_t * idle = init_idle();
+    printf("Idle task pid is %u\n", idle->pid);
     __kernel.pm.idle_task   = idle;
     __kernel.proc.next_proc = __kernel.pm.idle_task;
     __kernel.pm.active      = &__kernel.proc;
-    pm_add_proc(&__kernel.pm, &__kernel.proc);
+    // pm_add_proc(&__kernel.pm, &__kernel.proc);
+    pm_add_proc(&__kernel.pm, idle);
     // __kernel.pm.task_begin  = &__kernel.proc;
 
     if (ebus_create(&__kernel.event_bus, 4096)) {
@@ -145,11 +148,13 @@ void kernel_main() {
     ebus_handler_t launch_handler = {0};
     launch_handler.callback_fn    = handle_launch;
     launch_handler.event_id       = EBUS_EVENT_TASK_SWITCH;
+    launch_handler.pid            = 0;
     ebus_register_handler(&__kernel.event_bus, &launch_handler);
 
     ebus_handler_t kill_handler = {0};
     kill_handler.callback_fn    = handle_kill;
     kill_handler.event_id       = EBUS_EVENT_TASK_KILL;
+    launch_handler.pid          = 0;
     ebus_register_handler(&__kernel.event_bus, &kill_handler);
 
     irq_install();
@@ -157,6 +162,10 @@ void kernel_main() {
     vga_puts("Welcome to kernel v" PROJECT_VERSION "\n");
 
     term_init();
+    if (arr_size(&__kernel.pm.task_list) == 0) {
+        KPANIC("No process");
+    }
+
     commands_init();
 
     term_command_add("exit", kill);
@@ -204,36 +213,37 @@ static void handle_kill(const ebus_event_t * event) {
     process_free(proc);
 }
 
-int kernel_call_as_proc(int pid, _proc_call_t fn, void * data) {
-    if (!fn) {
-        return -1;
-    }
+// int kernel_call_as_proc(int pid, _proc_call_t fn, void * data) {
+//     if (!fn) {
+//         return -1;
+//     }
 
-    process_t * curr = get_current_process();
-    if (curr->pid != pid) {
-        kernel_switch_task(pid);
-    }
+//     process_t * curr = get_current_process();
+//     if (curr->pid != pid) {
+//         kernel_switch_task(pid);
+//     }
 
-    int res = fn(data);
+//     int res = fn(data);
 
-    if (curr->pid != pid) {
-        kernel_switch_task(curr->pid);
-    }
+//     if (curr->pid != pid) {
+//         kernel_switch_task(curr->pid);
+//     }
 
-    return res;
-}
+//     return res;
+// }
 
 int kernel_switch_task(int next_pid) {
-    process_t * proc = pm_find_pid(&__kernel.pm, next_pid);
-    if (!proc || proc->state == PROCESS_STATE_DEAD) {
-        return -1;
-    }
+    return pm_activate_process(&__kernel.pm, next_pid);
+    // process_t * proc = pm_find_pid(&__kernel.pm, next_pid);
+    // if (!proc || proc->state == PROCESS_STATE_DEAD) {
+    //     return -1;
+    // }
 
-    __kernel.pm.active = proc;
-    proc->state        = PROCESS_STATE_RUNNING;
-    set_kernel_stack(proc->esp0);
-    mmu_change_dir(proc->cr3);
-    return 0;
+    // __kernel.pm.active = proc;
+    // proc->state        = PROCESS_STATE_RUNNING;
+    // set_kernel_stack(proc->esp0);
+    // mmu_change_dir(proc->cr3);
+    // return 0;
 }
 
 mmu_dir_t * get_kernel_dir() {
@@ -278,21 +288,22 @@ int kernel_add_task(process_t * proc) {
 }
 
 int kernel_next_task() {
-    process_t * curr = get_current_process();
-    process_t * next = curr->next_proc;
-    if (!next) {
-        next = __kernel.pm.idle_task;
-    }
+    return pm_switch_process(&__kernel.pm);
+    // process_t * curr = get_current_process();
+    // process_t * next = curr->next_proc;
+    // if (!next) {
+    //     next = __kernel.pm.idle_task;
+    // }
 
-    __kernel.pm.active = next;
+    // __kernel.pm.active = next;
 
-    // TODO interrupt back to process for sigint
+    // // TODO interrupt back to process for sigint
 
-    if (process_resume(__kernel.pm.active, 0)) {
-        KPANIC("Failed to resume task");
-    }
+    // if (process_resume(__kernel.pm.active, 0)) {
+    //     KPANIC("Failed to resume task");
+    // }
 
-    return 0;
+    // return 0;
 }
 
 int kernel_close_process(process_t * proc) {
@@ -341,14 +352,14 @@ int kernel_set_current_task(process_t * proc) {
 //     // __kernel.pm.task_begin = proc;
 // }
 
-void idle() {
-    vga_puts("Start idle task\n> ");
-    for (;;) {
-        term_update();
-        ebus_cycle(get_kernel_ebus());
-        asm("hlt");
-    }
-}
+// void idle() {
+//     vga_puts("Start idle task\n> ");
+//     for (;;) {
+//         term_update();
+//         ebus_cycle(get_kernel_ebus());
+//         asm("hlt");
+//     }
+// }
 
 NO_RETURN void kernel_panic(const char * msg, const char * file, unsigned int line) {
     vga_color(VGA_FG_WHITE | VGA_BG_RED);
@@ -367,6 +378,14 @@ NO_RETURN void kernel_panic(const char * msg, const char * file, unsigned int li
     halt();
 }
 
+proc_man_t * kernel_get_proc_man() {
+    return &__kernel.pm;
+}
+
+process_t * kernel_find_pid(int pid) {
+    return pm_find_pid(&__kernel.pm, pid);
+}
+
 static void cursor() {
     vga_cursor(3, 3);
 
@@ -378,13 +397,13 @@ static void cursor() {
 static void irq_install() {
     enable_interrupts();
     /* IRQ0: timer */
-    init_timer(TIMER_FREQ_MS); // milliseconds
+    // init_timer(TIMER_FREQ_MS); // milliseconds
     /* IRQ1: keyboard */
     init_keyboard();
     /* IRQ14: ata disk */
     init_ata();
     /* IRQ8: real time clock */
-    init_rtc(RTC_RATE_1024_HZ);
+    // init_rtc(RTC_RATE_1024_HZ);
 }
 
 static int kill(size_t argc, char ** argv) {

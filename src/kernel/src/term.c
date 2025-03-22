@@ -10,6 +10,8 @@
 #include "libc/proc.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
+#include "process.h"
+#include "process_manager.h"
 
 #define ERROR(MSG)                                \
     {                                             \
@@ -108,12 +110,23 @@ void term_init() {
     }
     command_ready = false;
 
-    ebus_handler_t handler;
-    handler.callback_fn = key_event_handler;
-    handler.event_id    = EBUS_EVENT_KEY;
-    if (ebus_register_handler(get_kernel_ebus(), &handler) < 1) {
-        PANIC("Failed to register keyboard event handler");
+    process_t * proc = kmalloc(sizeof(process_t));
+    if (!proc || process_create(proc)) {
+        return;
     }
+
+    process_set_entrypoint(proc, term_run);
+    proc->state = PROCESS_STATE_LOADED;
+
+    kernel_add_task(proc);
+
+    // ebus_handler_t handler;
+    // handler.callback_fn = key_event_handler;
+    // handler.event_id    = EBUS_EVENT_KEY;
+    // handler.pid         = 0;
+    // if (ebus_register_handler(get_kernel_ebus(), &handler) < 1) {
+    //     PANIC("Failed to register keyboard event handler");
+    // }
 }
 
 void term_update() {
@@ -175,8 +188,9 @@ void term_run() {
 
     for (;;) {
         term_update();
-        ebus_cycle(get_kernel_ebus());
-        asm("hlt");
+        // ebus_cycle(get_kernel_ebus());
+        yield(0);
+        // asm("hlt");
     }
 }
 
