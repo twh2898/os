@@ -21,5 +21,7 @@ static void idle_loop() {
     for (;;) {
         ebus_cycle(get_kernel_ebus());
         asm("hlt");
+        int curr_pid = get_current_process()->pid;
+        yield(0);
     }
 }

@@ -148,7 +148,7 @@ int process_activate(process_t * proc) {
 void process_yield(process_t * proc, uint32_t esp, int filter) {
     proc->filter_event = filter;
     proc->esp          = esp;
-    proc->state        = PROCESS_STATE_WAITING;
+    proc->state        = PROCESS_STATE_SUSPENDED;
     kernel_next_task();
 }
 

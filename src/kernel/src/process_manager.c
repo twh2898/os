@@ -117,7 +117,7 @@ int pm_switch_process(proc_man_t * pm) {
         if (pm->active->pid == last_pid) {
             PANIC("Process loop detected");
         }
-    } while (pm->active->state < PROCESS_STATE_DEAD);
+    } while (pm->active->state >= PROCESS_STATE_DEAD);
 
     pm_activate_process(pm, pm->active->pid);
 
@@ -133,6 +133,8 @@ int pm_resume_process(proc_man_t * pm, int pid, ebus_event_t * event) {
     if (!proc) {
         return -1;
     }
+
+    pm->active = proc;
 
     return process_resume(proc, event);
 }
@@ -194,7 +196,7 @@ int pm_push_event(proc_man_t * pm, ebus_event_t * event) {
         }
 
         ebus_push(&proc->event_queue, event);
-        printf("Proc %u size is %u\n", proc->pid, proc->event_queue.queue.size);
+        printf("Proc %u size is %u\n", proc->pid, proc->event_queue.queue.len);
         if (proc->filter_event && event && event->event_id == proc->filter_event) {
             proc->state = PROCESS_STATE_SUSPENDED;
         }

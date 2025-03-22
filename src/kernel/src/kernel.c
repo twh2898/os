@@ -186,7 +186,7 @@ void kernel_main() {
 
     // switch_to_task(__kernel.pm.active);
 
-    process_resume(__kernel.pm.idle_task, 0);
+    pm_resume_process(&__kernel.pm, __kernel.pm.idle_task->pid, 0);
 
     KPANIC("switch didn't happen\n");
 
