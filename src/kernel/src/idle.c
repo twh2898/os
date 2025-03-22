@@ -7,7 +7,7 @@
 static void idle_loop();
 
 process_t * init_idle() {
-    process_t * proc = kmalloc(sizeof(process_t));
+    process_t * proc = malloc(sizeof(process_t));
     if (!proc || process_create(proc)) {
         return 0;
     }

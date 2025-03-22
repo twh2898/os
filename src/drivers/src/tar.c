@@ -53,18 +53,18 @@ tar_fs_t * tar_open(disk_t * disk) {
         return 0;
     }
 
-    tar_fs_t * tar = kmalloc(sizeof(tar_fs_t));
+    tar_fs_t * tar = malloc(sizeof(tar_fs_t));
     if (tar) {
         tar->disk       = disk;
         tar->file_count = count_files(tar);
-        tar->files      = kmalloc(sizeof(tar_file_t) * tar->file_count);
+        tar->files      = malloc(sizeof(tar_file_t) * tar->file_count);
         load_headers(tar);
     }
     return tar;
 }
 
 void tar_close(tar_fs_t * tar) {
-    kfree(tar);
+    free(tar);
 }
 
 size_t tar_file_count(tar_fs_t * tar) {
@@ -134,7 +134,7 @@ tar_fs_file_t * tar_file_open(tar_fs_t * tar, const char * filename) {
         return 0;
     }
 
-    tar_fs_file_t * file = kmalloc(sizeof(tar_fs_file_t));
+    tar_fs_file_t * file = malloc(sizeof(tar_fs_file_t));
     if (file) {
         file->tar  = tar;
         file->file = find_filename(tar, filename);
@@ -142,7 +142,7 @@ tar_fs_file_t * tar_file_open(tar_fs_t * tar, const char * filename) {
         file->size = file->file->size;
 
         if (!file->file) {
-            kfree(file);
+            free(file);
             return 0;
         }
     }
@@ -150,7 +150,7 @@ tar_fs_file_t * tar_file_open(tar_fs_t * tar, const char * filename) {
 }
 
 void tar_file_close(tar_fs_file_t * file) {
-    kfree(file);
+    free(file);
 }
 
 bool tar_file_seek(tar_fs_file_t * file, int offset, enum TAR_SEEK_ORIGIN origin) {

@@ -18,8 +18,8 @@ protected:
 
         cb_create(&cbuff, 3, 1);
 
-        RESET_FAKE(kmalloc);
-        kmalloc_fake.custom_fake = malloc;
+        RESET_FAKE(malloc);
+        malloc_fake.custom_fake = malloc;
     }
 
     void TearDown() override {
@@ -34,16 +34,16 @@ TEST_F(CircularBuffer, cb_create) {
     EXPECT_NE(0, cb_create(0, 0, 1));
     EXPECT_NE(0, cb_create(&cbuff, 1, 0));
     EXPECT_NE(0, cb_create(&cbuff, 0, 1));
-    EXPECT_EQ(0, kmalloc_fake.call_count);
-    EXPECT_EQ(0, kfree_fake.call_count);
+    EXPECT_EQ(0, malloc_fake.call_count);
+    EXPECT_EQ(0, free_fake.call_count);
 
     // Good args
     EXPECT_EQ(0, cb_create(&cbuff, 4, 1));
     EXPECT_EQ(0, cb_len(&cbuff));
     EXPECT_EQ(4, cb_buff_size(&cbuff));
 
-    ASSERT_EQ(1, kmalloc_fake.call_count);
-    EXPECT_EQ(4, kmalloc_fake.arg0_val);
+    ASSERT_EQ(1, malloc_fake.call_count);
+    EXPECT_EQ(4, malloc_fake.arg0_val);
 
     cb_free(&cbuff);
 
@@ -54,30 +54,30 @@ TEST_F(CircularBuffer, cb_create) {
     EXPECT_EQ(0, cb_len(&cbuff));
     EXPECT_EQ(4, cb_buff_size(&cbuff));
 
-    ASSERT_EQ(1, kmalloc_fake.call_count);
-    EXPECT_EQ(8, kmalloc_fake.arg0_val);
+    ASSERT_EQ(1, malloc_fake.call_count);
+    EXPECT_EQ(8, malloc_fake.arg0_val);
 
     cb_free(&cbuff);
 
     SetUp();
 
-    kmalloc_fake.custom_fake = 0;
-    kmalloc_fake.return_val  = 0;
+    malloc_fake.custom_fake = 0;
+    malloc_fake.return_val  = 0;
 
     // First malloc fails
     EXPECT_NE(0, cb_create(&cbuff, 4, 1));
-    EXPECT_EQ(1, kmalloc_fake.call_count);
-    EXPECT_EQ(4, kmalloc_fake.arg0_val);
+    EXPECT_EQ(1, malloc_fake.call_count);
+    EXPECT_EQ(4, malloc_fake.arg0_val);
 }
 
 TEST_F(CircularBuffer, cb_free) {
     cb_free(0);
-    EXPECT_EQ(0, kfree_fake.call_count);
+    EXPECT_EQ(0, free_fake.call_count);
 
     void * data = cbuff.buff;
     cb_free(&cbuff);
-    EXPECT_EQ(1, kfree_fake.call_count);
-    EXPECT_EQ(data, kfree_fake.arg0_val);
+    EXPECT_EQ(1, free_fake.call_count);
+    EXPECT_EQ(data, free_fake.arg0_val);
     EXPECT_EQ(0, cbuff.buff);
 }
 

@@ -134,13 +134,13 @@ ata_t * ata_open(uint8_t id) {
         return 0;
     }
 
-    ata_t * disk = kmalloc(sizeof(ata_t));
+    ata_t * disk = malloc(sizeof(ata_t));
     if (disk) {
         disk->io_base = ATA_BUS_0_IO_BASE;
         disk->ct_base = ATA_BUS_0_CTL_BASE;
         if (!ata_identify(disk)) {
             puts("ERROR: failed to identify disk\n");
-            kfree(disk);
+            free(disk);
             return 0;
         }
     }
@@ -148,7 +148,7 @@ ata_t * ata_open(uint8_t id) {
 }
 
 void ata_close(ata_t * disk) {
-    kfree(disk);
+    free(disk);
 }
 
 void init_ata() {

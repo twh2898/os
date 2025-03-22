@@ -21,7 +21,7 @@ int ramdisk_create(size_t size) {
         PANIC("TOO MANY RAM DISK DEVICES");
     }
 
-    void * data = kmalloc(size);
+    void * data = malloc(size);
     if (!data) {
         PANIC("RAMDISK OUT OF MEMORY");
     }

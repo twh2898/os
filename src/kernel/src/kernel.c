@@ -241,7 +241,7 @@ ebus_event_t * pull_event(int event_id) {
 }
 
 static void init_idle_proc() {
-    process_t * proc = kmalloc(sizeof(process_t));
+    process_t * proc = malloc(sizeof(process_t));
     if (process_create(proc)) {
         KPANIC("Failed to create idle task");
     }

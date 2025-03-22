@@ -13,7 +13,7 @@ IO * open(const char * path, const char * mode) {
         return 0;
     }
 
-    IO * io    = kmalloc(sizeof(IO));
+    IO * io    = malloc(sizeof(IO));
     io->handle = handle;
     return io;
 }
@@ -24,7 +24,7 @@ int close(IO * io) {
     }
 
     int res = _sys_io_close(io->handle);
-    kfree(io);
+    free(io);
     return res;
 }
 

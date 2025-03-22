@@ -7,8 +7,8 @@
 #include "memory_alloc.h"
 
 void   init_malloc(memory_t * memory);
-void * kmalloc(size_t size);
-void * krealloc(void * ptr, size_t size);
-void   kfree(void * ptr);
+void * malloc(size_t size);
+void * realloc(void * ptr, size_t size);
+void   free(void * ptr);
 
 #endif // LIBC_MEMORY_H

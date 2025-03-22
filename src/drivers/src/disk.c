@@ -33,14 +33,14 @@ static size_t disk_rdisk_read(disk_t * disk, uint8_t * buff, size_t count, size_
 static size_t disk_rdisk_write(disk_t * disk, uint8_t * buff, size_t count, size_t pos);
 
 disk_t * disk_open(int id, enum DISK_DRIVER driver) {
-    disk_t * disk = kmalloc(sizeof(disk_t));
+    disk_t * disk = malloc(sizeof(disk_t));
     if (disk) {
         disk->driver = driver;
 
         disk->buff_size = DISK_BUFFER_SIZE;
-        disk->buff      = kmalloc(disk->buff_size);
+        disk->buff      = malloc(disk->buff_size);
         if (!disk->buff) {
-            kfree(disk);
+            free(disk);
             return 0;
         }
 
@@ -48,8 +48,8 @@ disk_t * disk_open(int id, enum DISK_DRIVER driver) {
             case DISK_DRIVER_ATA: {
                 disk->device.ata = ata_open(id);
                 if (!disk->device.ata) {
-                    kfree(disk->buff);
-                    kfree(disk);
+                    free(disk->buff);
+                    free(disk);
                     return 0;
                 }
 
@@ -59,15 +59,15 @@ disk_t * disk_open(int id, enum DISK_DRIVER driver) {
             } break;
             case DISK_DRIVER_FLOPPY: {
                 // TODO open floppy driver
-                kfree(disk->buff);
-                kfree(disk);
+                free(disk->buff);
+                free(disk);
                 return 0;
             } break;
             case DISK_DRIVER_RAM_DISK: {
                 disk->device.rdisk = ramdisk_open(id);
                 if (!disk->device.rdisk) {
-                    kfree(disk->buff);
-                    kfree(disk);
+                    free(disk->buff);
+                    free(disk);
                     return 0;
                 }
                 disk->size     = ramdisk_size(disk->device.rdisk);
@@ -98,8 +98,8 @@ void disk_close(disk_t * disk) {
 
             } break;
         }
-        kfree(disk->buff);
-        kfree(disk);
+        free(disk->buff);
+        free(disk);
     }
 }
 
