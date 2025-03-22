@@ -42,7 +42,7 @@ typedef struct _process {
 
     // TODO heap & stack limits
 
-    uint32_t entrypoint;
+    uint32_t eip;
 
     signals_master_cb_t signals_callback;
     arr_t               io_handles; // array<handle_t>

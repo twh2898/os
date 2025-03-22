@@ -214,7 +214,7 @@ TEST_F(Process, process_set_entrypoint_InvalidParameters) {
 
 TEST_F(Process, process_set_entrypoint) {
     EXPECT_EQ(0, process_set_entrypoint(&proc, (void *)3));
-    EXPECT_EQ(3, proc.entrypoint);
+    EXPECT_EQ(3, proc.eip);
 }
 
 // Process Activate

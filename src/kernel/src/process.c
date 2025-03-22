@@ -131,7 +131,7 @@ int process_set_entrypoint(process_t * proc, void * entrypoint) {
         return -1;
     }
 
-    proc->entrypoint = PTR2UINT(entrypoint);
+    proc->eip = PTR2UINT(entrypoint);
     return 0;
 }
 
@@ -165,7 +165,7 @@ int process_resume(process_t * proc, const ebus_event_t * event) {
 
     process_activate(proc);
     proc->state = PROCESS_STATE_RUNNING;
-    start_task(proc->cr3, proc->esp, proc->entrypoint, event);
+    start_task(proc->cr3, proc->esp, proc->eip, event);
 
     proc->state = PROCESS_STATE_ERROR;
     return -1;
