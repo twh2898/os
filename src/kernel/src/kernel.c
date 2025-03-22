@@ -112,7 +112,7 @@ void kernel_main() {
     // Kernel process used for memory allocation
     __kernel.proc.next_heap_page = ADDR2PAGE(VADDR_RAM_BITMASKS) + ram_region_table_count();
     __kernel.proc.cr3            = PADDR_KERNEL_DIR;
-    __kernel.pm.curr_task        = &__kernel.proc;
+    __kernel.pm.active           = &__kernel.proc;
 
     // TODO make this part of task switching code
     // Add isr stack to kernel's TSS
@@ -132,8 +132,9 @@ void kernel_main() {
 
     init_idle_proc();
     __kernel.proc.next_proc = __kernel.pm.idle_task;
-    __kernel.pm.curr_task   = &__kernel.proc;
-    __kernel.pm.task_begin  = &__kernel.proc;
+    __kernel.pm.active      = &__kernel.proc;
+    pm_add_proc(&__kernel.pm, &__kernel.proc);
+    // __kernel.pm.task_begin  = &__kernel.proc;
 
     if (ebus_create(&__kernel.event_bus, 4096)) {
         KPANIC("Failed to init ebus\n");
@@ -170,9 +171,9 @@ void kernel_main() {
         KPANIC("Failed to open tar");
     }
 
-    // set_first_task(__kernel.pm.curr_task);
+    // set_first_task(__kernel.pm.active);
 
-    // switch_to_task(__kernel.pm.curr_task);
+    // switch_to_task(__kernel.pm.active);
 
     process_resume(__kernel.pm.idle_task, 0);
 
@@ -186,15 +187,15 @@ void kernel_main() {
 
 static void handle_launch(const ebus_event_t * event) {
     printf("Start task %u\n", event->task_switch.next_task_pid);
-    process_t * proc      = pm_get_pid(&__kernel.pm, event->task_switch.next_task_pid);
-    __kernel.pm.curr_task = proc;
+    process_t * proc   = pm_find_pid(&__kernel.pm, event->task_switch.next_task_pid);
+    __kernel.pm.active = proc;
     process_resume(proc, 0);
 }
 
 static void handle_kill(const ebus_event_t * event) {
     printf("Kill task %u\n", event->task_switch.next_task_pid);
-    process_t * proc = pm_get_pid(&__kernel.pm, event->task_kill.task_pid);
-    if (pm_remove_proc(&__kernel.pm, proc)) {
+    process_t * proc = pm_find_pid(&__kernel.pm, event->task_kill.task_pid);
+    if (pm_remove_proc(&__kernel.pm, proc->pid)) {
         KPANIC("Failed to remove process from pm");
     }
 
@@ -221,13 +222,13 @@ int kernel_call_as_proc(int pid, _proc_call_t fn, void * data) {
 }
 
 int kernel_switch_task(int next_pid) {
-    process_t * proc = pm_get_pid(&__kernel.pm, next_pid);
+    process_t * proc = pm_find_pid(&__kernel.pm, next_pid);
     if (!proc || proc->state == PROCESS_STATE_DEAD) {
         return -1;
     }
 
-    __kernel.pm.curr_task = proc;
-    proc->state           = PROCESS_STATE_RUNNING;
+    __kernel.pm.active = proc;
+    proc->state        = PROCESS_STATE_RUNNING;
     set_kernel_stack(proc->esp0);
     mmu_change_dir(proc->cr3);
     return 0;
@@ -242,7 +243,7 @@ mmu_table_t * get_kernel_table() {
 }
 
 process_t * get_current_process() {
-    return __kernel.pm.curr_task;
+    return __kernel.pm.active;
 }
 
 ebus_t * get_kernel_ebus() {
@@ -258,8 +259,8 @@ tar_fs_t * kernel_get_tar() {
 }
 
 void tmp_register_signals_cb(signals_master_cb_t cb) {
-    __kernel.pm.curr_task->signals_callback = cb;
-    printf("Attached master signal callback at %p\n", __kernel.pm.curr_task->signals_callback);
+    __kernel.pm.active->signals_callback = cb;
+    printf("Attached master signal callback at %p\n", __kernel.pm.active->signals_callback);
 }
 
 ebus_event_t * pull_event(int event_id) {
@@ -271,16 +272,7 @@ ebus_event_t * pull_event(int event_id) {
 }
 
 int kernel_add_task(process_t * proc) {
-    if (!proc) {
-        return -1;
-    }
-    process_t * curr = __kernel.pm.task_begin;
-    while (curr->next_proc && curr->next_proc != __kernel.pm.idle_task) {
-        curr = curr->next_proc;
-    }
-    curr->next_proc = proc;
-    proc->next_proc = __kernel.pm.idle_task;
-    return 0;
+    return pm_add_proc(&__kernel.pm, proc);
 }
 
 int kernel_next_task() {
@@ -290,11 +282,11 @@ int kernel_next_task() {
         next = __kernel.pm.idle_task;
     }
 
-    __kernel.pm.curr_task = next;
+    __kernel.pm.active = next;
 
     // TODO interrupt back to process for sigint
 
-    if (process_resume(__kernel.pm.curr_task, 0)) {
+    if (process_resume(__kernel.pm.active, 0)) {
         KPANIC("Failed to resume task");
     }
 
@@ -308,7 +300,7 @@ int kernel_close_process(process_t * proc) {
 
     proc->state = PROCESS_STATE_DEAD;
 
-    process_t * next = __kernel.pm.curr_task->next_proc;
+    process_t * next = __kernel.pm.active->next_proc;
     if (!next) {
         next = __kernel.pm.idle_task;
     }
@@ -329,7 +321,7 @@ int kernel_close_process(process_t * proc) {
 }
 
 int kernel_set_current_task(process_t * proc) {
-    __kernel.pm.curr_task = proc;
+    __kernel.pm.active = proc;
 }
 
 static void init_idle_proc() {
