@@ -14,6 +14,7 @@
 #include "drivers/rtc.h"
 #include "drivers/timer.h"
 #include "drivers/vga.h"
+#include "idle.h"
 #include "io/file.h"
 #include "kernel/boot_params.h"
 #include "kernel/system_call.h"
@@ -38,7 +39,7 @@ extern _Noreturn void halt(void);
 
 static void handle_launch(const ebus_event_t * event);
 static void handle_kill(const ebus_event_t * event);
-static void init_idle_proc();
+// static void init_idle_proc();
 static void idle();
 static void id_map_range(mmu_table_t * table, size_t start, size_t end);
 static void id_map_page(mmu_table_t * table, size_t page);
@@ -130,7 +131,8 @@ void kernel_main() {
     memory_init(&__kernel.kernel_memory, _sys_page_alloc);
     init_malloc(&__kernel.kernel_memory);
 
-    init_idle_proc();
+    process_t * idle        = init_idle();
+    __kernel.pm.idle_task   = idle;
     __kernel.proc.next_proc = __kernel.pm.idle_task;
     __kernel.pm.active      = &__kernel.proc;
     pm_add_proc(&__kernel.pm, &__kernel.proc);
@@ -324,20 +326,20 @@ int kernel_set_current_task(process_t * proc) {
     __kernel.pm.active = proc;
 }
 
-static void init_idle_proc() {
-    process_t * proc = kmalloc(sizeof(process_t));
-    if (process_create(proc)) {
-        KPANIC("Failed to create idle task");
-    }
+// static void init_idle_proc() {
+//     process_t * proc = kmalloc(sizeof(process_t));
+//     if (process_create(proc)) {
+//         KPANIC("Failed to create idle task");
+//     }
 
-    // Kernel process used for memory allocation
-    proc->next_heap_page = ADDR2PAGE(VADDR_RAM_BITMASKS) + ram_region_table_count();
-    process_set_entrypoint(proc, idle);
+//     // Kernel process used for memory allocation
+//     proc->next_heap_page = ADDR2PAGE(VADDR_RAM_BITMASKS) + ram_region_table_count();
+//     process_set_entrypoint(proc, idle);
 
-    // Setup kernel process as idle process
-    __kernel.pm.idle_task = proc;
-    // __kernel.pm.task_begin = proc;
-}
+//     // Setup kernel process as idle process
+//     __kernel.pm.idle_task = proc;
+//     // __kernel.pm.task_begin = proc;
+// }
 
 void idle() {
     vga_puts("Start idle task\n> ");
