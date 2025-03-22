@@ -132,6 +132,7 @@ int process_set_entrypoint(process_t * proc, void * entrypoint) {
     }
 
     proc->entrypoint = PTR2UINT(entrypoint);
+    return 0;
 }
 
 int process_activate(process_t * proc) {

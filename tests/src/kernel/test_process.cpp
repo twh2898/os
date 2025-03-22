@@ -204,6 +204,19 @@ TEST_F(Process, process_free) {
     ASSERT_TEMP_MAP_BALANCED();
 }
 
+// Process Set Entrypoint
+
+TEST_F(Process, process_set_entrypoint_InvalidParameters) {
+    EXPECT_NE(0, process_set_entrypoint(0, 0));
+    EXPECT_NE(0, process_set_entrypoint(&proc, 0));
+    EXPECT_NE(0, process_set_entrypoint(0, (void *)1));
+}
+
+TEST_F(Process, process_set_entrypoint) {
+    EXPECT_EQ(0, process_set_entrypoint(&proc, (void *)3));
+    EXPECT_EQ(3, proc.entrypoint);
+}
+
 // Process Add Pages
 
 TEST_F(Process, process_add_pages_InvalidParameters) {

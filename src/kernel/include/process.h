@@ -74,6 +74,15 @@ int process_create(process_t * proc);
  */
 int process_free(process_t * proc);
 
+/**
+ * @brief Set the entry point or eip of the process.
+ *
+ * This entrypoint is used when the process starts or is resumed.
+ *
+ * @param proc pointer to the process object
+ * @param entrypoint eip or address of the entrypoint or function
+ * @return int 0 for success
+ */
 int process_set_entrypoint(process_t * proc, void * entrypoint);
 
 // Load page table and esp0, don't resume
