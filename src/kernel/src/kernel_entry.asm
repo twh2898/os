@@ -127,7 +127,7 @@ switch_task:
     ; edi = active
     mov edi, [active_task]
     ; esi = next
-    mov esi, [ebp+4]
+    mov esi, [ebp]
 
     ; store cr3
     mov eax,           cr3
