@@ -12,6 +12,7 @@ extern "C" {
 mmu_dir_t   dir;
 mmu_table_t table;
 process_t   proc;
+process_t   alt_proc;
 
 int custom_mmu_dir_set(mmu_dir_t * dir, size_t i, uint32_t addr, uint32_t flags) {
     if (!dir || i >= MMU_DIR_SIZE) {
@@ -49,6 +50,7 @@ protected:
         memset(&dir, 0, sizeof(dir));
         memset(&table, 0, sizeof(table));
         memset(&proc, 0, sizeof(proc));
+        memset(&alt_proc, 0, sizeof(alt_proc));
 
         temp_page.fill(0);
 
@@ -214,42 +216,6 @@ TEST_F(Process, process_set_entrypoint_InvalidParameters) {
 
 TEST_F(Process, process_set_entrypoint) {
     EXPECT_EQ(0, process_set_entrypoint(&proc, (void *)3));
-    EXPECT_EQ(3, proc.eip);
-}
-
-// Process Activate
-
-TEST_F(Process, process_activate_InvalidParameters) {
-    EXPECT_NE(0, process_activate(0));
-}
-
-TEST_F(Process, process_activate) {
-    proc.esp0 = 3;
-    proc.cr3  = 4;
-    EXPECT_EQ(0, process_activate(&proc));
-    ASSERT_EQ(1, tss_set_esp0_fake.call_count);
-    EXPECT_EQ(3, tss_set_esp0_fake.arg0_val);
-    ASSERT_EQ(1, mmu_change_dir_fake.call_count);
-    EXPECT_EQ(4, mmu_change_dir_fake.arg0_val);
-}
-
-// Process Yield
-
-TEST_F(Process, process_yield_InvalidParameters) {
-    EXPECT_NE(0, process_yield(0, 0, 0, 0));
-    EXPECT_NE(0, process_yield(&proc, 0, 0, 0));
-    EXPECT_NE(0, process_yield(0, 1, 0, 0));
-    EXPECT_NE(0, process_yield(0, 0, 1, 0));
-    EXPECT_NE(0, process_yield(&proc, 1, 0, 0));
-    EXPECT_NE(0, process_yield(&proc, 0, 1, 0));
-    EXPECT_NE(0, process_yield(0, 1, 1, 0));
-}
-
-TEST_F(Process, process_yield) {
-    EXPECT_EQ(0, process_yield(&proc, 1, 2, 3));
-    EXPECT_EQ(1, proc.esp);
-    EXPECT_EQ(2, proc.eip);
-    EXPECT_EQ(3, proc.filter_event);
 }
 
 // Process Resume
@@ -269,28 +235,23 @@ TEST_F(Process, process_resume_ProcessDead) {
     EXPECT_NE(0, process_resume(&proc, 0));
 }
 
-static void custom_start_task(uint32_t cr3, uint32_t esp, uint32_t eip, const ebus_event_t * event) {
+static void customswitch_task(process_t *) {
     ASSERT_EQ(PROCESS_STATE_RUNNING, proc.state);
+    ASSERT_EQ(PROCESS_STATE_SUSPENDED, alt_proc.state);
 }
 
 TEST_F(Process, process_resume) {
-    proc.esp                    = 1;
-    proc.eip                    = 2;
-    proc.esp0                   = 3;
-    proc.cr3                    = 4;
-    start_task_fake.custom_fake = custom_start_task;
-    EXPECT_NE(0, process_resume(&proc, (ebus_event_t *)5));
-    ASSERT_EQ(1, tss_set_esp0_fake.call_count);
-    EXPECT_EQ(3, tss_set_esp0_fake.arg0_val);
-    ASSERT_EQ(1, mmu_change_dir_fake.call_count);
-    EXPECT_EQ(4, mmu_change_dir_fake.arg0_val);
-    ASSERT_EQ(1, start_task_fake.call_count);
-    EXPECT_EQ(4, start_task_fake.arg0_val);
-    EXPECT_EQ(1, start_task_fake.arg1_val);
-    EXPECT_EQ(2, start_task_fake.arg2_val);
-    EXPECT_EQ((ebus_event_t *)5, start_task_fake.arg3_val);
-
-    EXPECT_EQ(PROCESS_STATE_ERROR, proc.state);
+    proc.esp                        = 1;
+    proc.esp0                       = 3;
+    proc.cr3                        = 4;
+    switch_task_fake.custom_fake    = customswitch_task;
+    proc.state                      = PROCESS_STATE_SUSPENDED;
+    alt_proc.state                  = PROCESS_STATE_RUNNING;
+    get_active_task_fake.return_val = &alt_proc;
+    EXPECT_EQ(0, process_resume(&proc, (ebus_event_t *)5));
+    ASSERT_EQ(1, switch_task_fake.call_count);
+    EXPECT_EQ(&proc, switch_task_fake.arg0_val);
+    EXPECT_EQ(PROCESS_STATE_RUNNING, alt_proc.state);
 }
 
 // Process Add Pages
