@@ -56,16 +56,17 @@ start_task:
     ; ebp = args
     push ebp
     mov  ebp, esp
-    add  ebp, 4
+    add  ebp, 8
 
     push edi
     push esi
     push eax
+    push ecx
 
     ; edi = active
     mov edi, [active_task]
     ; esi = next
-    mov esi, [ebp+4]
+    mov esi, [ebp]
 
     ; store cr3
     mov eax,           cr3
@@ -88,18 +89,21 @@ start_task:
     pop  eax
 
     ; load esp
-    mov esp, [esi+TCB_ESP]
+    mov ecx, [esi+TCB_ESP]
+
+    ; edi = entrypoint
+    mov edi, [ebp+4]
 
     ; load cr3
     mov eax, [esi+TCB_CR3]
     mov cr3, eax
 
-    ; eax = entrypoint
-    mov eax, [ebp+4]
+    mov esp, ecx
 
     ; Start task
-    call eax
+    call edi
 
+    pop ecx
     pop eax
     pop esi
     pop edi
@@ -114,7 +118,7 @@ switch_task:
     ; ebp = args
     push ebp
     mov  ebp, esp
-    add  ebp, 4
+    add  ebp, 8
 
     push edi
     push esi
