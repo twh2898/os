@@ -1,5 +1,6 @@
 #include "process_manager.h"
 
+#include "kernel.h"
 #include "libc/proc.h"
 #include "libc/stdio.h"
 
@@ -94,18 +95,34 @@ process_t * pm_get_next(proc_man_t * pm) {
         return 0;
     }
 
-    i++;
+    int start_i = i++;
 
-    if (i >= arr_size(&pm->task_list)) {
-        i = 0;
+    while (i != start_i) {
+        if (i >= arr_size(&pm->task_list)) {
+            i = 0;
+        }
+
+        process_t * proc;
+        if (arr_get(&pm->task_list, i, &proc)) {
+            KPANIC("Failed to get proc");
+            return 0;
+        }
+
+        if (proc->state == PROCESS_STATE_LOADED || proc->state == PROCESS_STATE_SUSPENDED || proc->state == PROCESS_STATE_RUNNING) {
+            return proc;
+        }
+
+        i++;
     }
 
-    process_t * proc;
-    if (arr_get(&pm->task_list, i, &proc)) {
-        return 0;
+    process_t * active = get_active_task();
+    if (PROCESS_STATE_LOADED <= active->state <= PROCESS_STATE_DEAD) {
+        return active;
     }
 
-    return proc;
+    KPANIC("Process Loop!");
+
+    return 0;
 }
 
 static int pid_arr_index(arr_t * arr, int pid) {
@@ -130,8 +147,6 @@ int pm_push_event(proc_man_t * pm, ebus_event_t * event) {
         return -1;
     }
 
-    printf("Task list size is %u\n", pm->task_list.size);
-
     for (size_t i = 0; i < arr_size(&pm->task_list); i++) {
         process_t * proc;
         arr_get(&pm->task_list, i, &proc);
@@ -149,12 +164,6 @@ int pm_push_event(proc_man_t * pm, ebus_event_t * event) {
                 proc->state = PROCESS_STATE_SUSPENDED;
             }
         }
-
-        // ebus_push(&proc->event_queue, event);
-        // printf("Proc %u size is %u\n", proc->pid, proc->event_queue.queue.len);
-        // if (proc->filter_event && event && event->event_id == proc->filter_event) {
-        //     proc->state = PROCESS_STATE_SUSPENDED;
-        // }
     }
 
     return 0;

@@ -94,12 +94,14 @@ int sys_call_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
 
         case SYS_INT_PROC_YIELD: {
             struct _args {
-                int filter;
+                int            filter;
                 ebus_event_t * event_out;
             } * args = (struct _args *)args_data;
 
             // TODO clear iret from stack?
-            process_t * proc = get_current_process();
+            process_t * proc   = get_current_process();
+            proc->filter_event = args->filter;
+            proc->state        = (args->filter ? PROCESS_STATE_WAITING : PROCESS_STATE_SUSPENDED);
             // process_yield(proc, regs->esp, regs->eip, args->filter);
             enable_interrupts();
             process_t * next = pm_get_next(kernel_get_proc_man());
@@ -111,7 +113,11 @@ int sys_call_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
                 if (ebus_pop(&proc->event_queue, args->event_out)) {
                     return -1;
                 }
+                if (args->event_out) {
+                    return args->event_out->event_id;
+                }
             }
+            return 0;
         };
     }
 

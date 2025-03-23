@@ -20,13 +20,7 @@ void queue_event(ebus_event_t * event) {
 }
 
 int pull_event(int filter, ebus_event_t * event_out) {
-    if (_sys_yield(filter, event_out)) {
-        return -1;
-    }
-    if (event_out) {
-        return event_out->event_id;
-    }
-    return 0;
+    return _sys_yield(filter, event_out);
 }
 
 void yield() {

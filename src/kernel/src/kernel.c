@@ -207,19 +207,23 @@ void kernel_main() {
 
 static void foo_task() {
     for (;;) {
-        printf("foo %u\n", getpid());
+        // printf("foo %u\n", getpid());
         ebus_event_t event;
         int          ev = pull_event(EBUS_EVENT_KEY, &event);
-        printf("Foo got event %u\n", ev);
+        // if (ev == EBUS_EVENT_KEY) {
+        //     printf("Foo got event %u\n", ev);
+        // }
     }
 }
 
 static void bar_task() {
     for (;;) {
-        printf("bar %u\n", getpid());
+        // printf("bar %u\n", getpid());
         ebus_event_t event;
         int          ev = pull_event(EBUS_EVENT_ANY, &event);
-        printf("Bar got event %u\n", ev);
+        // if (ev == EBUS_EVENT_KEY) {
+        //     printf("Bar got event %u\n", ev);
+        // }
     }
 }
 

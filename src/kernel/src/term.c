@@ -56,7 +56,7 @@ static void dump_buff() {
 }
 
 static void key_cb(uint8_t code, char c, keyboard_event_t event, keyboard_mod_t mod) {
-    if (event != KEY_EVENT_RELEASE && c) {
+    if (event != KEY_EVENT_PRESS && c) {
         if (cb_len(&keybuff) >= MAX_CHARS) {
             ERROR("key buffer overflow");
             printf("(%u out of %u)", cb_len(&keybuff), MAX_CHARS);
@@ -187,11 +187,12 @@ void term_run() {
     vga_puts("> ");
 
     for (;;) {
-        // printf("term %u\n", getpid());
+        ebus_event_t event;
+        int          ev = pull_event(EBUS_EVENT_KEY, &event);
+        if (ev == EBUS_EVENT_KEY) {
+            key_cb(event.key.keycode, event.key.c, event.key.event, event.key.mods);
+        }
         term_update();
-        // ebus_cycle(get_kernel_ebus());
-        yield();
-        // asm("hlt");
     }
 }
 
