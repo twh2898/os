@@ -212,10 +212,48 @@ TEST_F(Process, process_set_entrypoint_InvalidParameters) {
     EXPECT_NE(0, process_set_entrypoint(0, 0));
     EXPECT_NE(0, process_set_entrypoint(&proc, 0));
     EXPECT_NE(0, process_set_entrypoint(0, (void *)1));
+    ASSERT_TEMP_MAP_BALANCED();
+}
+
+TEST_F(Process, process_set_entrypoint_AlreadyRunning) {
+    proc.state = PROCESS_STATE_SUSPENDED;
+    EXPECT_NE(0, process_set_entrypoint(&proc, 0));
+    EXPECT_NE(0, process_set_entrypoint(0, (void *)1));
+    EXPECT_NE(0, process_set_entrypoint(&proc, (void *)1));
+    ASSERT_TEMP_MAP_BALANCED();
+}
+
+TEST_F(Process, process_set_entrypoint_FailMapDir) {
+    paging_temp_map_fake.return_val = 0;
+    EXPECT_NE(0, process_set_entrypoint(&proc, (void *)1));
+    EXPECT_EQ(1, paging_temp_map_fake.call_count);
+    ASSERT_TEMP_MAP_BALANCE_OFFSET(1);
+}
+
+TEST_F(Process, process_set_entrypoint_FailMapTable) {
+    void * paging_temp_map_seq[2] = {(void *)2, 0};
+    SET_RETURN_SEQ(paging_temp_map, paging_temp_map_seq, 2);
+
+    EXPECT_NE(0, process_set_entrypoint(&proc, (void *)1));
+    EXPECT_EQ(2, paging_temp_map_fake.call_count);
+    ASSERT_TEMP_MAP_BALANCE_OFFSET(1);
+}
+
+TEST_F(Process, process_set_entrypoint_FailMapStack) {
+    void * paging_temp_map_seq[3] = {(void *)2, (void *)3, 0};
+    SET_RETURN_SEQ(paging_temp_map, paging_temp_map_seq, 3);
+
+    EXPECT_NE(0, process_set_entrypoint(&proc, (void *)1));
+    EXPECT_EQ(3, paging_temp_map_fake.call_count);
+    ASSERT_TEMP_MAP_BALANCE_OFFSET(1);
 }
 
 TEST_F(Process, process_set_entrypoint) {
+    paging_temp_map_fake.return_val = temp_page.data();
     EXPECT_EQ(0, process_set_entrypoint(&proc, (void *)3));
+
+    // TODO eip on stack
+    // TODO esp updated
 }
 
 // Process Resume

@@ -155,14 +155,14 @@ int process_set_entrypoint(process_t * proc, void * entrypoint) {
 
     uint32_t * stack = paging_temp_map(page_addr);
 
-    int ret_i    = (proc->esp % PAGE_SIZE) / 4;
-    stack[ret_i] = PTR2UINT(entrypoint);
-
     if (!stack) {
         paging_temp_free(table_addr);
         paging_temp_free(proc->cr3);
         return -1;
     }
+
+    int ret_i    = (proc->esp % PAGE_SIZE) / 4;
+    stack[ret_i] = PTR2UINT(entrypoint);
 
     paging_temp_free(page_addr);
     paging_temp_free(table_addr);
