@@ -20,7 +20,6 @@ int ebus_create(ebus_t * bus, size_t event_queue_size) {
     }
 
     bus->next_handler_id = 1;
-    bus->enabled         = 1;
     return 0;
 }
 
@@ -41,10 +40,6 @@ int ebus_queue_size(ebus_t * bus) {
 int ebus_register_handler(ebus_t * bus, ebus_handler_t * handler) {
     if (!bus || !handler) {
         return -1;
-    }
-
-    if (!bus->enabled) {
-        return 0;
     }
 
     if (handler->pid < 1) {
@@ -70,24 +65,22 @@ void ebus_unregister_handler(ebus_t * bus, int handler_id) {
     }
 }
 
-void ebus_push(ebus_t * bus, ebus_event_t * event) {
+int ebus_push(ebus_t * bus, ebus_event_t * event) {
     if (!bus || !event) {
-        return;
-    }
-
-    if (!bus->enabled) {
-        return;
+        return -1;
     }
 
     if (event->event_id < 1) {
-        return;
+        KPANIC("Bad event!");
     }
 
     if (cb_len(&bus->queue) == cb_buff_size(&bus->queue)) {
-        cb_pop(&bus->queue, 0);
+        if (cb_pop(&bus->queue, 0)) {
+            return -1;
+        }
     }
 
-    cb_push(&bus->queue, event);
+    return cb_push(&bus->queue, event);
 }
 
 int ebus_pop(ebus_t * bus, ebus_event_t * event_out) {
@@ -95,11 +88,7 @@ int ebus_pop(ebus_t * bus, ebus_event_t * event_out) {
         return -1;
     }
 
-    if (cb_pop(&bus->queue, event_out)) {
-        return -1;
-    }
-
-    return 0;
+    return cb_pop(&bus->queue, event_out);
 }
 
 int ebus_cycle(ebus_t * bus) {

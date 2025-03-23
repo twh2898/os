@@ -187,7 +187,7 @@ void term_run() {
     vga_puts("> ");
 
     for (;;) {
-        printf("term %u\n", getpid());
+        // printf("term %u\n", getpid());
         term_update();
         // ebus_cycle(get_kernel_ebus());
         yield();
