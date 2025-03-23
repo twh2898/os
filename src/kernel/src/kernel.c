@@ -215,15 +215,15 @@ void kernel_main() {
 
 static void foo_task() {
     for (;;) {
-        printf("foo\n");
-        yield(0);
+        printf("foo %u\n", getpid());
+        yield(EBUS_EVENT_KEY);
     }
 }
 
 static void bar_task() {
     for (;;) {
-        printf("bar\n");
-        yield(EBUS_EVENT_KEY);
+        printf("bar %u\n", getpid());
+        yield(0);
     }
 }
 

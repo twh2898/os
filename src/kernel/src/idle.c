@@ -3,6 +3,7 @@
 #include "kernel.h"
 #include "libc/memory.h"
 #include "libc/proc.h"
+#include "libc/stdio.h"
 
 static void idle_loop();
 
@@ -19,6 +20,7 @@ process_t * init_idle() {
 
 static void idle_loop() {
     for (;;) {
+        printf("idle %u\n", getpid());
         ebus_cycle(get_kernel_ebus());
         asm("hlt");
         int curr_pid = get_current_process()->pid;
