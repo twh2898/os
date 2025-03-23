@@ -84,27 +84,6 @@ int process_free(process_t * proc);
 int process_set_entrypoint(process_t * proc, void * entrypoint);
 
 /**
- * @brief Load process without entering.
- *
- * Load the cr3 and esp0. This does not start or resume the process.
- *
- * @param proc pointer to the process object
- * @return int 0 for success
- */
-// int process_activate(process_t * proc);
-
-/**
- * @brief Store the current process state for later use when resuming.
- *
- * @param proc pointer to the process object
- * @param esp stack pointer
- * @param eip instruction pointer
- * @param filter ebus event type if polling for an event, 0 for no filter
- * @return int 0 for success
- */
-// int process_yield(process_t * proc, uint32_t esp, uint32_t eip, int filter);
-
-/**
  * @brief Activate and jump to the process.
  *
  * If the jump is successful this function will never return. Returning from
@@ -167,7 +146,6 @@ void set_next_pid(uint32_t next);
 
 extern void        set_active_task(process_t * active);
 extern process_t * get_active_task(void);
-// extern void        start_task(process_t * proc, uint32_t entrypoint);
-extern void switch_task(process_t * proc);
+extern void        switch_task(process_t * proc);
 
 #endif // KERNEL_PROCESS_H

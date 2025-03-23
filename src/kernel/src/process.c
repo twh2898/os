@@ -173,30 +173,6 @@ int process_set_entrypoint(process_t * proc, void * entrypoint) {
     return 0;
 }
 
-// int process_activate(process_t * proc) {
-//     if (!proc) {
-//         return -1;
-//     }
-
-//     tss_set_esp0(proc->esp0); // just updates tss 0
-//     mmu_change_dir(proc->cr3);
-
-//     return 0;
-// }
-
-// int process_yield(process_t * proc, uint32_t esp, uint32_t eip, int filter) {
-//     if (!proc || !esp || !eip) {
-//         return -1;
-//     }
-
-//     proc->eip          = eip;
-//     proc->filter_event = filter;
-//     proc->esp          = esp;
-//     proc->state        = PROCESS_STATE_SUSPENDED;
-
-//     return 0;
-// }
-
 int process_resume(process_t * proc, const ebus_event_t * event) {
     if (!proc || proc->state < PROCESS_STATE_LOADED || proc->state >= PROCESS_STATE_DEAD) {
         return -1;

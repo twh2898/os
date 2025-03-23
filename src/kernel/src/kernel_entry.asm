@@ -50,68 +50,6 @@ get_active_task:
 
     ret
 
-; void start_task(proc_t * new, uint32_t entrypoint)
-global start_task
-start_task:
-    ; ebp = args
-    push ebp
-    mov  ebp, esp
-    add  ebp, 8
-
-    push edi
-    push esi
-    push eax
-    push ecx
-
-    ; edi = active
-    mov edi, [active_task]
-    ; esi = next
-    mov esi, [ebp]
-
-    ; store cr3
-    mov eax,           cr3
-    mov [edi+TCB_CR3], eax
-
-    ; store esp
-    mov [edi+TCB_ESP], esp
-
-    ; store esp0
-    call tss_get_esp0
-    mov  [edi+TCB_ESP0], eax
-
-.resume:
-    mov [active_task], esi
-
-    ; load esp0
-    mov  eax, [esi+TCB_ESP0]
-    push eax
-    call tss_set_esp0
-    pop  eax
-
-    ; load esp
-    mov ecx, [esi+TCB_ESP]
-
-    ; edi = entrypoint
-    mov edi, [ebp+4]
-
-    ; load cr3
-    mov eax, [esi+TCB_CR3]
-    mov cr3, eax
-
-    mov esp, ecx
-
-    ; Start task
-    call edi
-
-    pop ecx
-    pop eax
-    pop esi
-    pop edi
-
-    pop ebp
-
-    ret
-
 ; switch_task(proc_t * next)
 global switch_task
 switch_task:

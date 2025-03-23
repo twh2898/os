@@ -184,17 +184,13 @@ void kernel_main() {
         KPANIC("Failed to open tar");
     }
 
-    // set_first_task(__kernel.pm.active);
-
-    // switch_to_task(__kernel.pm.active);
-
     process_t foo_proc;
     if (process_create(&foo_proc)) {
         KPANIC("Failed to create foo task");
     }
     process_set_entrypoint(&foo_proc, foo_task);
     foo_proc.state = PROCESS_STATE_LOADED;
-    // pm_add_proc(&__kernel.pm, &foo_proc);
+    pm_add_proc(&__kernel.pm, &foo_proc);
 
     process_t bar_proc;
     if (process_create(&bar_proc)) {
@@ -202,17 +198,12 @@ void kernel_main() {
     }
     process_set_entrypoint(&bar_proc, bar_task);
     bar_proc.state = PROCESS_STATE_LOADED;
-    // pm_add_proc(&__kernel.pm, &bar_proc);
+    pm_add_proc(&__kernel.pm, &bar_proc);
 
     for (;;) {
         pm_resume_process(&__kernel.pm, __kernel.pm.idle_task->pid, 0);
         asm("hlt");
     }
-
-    KPANIC("switch didn't happen\n");
-
-    // jump_usermode(term_run);
-    jump_kernel_mode(term_run);
 
     KPANIC("You shouldn't be here!");
 }
@@ -247,38 +238,8 @@ static void handle_kill(const ebus_event_t * event) {
     process_free(proc);
 }
 
-// int kernel_call_as_proc(int pid, _proc_call_t fn, void * data) {
-//     if (!fn) {
-//         return -1;
-//     }
-
-//     process_t * curr = get_current_process();
-//     if (curr->pid != pid) {
-//         kernel_switch_task(pid);
-//     }
-
-//     int res = fn(data);
-
-//     if (curr->pid != pid) {
-//         kernel_switch_task(curr->pid);
-//     }
-
-//     return res;
-// }
-
 int kernel_switch_task(int next_pid) {
     return pm_resume_process(&__kernel.pm, next_pid, 0);
-    // return pm_activate_process(&__kernel.pm, next_pid);
-    // process_t * proc = pm_find_pid(&__kernel.pm, next_pid);
-    // if (!proc || proc->state == PROCESS_STATE_DEAD) {
-    //     return -1;
-    // }
-
-    // __kernel.pm.active = proc;
-    // proc->state        = PROCESS_STATE_RUNNING;
-    // tss_set_esp0(proc->esp0);
-    // mmu_change_dir(proc->cr3);
-    // return 0;
 }
 
 mmu_dir_t * get_kernel_dir() {
@@ -323,25 +284,7 @@ int kernel_add_task(process_t * proc) {
 }
 
 int kernel_next_task() {
-    // if (pm_switch_process(&__kernel.pm)) {
-    //     return -1;
-    // }
     return pm_resume_process(&__kernel.pm, get_active_task()->pid, 0);
-    // process_t * curr = get_current_process();
-    // process_t * next = curr->next_proc;
-    // if (!next) {
-    //     next = __kernel.pm.idle_task;
-    // }
-
-    // __kernel.pm.active = next;
-
-    // // TODO interrupt back to process for sigint
-
-    // if (process_resume(__kernel.pm.active, 0)) {
-    //     KPANIC("Failed to resume task");
-    // }
-
-    // return 0;
 }
 
 int kernel_close_process(process_t * proc) {
@@ -370,34 +313,6 @@ int kernel_close_process(process_t * proc) {
 
     return 0;
 }
-
-// int kernel_set_current_task(process_t * proc) {
-//     __kernel.pm.active = proc;
-// }
-
-// static void init_idle_proc() {
-//     process_t * proc = kmalloc(sizeof(process_t));
-//     if (process_create(proc)) {
-//         KPANIC("Failed to create idle task");
-//     }
-
-//     // Kernel process used for memory allocation
-//     proc->next_heap_page = ADDR2PAGE(VADDR_RAM_BITMASKS) + ram_region_table_count();
-//     process_set_entrypoint(proc, idle);
-
-//     // Setup kernel process as idle process
-//     __kernel.pm.idle_task = proc;
-//     // __kernel.pm.task_begin = proc;
-// }
-
-// void idle() {
-//     vga_puts("Start idle task\n> ");
-//     for (;;) {
-//         term_update();
-//         ebus_cycle(get_kernel_ebus());
-//         asm("hlt");
-//     }
-// }
 
 NO_RETURN void kernel_panic(const char * msg, const char * file, unsigned int line) {
     vga_color(VGA_FG_WHITE | VGA_BG_RED);
