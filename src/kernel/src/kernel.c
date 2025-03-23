@@ -200,10 +200,7 @@ void kernel_main() {
     bar_proc.state = PROCESS_STATE_LOADED;
     pm_add_proc(&__kernel.pm, &bar_proc);
 
-    for (;;) {
-        pm_resume_process(&__kernel.pm, __kernel.pm.idle_task->pid, 0);
-        asm("hlt");
-    }
+    pm_resume_process(&__kernel.pm, __kernel.pm.idle_task->pid, 0);
 
     KPANIC("You shouldn't be here!");
 }
@@ -218,7 +215,7 @@ static void foo_task() {
 static void bar_task() {
     for (;;) {
         printf("bar %u\n", getpid());
-        yield(0);
+        yield(EBUS_EVENT_KEY);
     }
 }
 
