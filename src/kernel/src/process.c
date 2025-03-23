@@ -127,11 +127,49 @@ int process_free(process_t * proc) {
 }
 
 int process_set_entrypoint(process_t * proc, void * entrypoint) {
-    if (!proc || !entrypoint) {
+    if (!proc || !entrypoint || proc->state >= PROCESS_STATE_SUSPENDED) {
         return -1;
     }
 
-    proc->eip = PTR2UINT(entrypoint);
+    uint32_t ret_addr = proc->esp;
+    uint32_t ret_page = ADDR2PAGE(ret_addr);
+    uint32_t dir_i    = ret_page / MMU_DIR_SIZE;
+    uint32_t table_i  = ret_page % MMU_TABLE_SIZE;
+
+    mmu_dir_t * dir = paging_temp_map(proc->cr3);
+
+    if (!dir) {
+        return -1;
+    }
+
+    uint32_t table_addr = mmu_dir_get_addr(dir, dir_i);
+
+    mmu_table_t * table = paging_temp_map(table_addr);
+
+    if (!table) {
+        paging_temp_free(proc->cr3);
+        return -1;
+    }
+
+    uint32_t page_addr = mmu_table_get_addr(table, table_i);
+
+    uint32_t * stack = paging_temp_map(page_addr);
+
+    int ret_i    = (proc->esp % PAGE_SIZE) / 4;
+    stack[ret_i] = PTR2UINT(entrypoint);
+
+    if (!stack) {
+        paging_temp_free(table_addr);
+        paging_temp_free(proc->cr3);
+        return -1;
+    }
+
+    paging_temp_free(page_addr);
+    paging_temp_free(table_addr);
+    paging_temp_free(proc->cr3);
+
+    proc->esp -= (5 * 4) - 1;
+
     return 0;
 }
 
@@ -146,18 +184,18 @@ int process_set_entrypoint(process_t * proc, void * entrypoint) {
 //     return 0;
 // }
 
-int process_yield(process_t * proc, uint32_t esp, uint32_t eip, int filter) {
-    if (!proc || !esp || !eip) {
-        return -1;
-    }
+// int process_yield(process_t * proc, uint32_t esp, uint32_t eip, int filter) {
+//     if (!proc || !esp || !eip) {
+//         return -1;
+//     }
 
-    proc->eip          = eip;
-    proc->filter_event = filter;
-    proc->esp          = esp;
-    proc->state        = PROCESS_STATE_SUSPENDED;
+//     proc->eip          = eip;
+//     proc->filter_event = filter;
+//     proc->esp          = esp;
+//     proc->state        = PROCESS_STATE_SUSPENDED;
 
-    return 0;
-}
+//     return 0;
+// }
 
 int process_resume(process_t * proc, const ebus_event_t * event) {
     if (!proc || proc->state < PROCESS_STATE_LOADED || proc->state >= PROCESS_STATE_DEAD) {
@@ -167,14 +205,8 @@ int process_resume(process_t * proc, const ebus_event_t * event) {
     process_t * active_before = get_active_task();
     active_before->state      = PROCESS_STATE_SUSPENDED;
 
-    if (proc->state == PROCESS_STATE_LOADED) {
-        proc->state = PROCESS_STATE_RUNNING;
-        start_task(proc, proc->eip);
-    }
-    else {
-        proc->state = PROCESS_STATE_RUNNING;
-        switch_task(proc);
-    }
+    proc->state = PROCESS_STATE_RUNNING;
+    switch_task(proc);
 
     // Call this again because we are a new process now
     process_t * active_after = get_active_task();

@@ -42,8 +42,6 @@ typedef struct _process {
 
     // TODO heap & stack limits
 
-    uint32_t eip;
-
     signals_master_cb_t signals_callback;
     arr_t               io_handles; // array<handle_t>
     ebus_t              event_queue;
@@ -104,7 +102,7 @@ int process_set_entrypoint(process_t * proc, void * entrypoint);
  * @param filter ebus event type if polling for an event, 0 for no filter
  * @return int 0 for success
  */
-int process_yield(process_t * proc, uint32_t esp, uint32_t eip, int filter);
+// int process_yield(process_t * proc, uint32_t esp, uint32_t eip, int filter);
 
 /**
  * @brief Activate and jump to the process.
@@ -169,7 +167,7 @@ void set_next_pid(uint32_t next);
 
 extern void        set_active_task(process_t * active);
 extern process_t * get_active_task(void);
-extern void        start_task(process_t * proc, uint32_t entrypoint);
+// extern void        start_task(process_t * proc, uint32_t entrypoint);
 extern void        switch_task(process_t * proc);
 
 #endif // KERNEL_PROCESS_H
