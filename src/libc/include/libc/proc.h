@@ -28,7 +28,8 @@ void           proc_abort(uint8_t code, const char * msg);
 NO_RETURN void proc_panic(const char * msg, const char * file, unsigned int line);
 
 void queue_event(ebus_event_t * event);
-int  yield(int filter);
+int  pull_event(int filter, ebus_event_t * event_out);
+void yield(void);
 
 int getpid(void);
 

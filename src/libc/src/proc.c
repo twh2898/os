@@ -19,8 +19,12 @@ void queue_event(ebus_event_t * event) {
     _sys_queue_event(event);
 }
 
-int yield(int filter) {
-    return _sys_yield(filter);
+int pull_event(int filter, ebus_event_t * event_out) {
+    return _sys_yield(filter, event_out);
+}
+
+void yield() {
+    _sys_yield(0, 0);
 }
 
 int getpid(void) {

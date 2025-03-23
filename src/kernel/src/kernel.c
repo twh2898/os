@@ -208,14 +208,18 @@ void kernel_main() {
 static void foo_task() {
     for (;;) {
         printf("foo %u\n", getpid());
-        yield(EBUS_EVENT_KEY);
+        ebus_event_t event;
+        int          ev = pull_event(EBUS_EVENT_KEY, &event);
+        printf("Foo got event %u\n", ev);
     }
 }
 
 static void bar_task() {
     for (;;) {
         printf("bar %u\n", getpid());
-        yield(EBUS_EVENT_KEY);
+        ebus_event_t event;
+        int          ev = pull_event(EBUS_EVENT_ANY, &event);
+        printf("Bar got event %u\n", ev);
     }
 }
 
@@ -268,13 +272,13 @@ void tmp_register_signals_cb(signals_master_cb_t cb) {
     printf("Attached master signal callback at %p\n", get_active_task()->signals_callback);
 }
 
-ebus_event_t * pull_event(int event_id) {
-    process_t * proc   = get_current_process();
-    proc->filter_event = event_id;
-    kernel_next_task();
+// ebus_event_t * pull_event(int event_id) {
+//     process_t * proc   = get_current_process();
+//     proc->filter_event = event_id;
+//     kernel_next_task();
 
-    return 0;
-}
+//     return 0;
+// }
 
 int kernel_add_task(process_t * proc) {
     return pm_add_proc(&__kernel.pm, proc);

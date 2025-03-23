@@ -54,7 +54,7 @@ process_t *  kernel_find_pid(int pid);
 
 void tmp_register_signals_cb(signals_master_cb_t cb);
 
-ebus_event_t * pull_event(int event_id);
+// ebus_event_t * pull_event(int event_id);
 
 int kernel_add_task(process_t * proc);
 int kernel_next_task();

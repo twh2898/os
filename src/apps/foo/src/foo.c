@@ -4,7 +4,7 @@
 void foo() {
     uint32_t res = puts("Hello\n");
 
-    yield(EBUS_EVENT_KEY);
+    pull_event(EBUS_EVENT_KEY, 0);
 
     res = printf("Hello 0x%X\n", res);
 

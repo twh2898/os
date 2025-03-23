@@ -190,7 +190,7 @@ void term_run() {
         printf("term %u\n", getpid());
         term_update();
         // ebus_cycle(get_kernel_ebus());
-        yield(0);
+        yield();
         // asm("hlt");
     }
 }
