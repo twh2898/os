@@ -114,11 +114,12 @@ void kernel_main() {
     // Kernel process used for memory allocation
     __kernel.proc.next_heap_page = ADDR2PAGE(VADDR_RAM_BITMASKS) + ram_region_table_count();
     __kernel.proc.cr3            = PADDR_KERNEL_DIR;
-    __kernel.pm.active           = &__kernel.proc;
+    __kernel.proc.esp0           = VADDR_ISR_STACK;
+    __kernel.proc.state          = PROCESS_STATE_LOADED;
+    set_active_task(&__kernel.proc);
 
-    // TODO make this part of task switching code
-    // Add isr stack to kernel's TSS
-    set_kernel_stack(VADDR_ISR_STACK);
+    // Set initial ESP0 before first task switch
+    tss_set_esp0(VADDR_ISR_STACK);
 
     isr_install();
 
@@ -133,13 +134,11 @@ void kernel_main() {
     init_malloc(&__kernel.kernel_memory);
 
     pm_create(&__kernel.pm);
-    __kernel.pm.active = &__kernel.proc;
 
     process_t * idle = init_idle();
     printf("Idle task pid is %u\n", idle->pid);
     __kernel.pm.idle_task   = idle;
     __kernel.proc.next_proc = __kernel.pm.idle_task;
-    __kernel.pm.active      = &__kernel.proc;
     // pm_add_proc(&__kernel.pm, &__kernel.proc);
     pm_add_proc(&__kernel.pm, idle);
     // __kernel.pm.task_begin  = &__kernel.proc;
@@ -194,16 +193,21 @@ void kernel_main() {
         KPANIC("Failed to create foo task");
     }
     process_set_entrypoint(&foo_proc, foo_task);
-    pm_add_proc(&__kernel.pm, &foo_proc);
+    foo_proc.state = PROCESS_STATE_LOADED;
+    // pm_add_proc(&__kernel.pm, &foo_proc);
 
     process_t bar_proc;
     if (process_create(&bar_proc)) {
         KPANIC("Failed to create bar task");
     }
     process_set_entrypoint(&bar_proc, bar_task);
-    pm_add_proc(&__kernel.pm, &bar_proc);
+    bar_proc.state = PROCESS_STATE_LOADED;
+    // pm_add_proc(&__kernel.pm, &bar_proc);
 
-    pm_resume_process(&__kernel.pm, __kernel.pm.idle_task->pid, 0);
+    for (;;) {
+        pm_resume_process(&__kernel.pm, __kernel.pm.idle_task->pid, 0);
+        asm("hlt");
+    }
 
     KPANIC("switch didn't happen\n");
 
@@ -229,8 +233,7 @@ static void bar_task() {
 
 static void handle_launch(const ebus_event_t * event) {
     printf("Start task %u\n", event->task_switch.next_task_pid);
-    process_t * proc   = pm_find_pid(&__kernel.pm, event->task_switch.next_task_pid);
-    __kernel.pm.active = proc;
+    process_t * proc = pm_find_pid(&__kernel.pm, event->task_switch.next_task_pid);
     process_resume(proc, 0);
 }
 
@@ -273,7 +276,7 @@ int kernel_switch_task(int next_pid) {
 
     // __kernel.pm.active = proc;
     // proc->state        = PROCESS_STATE_RUNNING;
-    // set_kernel_stack(proc->esp0);
+    // tss_set_esp0(proc->esp0);
     // mmu_change_dir(proc->cr3);
     // return 0;
 }
@@ -287,7 +290,7 @@ mmu_table_t * get_kernel_table() {
 }
 
 process_t * get_current_process() {
-    return __kernel.pm.active;
+    return get_active_task();
 }
 
 ebus_t * get_kernel_ebus() {
@@ -303,8 +306,8 @@ tar_fs_t * kernel_get_tar() {
 }
 
 void tmp_register_signals_cb(signals_master_cb_t cb) {
-    __kernel.pm.active->signals_callback = cb;
-    printf("Attached master signal callback at %p\n", __kernel.pm.active->signals_callback);
+    get_active_task()->signals_callback = cb;
+    printf("Attached master signal callback at %p\n", get_active_task()->signals_callback);
 }
 
 ebus_event_t * pull_event(int event_id) {
@@ -323,7 +326,7 @@ int kernel_next_task() {
     // if (pm_switch_process(&__kernel.pm)) {
     //     return -1;
     // }
-    return pm_resume_process(&__kernel.pm, __kernel.pm.active->pid, 0);
+    return pm_resume_process(&__kernel.pm, get_active_task()->pid, 0);
     // process_t * curr = get_current_process();
     // process_t * next = curr->next_proc;
     // if (!next) {
@@ -348,7 +351,7 @@ int kernel_close_process(process_t * proc) {
 
     proc->state = PROCESS_STATE_DEAD;
 
-    process_t * next = __kernel.pm.active->next_proc;
+    process_t * next = pm_get_next(&__kernel.pm);
     if (!next) {
         next = __kernel.pm.idle_task;
     }
@@ -368,9 +371,9 @@ int kernel_close_process(process_t * proc) {
     return 0;
 }
 
-int kernel_set_current_task(process_t * proc) {
-    __kernel.pm.active = proc;
-}
+// int kernel_set_current_task(process_t * proc) {
+//     __kernel.pm.active = proc;
+// }
 
 // static void init_idle_proc() {
 //     process_t * proc = kmalloc(sizeof(process_t));

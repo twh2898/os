@@ -167,12 +167,9 @@ int process_load_heap(process_t * proc, const char * buff, size_t size);
  */
 void set_next_pid(uint32_t next);
 
-#ifdef TESTING
-#define NO_RETURN
-#else
-#define NO_RETURN _Noreturn
-#endif
-
-extern NO_RETURN void start_task(uint32_t cr3, uint32_t esp, uint32_t eip, const ebus_event_t * event);
+extern void        set_active_task(process_t * active);
+extern process_t * get_active_task(void);
+extern void        start_task(process_t * proc, uint32_t entrypoint);
+extern void        switch_task(process_t * proc);
 
 #endif // KERNEL_PROCESS_H

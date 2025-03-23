@@ -227,8 +227,8 @@ TEST_F(Process, process_activate) {
     proc.esp0 = 3;
     proc.cr3  = 4;
     EXPECT_EQ(0, process_activate(&proc));
-    ASSERT_EQ(1, set_kernel_stack_fake.call_count);
-    EXPECT_EQ(3, set_kernel_stack_fake.arg0_val);
+    ASSERT_EQ(1, tss_set_esp0_fake.call_count);
+    EXPECT_EQ(3, tss_set_esp0_fake.arg0_val);
     ASSERT_EQ(1, mmu_change_dir_fake.call_count);
     EXPECT_EQ(4, mmu_change_dir_fake.arg0_val);
 }
@@ -256,7 +256,7 @@ TEST_F(Process, process_yield) {
 
 TEST_F(Process, process_resume_InvalidParameters) {
     EXPECT_NE(0, process_resume(0, 0));
-    EXPECT_EQ(0, set_kernel_stack_fake.call_count);
+    EXPECT_EQ(0, tss_set_esp0_fake.call_count);
     EXPECT_EQ(0, mmu_change_dir_fake.call_count);
     proc.state = PROCESS_STATE_DEAD;
     EXPECT_NE(0, process_resume(0, 0));
@@ -280,8 +280,8 @@ TEST_F(Process, process_resume) {
     proc.cr3                    = 4;
     start_task_fake.custom_fake = custom_start_task;
     EXPECT_NE(0, process_resume(&proc, (ebus_event_t *)5));
-    ASSERT_EQ(1, set_kernel_stack_fake.call_count);
-    EXPECT_EQ(3, set_kernel_stack_fake.arg0_val);
+    ASSERT_EQ(1, tss_set_esp0_fake.call_count);
+    EXPECT_EQ(3, tss_set_esp0_fake.arg0_val);
     ASSERT_EQ(1, mmu_change_dir_fake.call_count);
     EXPECT_EQ(4, mmu_change_dir_fake.arg0_val);
     ASSERT_EQ(1, start_task_fake.call_count);

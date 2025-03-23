@@ -14,6 +14,7 @@ process_t * init_idle() {
     }
 
     process_set_entrypoint(proc, idle_loop);
+    proc->state = PROCESS_STATE_LOADED;
 
     return proc;
 }

@@ -64,10 +64,10 @@ void reset_cpu_ports_mock() {
 
 DEFINE_FAKE_VOID_FUNC(init_tss);
 DEFINE_FAKE_VALUE_FUNC(tss_entry_t *, tss_get_entry, size_t);
-DEFINE_FAKE_VOID_FUNC(set_kernel_stack, uint32_t);
+DEFINE_FAKE_VOID_FUNC(tss_set_esp0, uint32_t);
 
 void reset_cpu_tss_mock() {
     RESET_FAKE(init_tss);
     RESET_FAKE(tss_get_entry);
-    RESET_FAKE(set_kernel_stack);
+    RESET_FAKE(tss_set_esp0);
 }

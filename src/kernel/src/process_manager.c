@@ -14,8 +14,6 @@ int pm_create(proc_man_t * pm) {
         return -1;
     }
 
-    pm->active = 0;
-
     return 0;
 }
 
@@ -24,7 +22,8 @@ process_t * pm_get_active(proc_man_t * pm) {
         return 0;
     }
 
-    return pm->active;
+    // TODO this is redundant now
+    return get_active_task();
 }
 
 process_t * pm_find_pid(proc_man_t * pm, int pid) {
@@ -60,7 +59,7 @@ int pm_remove_proc(proc_man_t * pm, int pid) {
         return -1;
     }
 
-    if (pid == pm->active->pid) {
+    if (pid == get_active_task()->pid) {
         return -1;
     }
 
@@ -136,8 +135,6 @@ int pm_resume_process(proc_man_t * pm, int pid, ebus_event_t * event) {
         return -1;
     }
 
-    pm->active = proc;
-
     return process_resume(proc, event);
 }
 
@@ -146,7 +143,7 @@ process_t * pm_get_next(proc_man_t * pm) {
         return 0;
     }
 
-    int i = pid_arr_index(&pm->task_list, pm->active->pid);
+    int i = pid_arr_index(&pm->task_list, get_active_task()->pid);
     if (i < 0) {
         return 0;
     }

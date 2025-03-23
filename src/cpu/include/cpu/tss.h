@@ -51,6 +51,7 @@ void init_tss();
 
 tss_entry_t * tss_get_entry(size_t i);
 
-void set_kernel_stack(uint32_t stack);
+uint32_t tss_get_esp0(void);
+void     tss_set_esp0(uint32_t stack);
 
 #endif // TSS_H

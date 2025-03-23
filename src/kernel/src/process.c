@@ -140,7 +140,7 @@ int process_set_entrypoint(process_t * proc, void * entrypoint) {
 //         return -1;
 //     }
 
-//     set_kernel_stack(proc->esp0); // just updates tss 0
+//     tss_set_esp0(proc->esp0); // just updates tss 0
 //     mmu_change_dir(proc->cr3);
 
 //     return 0;
@@ -160,16 +160,27 @@ int process_yield(process_t * proc, uint32_t esp, uint32_t eip, int filter) {
 }
 
 int process_resume(process_t * proc, const ebus_event_t * event) {
-    if (!proc || proc->state >= PROCESS_STATE_DEAD) {
+    if (!proc || proc->state < PROCESS_STATE_LOADED || proc->state >= PROCESS_STATE_DEAD) {
         return -1;
     }
 
-    // process_activate(proc);
-    proc->state = PROCESS_STATE_RUNNING;
-    start_task(proc->cr3, proc->esp, proc->eip, event);
+    process_t * active_before = get_active_task();
+    active_before->state      = PROCESS_STATE_SUSPENDED;
 
-    proc->state = PROCESS_STATE_ERROR;
-    return -1;
+    if (proc->state == PROCESS_STATE_LOADED) {
+        proc->state = PROCESS_STATE_RUNNING;
+        start_task(proc, proc->eip);
+    }
+    else {
+        proc->state = PROCESS_STATE_RUNNING;
+        switch_task(proc);
+    }
+
+    // Call this again because we are a new process now
+    process_t * active_after = get_active_task();
+    active_after->state      = PROCESS_STATE_RUNNING;
+
+    return 0;
 }
 
 void * process_add_pages(process_t * proc, size_t count) {

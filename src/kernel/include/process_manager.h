@@ -10,7 +10,6 @@
 
 typedef struct _proc_man {
     arr_t       task_list; // process_t *
-    process_t * active;
     process_t * idle_task;
 } proc_man_t;
 

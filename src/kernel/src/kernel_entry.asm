@@ -14,153 +14,148 @@ halt:
     hlt
     jmp halt
 
-[extern register_kernel_exit]
+[extern tss_set_esp0]
+[extern tss_get_esp0]
 
-; void jump_kernel_mode(void * fn);
-global jump_kernel_mode
-jump_kernel_mode:
-    mov eax,   [esp+4]
-    mov [.cb], eax
+TCB_CR3      equ 0
+TCB_ESP      equ 4
+TCB_ESP0     equ 8
 
-    mov  eax, .exit
+; proc_t *
+active_task: dd  0
+
+; void set_active_task(proc_t * active)
+global set_active_task
+set_active_task:
+    ; ebp = args
+    push ebp,
+    mov ebp, esp
+    add ebp, 4
+
     push eax
 
-    mov  eax, cr3
-    push eax
+    ; eax = active
+    mov eax,           [ebp+4]
+    mov [active_task], eax
 
-    push ebp
-
-    push esp
-
-    call register_kernel_exit
-
-.exit:
-    call [.cb]
+    pop eax
+    pop ebp
 
     ret
 
-.cb: dd 0
+; proc_t * get_active_task(void)
+global get_active_task
+get_active_task:
+    mov eax, [active_task]
 
-; void jump_proc(uint32_t cr3, uint32_t esp, uint32_t call);
-global jump_proc
-jump_proc:
-    mov eax, [esp+4]  ; cr3
-    mov ebx, [esp+8]  ; esp
-    mov edx, [esp+12] ; call
+    ret
 
-    mov cr3, eax
-    mov ebp, ebx
-    mov esp, ebx
-
-    jmp edx
-
-global jump_usermode
-jump_usermode:
-    mov ebx, [esp+4]
-    mov ax,  (4 * 8) | 3 ; ring 3 data with bottom 2 bits set for ring 3
-    mov ds,  ax
-    mov es,  ax
-    mov fs,  ax
-    mov gs,  ax          ; SS is handled by iret
-
-    ; set up the stack frame iret expects
-    mov   eax, esp
-    push  (4 * 8) | 3 ; data selector
-    push  eax         ; current esp
-    pushf             ; eflags
-    push  (3 * 8) | 3 ; code selector (ring 3 code with bottom 2 bits set for ring 3)
-    push  ebx         ; instruction address to return to
-    iret
-
-; https://wiki.osdev.org/Brendan%27s_Multi-tasking_Tutorial
-
-;C declaration:
-;   void switch_to_task(thread_control_block *next_thread);
-;
-;WARNING: Caller is expected to disable IRQs before calling, and enable IRQs again after function returns
-
-TCB_CR3           equ 4
-TCB_ESP           equ 8
-TCB_ESP0          equ 12
-
-current_task_TCB: dd  0
-
-; void start_task(uint32_t cr3, uint32_t esp, uint32_t eip, const ebus_event_t * event)
+; void start_task(proc_t * new, uint32_t entrypoint)
 global start_task
 start_task:
-    mov ebp, esp
-    mov ecx, [ebp+4]  ; cr3
-    mov edx, [ebp+8]  ; esp
-    mov ebx, [ebp+12] ; eip
-    mov eax, [ebp+16] ; event
-
-    mov esp, edx
-    mov cr3, ecx
-
-    jmp ebx
-
-
-; void resume_task(uint32_t cr3, uint32_t esp, const ebus_event_t * event)
-global resume_task
-resume_task:
-    mov ebp, esp
-    mov ecx, [ebp+4]  ; cr3
-    mov ebx, [ebp+8]  ; esp
-    mov eax, [ebp+12] ; event
-
-    ; TODO get tss and set it's esp0
-    ; mov [TSS_ESP0], ebx ;Adjust the ESP0 field in the TSS (used by CPU for for CPL=3 -> CPL=0 privilege level changes)
-    mov edi, cr3 ;edi = previous task's virtual address space
-
-    cmp ecx, edi ;Does the virtual address space need to being changed?
-    je  .done    ; no, virtual address space is the same, so don't reload it and cause TLB flushes
-    mov cr3, ecx ; yes, load the next task's virtual address space
-
-.done:
-
-    mov esp, ebx
-
-    ret ;Load next task's EIP from its kernel stack
-
-global switch_to_task
-switch_to_task:
-
-    ;Save previous task's state
-
-    ;Notes:
-    ;  For cdecl; EAX, ECX, and EDX are already saved by the caller and don't need to be saved again
-    ;  EIP is already saved on the stack by the caller's "CALL" instruction
-    ;  The task isn't able to change CR3 so it doesn't need to be saved
-    ;  Segment registers are constants (while running kernel code) so they don't need to be saved
-
-    push ebx
-    push esi
-    push edi
+    ; ebp = args
     push ebp
+    mov  ebp, esp
+    add  ebp, 4
 
-    mov edi,           [current_task_TCB] ;edi = address of the previous task's "thread control block"
-    mov [edi+TCB_ESP], esp                ;Save ESP for previous task's kernel stack in the thread's TCB
+    push edi
+    push esi
+    push eax
 
-    ;Load next task's state
+    ; edi = active
+    mov edi, [active_task]
+    ; esi = next
+    mov esi, [ebp+4]
 
-    mov esi,                [esp+(4+1)*4] ;esi = address of the next task's "thread control block" (parameter passed on stack)
-    mov [current_task_TCB], esi           ;Current task's TCB is the next task TCB
+    ; store cr3
+    mov eax,           cr3
+    mov [edi+TCB_CR3], eax
 
-    mov esp, [esi+TCB_ESP]  ;Load ESP for next task's kernel stack from the thread's TCB
-    mov eax, [esi+TCB_CR3]  ;eax = address of page directory for next task
-    mov ebx, [esi+TCB_ESP0] ;ebx = address for the top of the next task's kernel stack
-    ; mov [TSS_ESP0], ebx            ;Adjust the ESP0 field in the TSS (used by CPU for for CPL=3 -> CPL=0 privilege level changes)
-    mov ecx, cr3            ;ecx = previous task's virtual address space
+    ; store esp
+    mov [edi+TCB_ESP], esp
 
-    cmp eax, ecx ;Does the virtual address space need to being changed?
-    je  .doneVAS ; no, virtual address space is the same, so don't reload it and cause TLB flushes
-    mov cr3, eax ; yes, load the next task's virtual address space
+    ; store esp0
+    call tss_get_esp0
+    mov  [edi+TCB_ESP0], eax
 
-.doneVAS:
+.resume:
+    mov [active_task], esi
+
+    ; load esp0
+    mov  eax, [esi+TCB_ESP0]
+    push eax
+    call tss_set_esp0
+    pop  eax
+
+    ; load esp
+    mov esp, [esi+TCB_ESP]
+
+    ; load cr3
+    mov eax, [esi+TCB_CR3]
+    mov cr3, eax
+
+    ; eax = entrypoint
+    mov eax, [ebp+4]
+
+    ; Start task
+    call eax
+
+    pop eax
+    pop esi
+    pop edi
 
     pop ebp
-    pop edi
-    pop esi
-    pop ebx
 
-    ret ;Load next task's EIP from its kernel stack
+    ret
+
+; switch_task(proc_t * next)
+global switch_task
+switch_task:
+    ; ebp = args
+    push ebp
+    mov  ebp, esp
+    add  ebp, 4
+
+    push edi
+    push esi
+    push eax
+
+    ; edi = active
+    mov edi, [active_task]
+    ; esi = next
+    mov esi, [ebp+4]
+
+    ; store cr3
+    mov eax,           cr3
+    mov [edi+TCB_CR3], eax
+
+    ; store esp
+    mov [edi+TCB_ESP], esp
+
+    ; store esp0
+    call tss_get_esp0
+    mov  [edi+TCB_ESP0], eax
+
+.resume:
+    mov [active_task], esi
+
+    ; load esp0
+    mov  eax, [esi+TCB_ESP0]
+    push eax
+    call tss_set_esp0
+    pop  eax
+
+    ; load esp
+    mov esp, [esi+TCB_ESP]
+
+    ; load cr3
+    mov eax, [esi+TCB_CR3]
+    mov cr3, eax
+
+    pop eax
+    pop esi
+    pop edi
+
+    pop ebp
+
+    ret
