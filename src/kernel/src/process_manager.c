@@ -72,59 +72,59 @@ int pm_remove_proc(proc_man_t * pm, int pid) {
     return -1;
 }
 
-int pm_activate_process(proc_man_t * pm, int pid) {
-    if (!pm) {
-        return -1;
-    }
+// int pm_activate_process(proc_man_t * pm, int pid) {
+//     if (!pm) {
+//         return -1;
+//     }
 
-    if (pid == pm->active->pid) {
-        return 0;
-    }
+//     if (pid == pm->active->pid) {
+//         return 0;
+//     }
 
-    process_t * proc = pm_find_pid(pm, pid);
-    if (!pid) {
-        return -1;
-    }
+//     process_t * proc = pm_find_pid(pm, pid);
+//     if (!pid) {
+//         return -1;
+//     }
 
-    if (proc->state >= PROCESS_STATE_DEAD) {
-        return -1;
-    }
+//     if (proc->state >= PROCESS_STATE_DEAD) {
+//         return -1;
+//     }
 
-    if (process_activate(proc)) {
-        return -1;
-    }
+//     if (process_activate(proc)) {
+//         return -1;
+//     }
 
-    if (pm->active->state == PROCESS_STATE_RUNNING) {
-        pm->active->state = PROCESS_STATE_SUSPENDED;
-    }
+//     if (pm->active->state == PROCESS_STATE_RUNNING) {
+//         pm->active->state = PROCESS_STATE_SUSPENDED;
+//     }
 
-    proc->state = PROCESS_STATE_RUNNING;
-    pm->active  = proc;
+//     proc->state = PROCESS_STATE_RUNNING;
+//     pm->active  = proc;
 
-    return 0;
-}
+//     return 0;
+// }
 
-int pm_switch_process(proc_man_t * pm) {
-    if (!pm) {
-        return -1;
-    }
+// int pm_switch_process(proc_man_t * pm) {
+//     if (!pm) {
+//         return -1;
+//     }
 
-    int last_pid = pm->active->pid;
+//     int last_pid = pm->active->pid;
 
-    do {
-        pm->active = pm_get_next(pm);
+//     do {
+//         pm->active = pm_get_next(pm);
 
-        if (pm->active->pid == last_pid) {
-            PANIC("Process loop detected");
-        }
-    } while (pm->active->state >= PROCESS_STATE_DEAD);
+//         if (pm->active->pid == last_pid) {
+//             PANIC("Process loop detected");
+//         }
+//     } while (pm->active->state >= PROCESS_STATE_DEAD);
 
-    if (pm_activate_process(pm, pm->active->pid)) {
-        return -1;
-    }
+//     if (pm_activate_process(pm, pm->active->pid)) {
+//         return -1;
+//     }
 
-    return 0;
-}
+//     return 0;
+// }
 
 int pm_resume_process(proc_man_t * pm, int pid, ebus_event_t * event) {
     if (!pm) {

@@ -93,7 +93,7 @@ int process_set_entrypoint(process_t * proc, void * entrypoint);
  * @param proc pointer to the process object
  * @return int 0 for success
  */
-int process_activate(process_t * proc);
+// int process_activate(process_t * proc);
 
 /**
  * @brief Store the current process state for later use when resuming.

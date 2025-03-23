@@ -101,7 +101,10 @@ int sys_call_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
             process_t * proc = get_current_process();
             process_yield(proc, regs->esp, regs->eip, args->filter);
             enable_interrupts();
-            // TODO switch task
+            process_t * next = pm_get_next(kernel_get_proc_man());
+            if (pm_resume_process(kernel_get_proc_man(), next->pid, 0)) {
+                KPANIC("Failed to resume process");
+            }
         };
     }
 

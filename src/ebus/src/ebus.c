@@ -136,7 +136,7 @@ static int handle_event(ebus_t * bus, ebus_event_t * event) {
         }
     }
 
-    pm_activate_process(kernel_get_proc_man(), curr->pid);
+    // pm_activate_process(kernel_get_proc_man(), curr->pid);
 
     return 0;
 }

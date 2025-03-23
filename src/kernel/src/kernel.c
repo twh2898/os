@@ -51,6 +51,9 @@ static void map_first_table(mmu_table_t * table);
 
 extern void jump_kernel_mode(void * fn);
 
+static void foo_task();
+static void bar_task();
+
 void kernel_main() {
     init_vga(UINT2PTR(PADDR_VGA));
     vga_clear();
@@ -186,6 +189,20 @@ void kernel_main() {
 
     // switch_to_task(__kernel.pm.active);
 
+    process_t foo_proc;
+    if (process_create(&foo_proc)) {
+        KPANIC("Failed to create foo task");
+    }
+    process_set_entrypoint(&foo_proc, foo_task);
+    pm_add_proc(&__kernel.pm, &foo_proc);
+
+    process_t bar_proc;
+    if (process_create(&bar_proc)) {
+        KPANIC("Failed to create bar task");
+    }
+    process_set_entrypoint(&bar_proc, bar_task);
+    pm_add_proc(&__kernel.pm, &bar_proc);
+
     pm_resume_process(&__kernel.pm, __kernel.pm.idle_task->pid, 0);
 
     KPANIC("switch didn't happen\n");
@@ -194,6 +211,20 @@ void kernel_main() {
     jump_kernel_mode(term_run);
 
     KPANIC("You shouldn't be here!");
+}
+
+static void foo_task() {
+    for (;;) {
+        printf("foo\n");
+        yield(0);
+    }
+}
+
+static void bar_task() {
+    for (;;) {
+        printf("bar\n");
+        yield(EBUS_EVENT_KEY);
+    }
 }
 
 static void handle_launch(const ebus_event_t * event) {
@@ -233,7 +264,8 @@ static void handle_kill(const ebus_event_t * event) {
 // }
 
 int kernel_switch_task(int next_pid) {
-    return pm_activate_process(&__kernel.pm, next_pid);
+    return pm_resume_process(&__kernel.pm, next_pid, 0);
+    // return pm_activate_process(&__kernel.pm, next_pid);
     // process_t * proc = pm_find_pid(&__kernel.pm, next_pid);
     // if (!proc || proc->state == PROCESS_STATE_DEAD) {
     //     return -1;
@@ -288,9 +320,9 @@ int kernel_add_task(process_t * proc) {
 }
 
 int kernel_next_task() {
-    if (pm_switch_process(&__kernel.pm)) {
-        return -1;
-    }
+    // if (pm_switch_process(&__kernel.pm)) {
+    //     return -1;
+    // }
     return pm_resume_process(&__kernel.pm, __kernel.pm.active->pid, 0);
     // process_t * curr = get_current_process();
     // process_t * next = curr->next_proc;
