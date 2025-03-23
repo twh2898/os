@@ -188,7 +188,7 @@ void term_run() {
 
     for (;;) {
         printf("term %u\n", getpid());
-         term_update();
+        term_update();
         // ebus_cycle(get_kernel_ebus());
         yield(0);
         // asm("hlt");
