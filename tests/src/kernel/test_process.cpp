@@ -250,10 +250,12 @@ TEST_F(Process, process_set_entrypoint_FailMapStack) {
 
 TEST_F(Process, process_set_entrypoint) {
     paging_temp_map_fake.return_val = temp_page.data();
+    proc.esp                        = (int)temp_page.data() + temp_page.size() - 1;
     EXPECT_EQ(0, process_set_entrypoint(&proc, (void *)3));
 
     // TODO eip on stack
-    // TODO esp updated
+
+    EXPECT_EQ((int)temp_page.data() + temp_page.size() - (4 * 5), proc.esp);
 }
 
 // Process Resume
@@ -270,6 +272,11 @@ TEST_F(Process, process_resume_ProcessDead) {
     proc.state = PROCESS_STATE_DEAD;
     EXPECT_NE(0, process_resume(&proc, 0));
     proc.state = PROCESS_STATE_ERROR;
+    EXPECT_NE(0, process_resume(&proc, 0));
+}
+
+TEST_F(Process, process_resume_ProcessUnloaded) {
+    proc.state = PROCESS_STATE_LOADING;
     EXPECT_NE(0, process_resume(&proc, 0));
 }
 
