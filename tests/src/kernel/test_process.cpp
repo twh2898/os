@@ -85,6 +85,28 @@ TEST_F(Process, process_create_FailCreateArray) {
     arr_create_fake.return_val     = -1;
 
     EXPECT_NE(0, process_create(&proc));
+    EXPECT_EQ(1, ram_page_free_fake.call_count);
+    ASSERT_RAM_ALLOC_BALANCED();
+}
+
+TEST_F(Process, process_create_FailCreateEbus) {
+    ram_page_alloc_fake.return_val = 0x2000;
+    ebus_create_fake.return_val    = -1;
+
+    EXPECT_NE(0, process_create(&proc));
+    EXPECT_EQ(1, ram_page_free_fake.call_count);
+    EXPECT_EQ(1, arr_free_fake.call_count);
+    ASSERT_RAM_ALLOC_BALANCED();
+}
+
+TEST_F(Process, process_create_FailMemoryInit) {
+    ram_page_alloc_fake.return_val = 0x2000;
+    memory_init_fake.return_val    = -1;
+
+    EXPECT_NE(0, process_create(&proc));
+    EXPECT_EQ(1, ram_page_free_fake.call_count);
+    EXPECT_EQ(1, arr_free_fake.call_count);
+    EXPECT_EQ(1, ebus_free_fake.call_count);
     ASSERT_RAM_ALLOC_BALANCED();
 }
 
@@ -96,6 +118,8 @@ TEST_F(Process, process_create_FailDirTempMap) {
 
     EXPECT_NE(0, process_create(&proc));
     EXPECT_EQ(1, ram_page_free_fake.call_count);
+    EXPECT_EQ(1, arr_free_fake.call_count);
+    EXPECT_EQ(1, ebus_free_fake.call_count);
     ASSERT_TEMP_MAP_BALANCE_OFFSET(1);
     ASSERT_RAM_ALLOC_BALANCED();
 }
