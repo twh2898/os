@@ -90,6 +90,18 @@ void ebus_push(ebus_t * bus, ebus_event_t * event) {
     cb_push(&bus->queue, event);
 }
 
+int ebus_pop(ebus_t * bus, ebus_event_t * event_out) {
+    if (!bus) {
+        return -1;
+    }
+
+    if (cb_pop(&bus->queue, event_out)) {
+        return -1;
+    }
+
+    return 0;
+}
+
 int ebus_cycle(ebus_t * bus) {
     if (!bus) {
         return -1;
