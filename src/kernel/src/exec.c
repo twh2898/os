@@ -30,29 +30,13 @@ int command_exec(uint8_t * buff, size_t size, size_t argc, char ** argv) {
     }
 
     process_set_entrypoint(proc, UINT2PTR(VADDR_USER_MEM));
-
     process_add_pages(proc, 32);
+    pm_add_proc(kernel_get_proc_man(), proc);
 
-    kernel_add_task(proc);
+    int res = pm_resume_process(kernel_get_proc_man(), proc->pid, 0);
 
-    ebus_event_t event;
-    event.event_id                  = EBUS_EVENT_TASK_SWITCH;
-    event.task_switch.next_task_pid = proc->pid;
+    pm_remove_proc(kernel_get_proc_man(), proc->pid);
+    process_free(proc);
 
-    queue_event(&event);
-
-    // kernel_set_current_task(proc);
-
-    // puts("Go for call\n");
-
-    // if (process_resume(proc, 0)) {
-    //     KPANIC("Failed to resume process");
-    // }
-
-    // // if process_resume does not fail, it will not return
-    // KPANIC("How did you get here?");
-
-    // process_free(proc);
-
-    return 0;
+    return res;
 }
