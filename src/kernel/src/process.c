@@ -1,7 +1,10 @@
 #include "process.h"
 
 #include "cpu/mmu.h"
+#include "cpu/tss.h"
+#include "kernel.h"
 #include "libc/string.h"
+#include "libk/sys_call.h"
 #include "paging.h"
 #include "ram.h"
 
@@ -25,10 +28,25 @@ int process_create(process_t * proc) {
         return -1;
     }
 
+    if (ebus_create(&proc->event_queue, 4096)) {
+        arr_free(&proc->io_handles);
+        ram_page_free(proc->cr3);
+        return -1;
+    }
+
+    if (memory_init(&proc->memory, _sys_page_alloc)) {
+        ebus_free(&proc->event_queue);
+        arr_free(&proc->io_handles);
+        ram_page_free(proc->cr3);
+        return -1;
+    }
+
     // Setup page directory
     mmu_dir_t * dir = paging_temp_map(proc->cr3);
 
     if (!dir) {
+        ebus_free(&proc->event_queue);
+        arr_free(&proc->io_handles);
         ram_page_free(proc->cr3);
         return -1;
     }
@@ -44,6 +62,8 @@ int process_create(process_t * proc) {
 
     // Allocate pages for ISR stack + first page of user stack
     if (paging_add_pages(dir, ADDR2PAGE(proc->esp), ADDR2PAGE(proc->esp0))) {
+        ebus_free(&proc->event_queue);
+        arr_free(&proc->io_handles);
         paging_temp_free(proc->cr3);
         ram_page_free(proc->cr3);
         return -1;
@@ -63,6 +83,7 @@ int process_free(process_t * proc) {
         return -1;
     }
 
+    ebus_free(&proc->event_queue);
     arr_free(&proc->io_handles);
 
     mmu_dir_t * dir = paging_temp_map(proc->cr3);
@@ -101,6 +122,71 @@ int process_free(process_t * proc) {
     // Free dir
     paging_temp_free(proc->cr3);
     ram_page_free(proc->cr3);
+
+    return 0;
+}
+
+int process_set_entrypoint(process_t * proc, void * entrypoint) {
+    if (!proc || !entrypoint || proc->state >= PROCESS_STATE_SUSPENDED) {
+        return -1;
+    }
+
+    uint32_t ret_addr = proc->esp;
+    uint32_t ret_page = ADDR2PAGE(ret_addr);
+    uint32_t dir_i    = ret_page / MMU_DIR_SIZE;
+    uint32_t table_i  = ret_page % MMU_TABLE_SIZE;
+
+    mmu_dir_t * dir = paging_temp_map(proc->cr3);
+
+    if (!dir) {
+        return -1;
+    }
+
+    uint32_t table_addr = mmu_dir_get_addr(dir, dir_i);
+
+    mmu_table_t * table = paging_temp_map(table_addr);
+
+    if (!table) {
+        paging_temp_free(proc->cr3);
+        return -1;
+    }
+
+    uint32_t page_addr = mmu_table_get_addr(table, table_i);
+
+    uint32_t * stack = paging_temp_map(page_addr);
+
+    if (!stack) {
+        paging_temp_free(table_addr);
+        paging_temp_free(proc->cr3);
+        return -1;
+    }
+
+    int ret_i    = (proc->esp % PAGE_SIZE) / 4;
+    stack[ret_i] = PTR2UINT(entrypoint);
+
+    paging_temp_free(page_addr);
+    paging_temp_free(table_addr);
+    paging_temp_free(proc->cr3);
+
+    proc->esp -= (5 * 4) - 1;
+
+    return 0;
+}
+
+int process_resume(process_t * proc, const ebus_event_t * event) {
+    if (!proc || proc->state < PROCESS_STATE_LOADED || proc->state >= PROCESS_STATE_DEAD) {
+        return -1;
+    }
+
+    process_t * active_before = get_active_task();
+    active_before->state      = PROCESS_STATE_SUSPENDED;
+
+    proc->state = PROCESS_STATE_RUNNING;
+    switch_task(proc);
+
+    // Call this again because we are a new process now
+    process_t * active_after = get_active_task();
+    active_after->state      = PROCESS_STATE_RUNNING;
 
     return 0;
 }
@@ -163,6 +249,8 @@ int process_load_heap(process_t * proc, const char * buff, size_t size) {
         return -1;
     }
 
+    proc->state = PROCESS_STATE_LOADING;
+
     size_t page_count = ADDR2PAGE(size);
     if (size & MASK_FLAGS) {
         page_count++;
@@ -213,6 +301,8 @@ int process_load_heap(process_t * proc, const char * buff, size_t size) {
 
     paging_temp_free(proc->cr3);
 
+    proc->state = PROCESS_STATE_LOADED;
+
     return 0;
 }
 
@@ -220,6 +310,7 @@ static uint32_t __pid;
 
 static uint32_t next_pid() {
     static int pid_set = 0;
+    // Handle initializing __pid because there is no static init
     if (!pid_set) {
         __pid   = 1;
         pid_set = 1;

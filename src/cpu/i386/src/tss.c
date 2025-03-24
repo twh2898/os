@@ -24,6 +24,10 @@ tss_entry_t * tss_get_entry(size_t i) {
     return &tss_stack[i];
 }
 
-void set_kernel_stack(uint32_t stack) { // Used when an interrupt occurs
+uint32_t tss_get_esp0() {
+    return tss_stack[0].esp0;
+}
+
+void tss_set_esp0(uint32_t stack) { // Used when an interrupt occurs
     tss_stack[0].esp0 = stack;
 }

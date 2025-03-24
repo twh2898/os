@@ -27,9 +27,6 @@
 
 bool debug = false;
 
-static disk_t *   disk = 0;
-static tar_fs_t * tar  = 0;
-
 static int clear_cmd(size_t argc, char ** argv) {
     vga_clear();
     return 0;
@@ -192,55 +189,55 @@ static int ret_cmd(size_t argc, char ** argv) {
 //         return 1;
 //     }
 
-//     if (!disk) {
+//     if (!kernel_get_disk()) {
 //         disk = disk_open(0, DISK_DRIVER_ATA);
-//         if (!disk) {
+//         if (!kernel_get_disk()) {
 //             puts("Failed to open disk\n");
 //             return 1;
 //         }
 //     }
 
 //     puts("Formatting disk, this may take some time\n");
-//     // fs_format(disk);
+//     // fs_format(kernel_get_disk());
 //     puts("Done!\n");
 
 //     return 0;
 // }
 
-static int mount_cmd(size_t argc, char ** argv) {
-    if (tar) {
-        puts("Filesystem already mounted\n");
-        return 0;
-    }
+// static int mount_cmd(size_t argc, char ** argv) {
+//     if (kernel_get_tar()) {
+//         puts("Filesystem already mounted\n");
+//         return 0;
+//     }
 
-    if (!disk) {
-        disk = disk_open(0, DISK_DRIVER_ATA);
-        if (!disk) {
-            puts("Failed to open disk\n");
-            return 1;
-        }
-    }
+//     if (!kernel_get_disk()) {
+//         disk = disk_open(0, DISK_DRIVER_ATA);
+//         if (!kernel_get_disk()) {
+//             puts("Failed to open disk\n");
+//             return 1;
+//         }
+//     }
 
-    tar = tar_open(disk);
-    if (!tar) {
-        puts("Failed to mount filesystem\n");
-        return 1;
-    }
+//     tar = tar_open(kernel_get_disk());
+//     if (!kernel_get_tar()) {
+//         puts("Failed to mount filesystem\n");
+//         return 1;
+//     }
 
-    return 0;
-}
+//     return 0;
+// }
 
-static int unmount_cmd(size_t argc, char ** argv) {
-    if (tar) {
-        tar_close(tar);
-        tar = 0;
-    }
-    if (disk) {
-        disk_close(disk);
-        disk = 0;
-    }
-    return 0;
-}
+// static int unmount_cmd(size_t argc, char ** argv) {
+//     if (kernel_get_tar()) {
+//         tar_close(kernel_get_tar());
+//         tar = 0;
+//     }
+//     if (kernel_get_disk()) {
+//         disk_close(kernel_get_disk());
+//         disk = 0;
+//     }
+//     return 0;
+// }
 
 static void print_64(uint64_t v) {
     uint32_t u = v >> 32;
@@ -335,17 +332,17 @@ static void ls_print_file(tar_stat_t * stat) {
 }
 
 static int ls_cmd(size_t argc, char ** argv) {
-    if (!tar) {
+    if (!kernel_get_tar()) {
         puts("Filesystem not mounted\n");
         return 1;
     }
 
-    size_t file_count = tar_file_count(tar);
+    size_t file_count = tar_file_count(kernel_get_tar());
     printf("Found %u files\n", file_count);
 
     tar_stat_t stat;
     for (size_t i = 0; i < file_count; i++) {
-        if (!tar_stat_file_i(tar, i, &stat)) {
+        if (!tar_stat_file_i(kernel_get_tar(), i, &stat)) {
             return 1;
         }
         ls_print_file(&stat);
@@ -356,13 +353,13 @@ static int ls_cmd(size_t argc, char ** argv) {
 }
 
 static int stat_cmd(size_t argc, char ** argv) {
-    if (!tar) {
+    if (!kernel_get_tar()) {
         puts("Filesystem not mounted\n");
         return 1;
     }
 
     tar_stat_t stat;
-    if (!tar_stat_file_i(tar, 0, &stat)) {
+    if (!tar_stat_file_i(kernel_get_tar(), 0, &stat)) {
         puts("Failed to stat file\n");
         return 1;
     }
@@ -384,13 +381,13 @@ static int fs_read_cmd(size_t argc, char ** argv) {
 
     char * filename = argv[1];
 
-    if (!tar) {
+    if (!kernel_get_tar()) {
         puts("Filesystem not mounted\n");
         return 1;
     }
 
     tar_stat_t stat;
-    if (!tar_stat_file(tar, filename, &stat)) {
+    if (!tar_stat_file(kernel_get_tar(), filename, &stat)) {
         puts("Failed to find file\n");
         return 1;
     }
@@ -401,7 +398,7 @@ static int fs_read_cmd(size_t argc, char ** argv) {
         return 1;
     }
 
-    tar_fs_file_t * file = tar_file_open(tar, filename);
+    tar_fs_file_t * file = tar_file_open(kernel_get_tar(), filename);
     if (!file) {
         kfree(buff);
         return 1;
@@ -414,7 +411,7 @@ static int fs_read_cmd(size_t argc, char ** argv) {
     }
     print_hexblock(buff, stat.size, 0);
 
-    if (!disk || !buff) {
+    if (!buff) {
         return 0;
     }
 
@@ -432,13 +429,13 @@ static int fs_cat_cmd(size_t argc, char ** argv) {
 
     char * filename = argv[1];
 
-    if (!tar) {
+    if (!kernel_get_tar()) {
         puts("Filesystem not mounted\n");
         return 1;
     }
 
     tar_stat_t stat;
-    if (!tar_stat_file(tar, filename, &stat)) {
+    if (!tar_stat_file(kernel_get_tar(), filename, &stat)) {
         puts("Failed to find file\n");
         return 1;
     }
@@ -448,7 +445,7 @@ static int fs_cat_cmd(size_t argc, char ** argv) {
         return 1;
     }
 
-    tar_fs_file_t * file = tar_file_open(tar, filename);
+    tar_fs_file_t * file = tar_file_open(kernel_get_tar(), filename);
     if (!file) {
         kfree(buff);
         return 1;
@@ -463,7 +460,7 @@ static int fs_cat_cmd(size_t argc, char ** argv) {
         putc(buff[i]);
     }
 
-    if (!disk || !buff) {
+    if (!buff) {
         return 0;
     }
 
@@ -487,13 +484,13 @@ static int disk_read_cmd(size_t argc, char ** argv) {
     size_t pos   = katoi(argv[1]);
     size_t count = katoi(argv[2]);
 
-    if (!disk) {
-        disk = disk_open(0, DISK_DRIVER_ATA);
-        if (!disk) {
-            puts("Failed to open disk\n");
-            return 1;
-        }
-    }
+    // if (!kernel_get_disk()) {
+    //     disk = disk_open(0, DISK_DRIVER_ATA);
+    //     if (!kernel_get_disk()) {
+    //         puts("Failed to open disk\n");
+    //         return 1;
+    //     }
+    // }
 
     char   data[513];
     size_t steps = count / 512;
@@ -505,7 +502,7 @@ static int disk_read_cmd(size_t argc, char ** argv) {
         if (to_read > 512) {
             to_read = 512;
         }
-        size_t read = disk_read(disk, data, to_read, pos);
+        size_t read = disk_read(kernel_get_disk(), data, to_read, pos);
         data[read]  = 0;
         print_hexblock(data, read, 512 * i);
         count -= to_read;
@@ -516,13 +513,13 @@ static int disk_read_cmd(size_t argc, char ** argv) {
 }
 
 static int disk_write_cmd(size_t argc, char ** argv) {
-    if (!disk) {
-        disk = disk_open(0, DISK_DRIVER_ATA);
-        if (!disk) {
-            puts("Failed to open disk\n");
-            return 1;
-        }
-    }
+    // if (!kernel_get_disk()) {
+    //     disk = disk_open(0, DISK_DRIVER_ATA);
+    //     if (!kernel_get_disk()) {
+    //         puts("Failed to open disk\n");
+    //         return 1;
+    //     }
+    // }
 
     char data[512] = {0};
     for (size_t i = 0; i < 512; i++) {
@@ -540,25 +537,30 @@ static int disk_write_cmd(size_t argc, char ** argv) {
             data[i * 2 + 1] = (i & 0xf) + 'a' - 10;
         }
     }
-    disk_write(disk, data, 512, 0);
+    disk_write(kernel_get_disk(), data, 512, 0);
     return 0;
 }
 
 static int disk_size_cmd(size_t argc, char ** argv) {
-    if (!disk) {
-        disk = disk_open(0, DISK_DRIVER_ATA);
-        if (!disk) {
-            puts("Failed to open disk\n");
-            return 1;
-        }
-    }
-    size_t size = disk_size(disk);
+    // if (!kernel_get_disk()) {
+    //     disk = disk_open(0, DISK_DRIVER_ATA);
+    //     if (!kernel_get_disk()) {
+    //         puts("Failed to open disk\n");
+    //         return 1;
+    //     }
+    // }
+    size_t size = disk_size(kernel_get_disk());
     printf("Disk size %u\n", size);
     return 0;
 }
 
 static int currdir(size_t argc, char ** argv) {
     printf("Current dir is %p\n", mmu_get_curr_dir());
+    return 0;
+}
+
+static int currproc(size_t argc, char ** argv) {
+    printf("Current pid is %p\n", get_current_process()->pid);
     return 0;
 }
 
@@ -734,13 +736,13 @@ static int procswap(size_t argc, char ** argv) {
 static int command_lookup(size_t argc, char ** argv) {
     char * filename = argv[0];
 
-    if (!tar) {
+    if (!kernel_get_tar()) {
         puts("Filesystem not mounted\n");
         return 1;
     }
 
     tar_stat_t stat;
-    if (!tar_stat_file(tar, filename, &stat)) {
+    if (!tar_stat_file(kernel_get_tar(), filename, &stat)) {
         puts("Failed to find file\n");
         return 1;
     }
@@ -750,7 +752,7 @@ static int command_lookup(size_t argc, char ** argv) {
         return 1;
     }
 
-    tar_fs_file_t * file = tar_file_open(tar, filename);
+    tar_fs_file_t * file = tar_file_open(kernel_get_tar(), filename);
     if (!file) {
         kfree(buff);
         return 1;
@@ -764,7 +766,7 @@ static int command_lookup(size_t argc, char ** argv) {
 
     int res = command_exec(buff, stat.size, argc, argv);
 
-    if (!disk || !buff) {
+    if (!buff) {
         return 0;
     }
 
@@ -778,6 +780,7 @@ void commands_init() {
     set_command_lookup(command_lookup);
 
     term_command_add("currdir", currdir);
+    term_command_add("pid", currproc);
     term_command_add("hotswap", hotswap);
     term_command_add("procswap", procswap);
 
@@ -791,8 +794,8 @@ void commands_init() {
     term_command_add("sleep", sleep_cmd);
     term_command_add("ret", ret_cmd);
     // term_command_add("format", format_cmd);
-    term_command_add("mount", mount_cmd);
-    term_command_add("unmount", unmount_cmd);
+    // term_command_add("mount", mount_cmd);
+    // term_command_add("unmount", unmount_cmd);
     // term_command_add("mem", mem_cmd);
     term_command_add("ls", ls_cmd);
     term_command_add("stat", stat_cmd);

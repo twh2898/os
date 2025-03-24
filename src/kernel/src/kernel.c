@@ -14,6 +14,7 @@
 #include "drivers/rtc.h"
 #include "drivers/timer.h"
 #include "drivers/vga.h"
+#include "idle.h"
 #include "io/file.h"
 #include "kernel/boot_params.h"
 #include "kernel/system_call.h"
@@ -28,6 +29,7 @@
 #include "libk/defs.h"
 #include "libk/sys_call.h"
 #include "process.h"
+#include "process_manager.h"
 #include "ram.h"
 #include "term.h"
 
@@ -44,6 +46,9 @@ static int  try_switch(size_t argc, char ** argv);
 static void map_first_table(mmu_table_t * table);
 
 extern void jump_kernel_mode(void * fn);
+
+static void foo_task();
+static void bar_task();
 
 void kernel_main() {
     init_vga(UINT2PTR(PADDR_VGA));
@@ -97,15 +102,12 @@ void kernel_main() {
     // Kernel process used for memory allocation
     __kernel.proc.next_heap_page = ADDR2PAGE(VADDR_RAM_BITMASKS) + ram_region_table_count();
     __kernel.proc.cr3            = PADDR_KERNEL_DIR;
+    __kernel.proc.esp0           = VADDR_ISR_STACK;
+    __kernel.proc.state          = PROCESS_STATE_LOADED;
+    set_active_task(&__kernel.proc);
 
-    // Add isr stack to kernel's TSS
-    set_kernel_stack(VADDR_ISR_STACK);
-
-    // Setup kernel process as idle process
-    __kernel.pm.idle_task            = &__kernel.proc;
-    __kernel.pm.idle_task->next_proc = __kernel.pm.idle_task;
-    __kernel.pm.curr_task            = __kernel.pm.idle_task;
-    __kernel.pm.task_begin           = __kernel.pm.idle_task;
+    // Set initial ESP0 before first task switch
+    tss_set_esp0(VADDR_ISR_STACK);
 
     isr_install();
 
@@ -119,8 +121,18 @@ void kernel_main() {
     memory_init(&__kernel.kernel_memory, _sys_page_alloc);
     init_malloc(&__kernel.kernel_memory);
 
+    pm_create(&__kernel.pm);
+
+    process_t * idle = init_idle();
+    printf("Idle task pid is %u\n", idle->pid);
+    __kernel.pm.idle_task   = idle;
+    __kernel.proc.next_proc = __kernel.pm.idle_task;
+    // pm_add_proc(&__kernel.pm, &__kernel.proc);
+    pm_add_proc(&__kernel.pm, idle);
+    // __kernel.pm.task_begin  = &__kernel.proc;
+
     if (ebus_create(&__kernel.event_bus, 4096)) {
-        PANIC("Failed to init ebus\n");
+        KPANIC("Failed to init ebus\n");
     }
 
     irq_install();
@@ -128,20 +140,71 @@ void kernel_main() {
     vga_puts("Welcome to kernel v" PROJECT_VERSION "\n");
 
     term_init();
+    if (arr_size(&__kernel.pm.task_list) == 0) {
+        KPANIC("No process");
+    }
+
     commands_init();
 
     term_command_add("exit", kill);
 
     ramdisk_create(4096);
 
-    // set_first_task(proc);
+    __kernel.disk = disk_open(0, DISK_DRIVER_ATA);
+    if (!__kernel.disk) {
+        KPANIC("Failed to open ATA disk");
+    }
 
-    // switch_to_task(proc);
+    __kernel.tar = tar_open(__kernel.disk);
+    if (!__kernel.tar) {
+        KPANIC("Failed to open tar");
+    }
 
-    // jump_usermode(term_run);
-    jump_kernel_mode(term_run);
+    process_t foo_proc;
+    if (process_create(&foo_proc)) {
+        KPANIC("Failed to create foo task");
+    }
+    process_set_entrypoint(&foo_proc, foo_task);
+    foo_proc.state = PROCESS_STATE_LOADED;
+    pm_add_proc(&__kernel.pm, &foo_proc);
 
-    PANIC("You shouldn't be here!");
+    process_t bar_proc;
+    if (process_create(&bar_proc)) {
+        KPANIC("Failed to create bar task");
+    }
+    process_set_entrypoint(&bar_proc, bar_task);
+    bar_proc.state = PROCESS_STATE_LOADED;
+    pm_add_proc(&__kernel.pm, &bar_proc);
+
+    pm_resume_process(&__kernel.pm, __kernel.pm.idle_task->pid, 0);
+
+    KPANIC("You shouldn't be here!");
+}
+
+static void foo_task() {
+    for (;;) {
+        // printf("foo %u\n", getpid());
+        ebus_event_t event;
+        int          ev = pull_event(EBUS_EVENT_KEY, &event);
+        // if (ev == EBUS_EVENT_KEY) {
+        //     printf("Foo got event %u\n", ev);
+        // }
+    }
+}
+
+static void bar_task() {
+    for (;;) {
+        // printf("bar %u\n", getpid());
+        ebus_event_t event;
+        int          ev = pull_event(EBUS_EVENT_ANY, &event);
+        // if (ev == EBUS_EVENT_KEY) {
+        //     printf("Bar got event %u\n", ev);
+        // }
+    }
+}
+
+int kernel_switch_task(int next_pid) {
+    return pm_resume_process(&__kernel.pm, next_pid, 0);
 }
 
 mmu_dir_t * get_kernel_dir() {
@@ -153,16 +216,84 @@ mmu_table_t * get_kernel_table() {
 }
 
 process_t * get_current_process() {
-    return __kernel.pm.curr_task;
+    return get_active_task();
 }
 
 ebus_t * get_kernel_ebus() {
     return &__kernel.event_bus;
 }
 
+disk_t * kernel_get_disk() {
+    return __kernel.disk;
+}
+
+tar_fs_t * kernel_get_tar() {
+    return __kernel.tar;
+}
+
 void tmp_register_signals_cb(signals_master_cb_t cb) {
-    __kernel.pm.curr_task->signals_callback = cb;
-    printf("Attached master signal callback at %p\n", __kernel.pm.curr_task->signals_callback);
+    get_active_task()->signals_callback = cb;
+    printf("Attached master signal callback at %p\n", get_active_task()->signals_callback);
+}
+
+int kernel_add_task(process_t * proc) {
+    return pm_add_proc(&__kernel.pm, proc);
+}
+
+int kernel_next_task() {
+    return pm_resume_process(&__kernel.pm, get_active_task()->pid, 0);
+}
+
+int kernel_close_process(process_t * proc) {
+    if (!proc) {
+        return -1;
+    }
+
+    proc->state = PROCESS_STATE_DEAD;
+
+    process_t * next = pm_get_next(&__kernel.pm);
+    if (!next) {
+        next = __kernel.pm.idle_task;
+    }
+
+    ebus_event_t launch_event;
+    launch_event.event_id                  = EBUS_EVENT_TASK_SWITCH;
+    launch_event.task_switch.next_task_pid = next->pid;
+
+    queue_event(&launch_event);
+
+    ebus_event_t kill_event;
+    kill_event.event_id           = EBUS_EVENT_TASK_KILL;
+    kill_event.task_kill.task_pid = proc->pid;
+
+    queue_event(&kill_event);
+
+    return 0;
+}
+
+NO_RETURN void kernel_panic(const char * msg, const char * file, unsigned int line) {
+    vga_color(VGA_FG_WHITE | VGA_BG_RED);
+    vga_puts("[KERNEL PANIC]");
+    if (file) {
+        vga_putc('[');
+        vga_puts(file);
+        vga_puts("]:");
+        vga_putu(line);
+    }
+    if (msg) {
+        vga_putc(' ');
+        vga_puts(msg);
+    }
+    vga_cursor_hide();
+    halt();
+}
+
+proc_man_t * kernel_get_proc_man() {
+    return &__kernel.pm;
+}
+
+process_t * kernel_find_pid(int pid) {
+    return pm_find_pid(&__kernel.pm, pid);
 }
 
 static void cursor() {
@@ -188,7 +319,7 @@ static void irq_install() {
 static int kill(size_t argc, char ** argv) {
     printf("Leaving process now\n");
     kernel_exit();
-    PANIC("Never return!");
+    KPANIC("Never return!");
     return 0;
 }
 
@@ -225,7 +356,7 @@ static void map_first_table(mmu_table_t * table) {
 
 static void id_map_range(mmu_table_t * table, size_t start, size_t end) {
     if (end > 1023) {
-        PANIC("End is past table limits");
+        KPANIC("End is past table limits");
         end = 1023;
     }
 

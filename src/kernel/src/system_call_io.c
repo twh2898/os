@@ -17,9 +17,9 @@ int sys_call_io_cb(uint16_t int_no, void * args_data, registers_t * regs) {
             struct _args {
                 const char * path;
                 const char * mode;
-            } args = *(struct _args *)args_data;
+            } * args = (struct _args *)args_data;
 
-            if (!args.path || !args.mode || !*args.path || !*args.mode) {
+            if (!args->path || !args->mode || !*args->path || !*args->mode) {
                 return 0;
             }
 
@@ -36,13 +36,13 @@ int sys_call_io_cb(uint16_t int_no, void * args_data, registers_t * regs) {
         case SYS_INT_IO_CLOSE: {
             struct _args {
                 int handle;
-            } args = *(struct _args *)args_data;
+            } * args = (struct _args *)args_data;
 
-            if (args.handle > arr_size(io_handles)) {
+            if (args->handle > arr_size(io_handles)) {
                 return 0; // TODO proper error
             }
 
-            handle_t * handle = arr_at(io_handles, args.handle - 1);
+            handle_t * handle = arr_at(io_handles, args->handle - 1);
 
             if (handle->type == HANDLE_TYPE_FREE) {
                 return 0; // TODO proper error
@@ -58,13 +58,13 @@ int sys_call_io_cb(uint16_t int_no, void * args_data, registers_t * regs) {
                 int    handle;
                 char * buff;
                 size_t count;
-            } args = *(struct _args *)args_data;
+            } * args = (struct _args *)args_data;
 
-            if (args.handle > arr_size(io_handles)) {
+            if (args->handle > arr_size(io_handles)) {
                 return 0; // TODO proper error
             }
 
-            handle_t * handle = arr_at(io_handles, args.handle - 1);
+            handle_t * handle = arr_at(io_handles, args->handle - 1);
 
             if (handle->type == HANDLE_TYPE_FREE) {
                 return 0; // TODO proper error
@@ -78,13 +78,13 @@ int sys_call_io_cb(uint16_t int_no, void * args_data, registers_t * regs) {
                 int          handle;
                 const char * buff;
                 size_t       count;
-            } args = *(struct _args *)args_data;
+            } * args = (struct _args *)args_data;
 
-            if (args.handle > arr_size(io_handles)) {
+            if (args->handle > arr_size(io_handles)) {
                 return 0; // TODO proper error
             }
 
-            handle_t * handle = arr_at(io_handles, args.handle - 1);
+            handle_t * handle = arr_at(io_handles, args->handle - 1);
 
             if (handle->type == HANDLE_TYPE_FREE) {
                 return 0; // TODO proper error
@@ -98,13 +98,13 @@ int sys_call_io_cb(uint16_t int_no, void * args_data, registers_t * regs) {
                 int handle;
                 int pos;
                 int seek;
-            } args = *(struct _args *)args_data;
+            } * args = (struct _args *)args_data;
 
-            if (args.handle > arr_size(io_handles)) {
+            if (args->handle > arr_size(io_handles)) {
                 return 0; // TODO proper error
             }
 
-            handle_t * handle = arr_at(io_handles, args.handle - 1);
+            handle_t * handle = arr_at(io_handles, args->handle - 1);
 
             if (handle->type == HANDLE_TYPE_FREE) {
                 return 0; // TODO proper error
@@ -116,13 +116,13 @@ int sys_call_io_cb(uint16_t int_no, void * args_data, registers_t * regs) {
         case SYS_INT_IO_TELL: {
             struct _args {
                 int handle;
-            } args = *(struct _args *)args_data;
+            } * args = (struct _args *)args_data;
 
-            if (args.handle > arr_size(io_handles)) {
+            if (args->handle > arr_size(io_handles)) {
                 return 0; // TODO proper error
             }
 
-            handle_t * handle = arr_at(io_handles, args.handle - 1);
+            handle_t * handle = arr_at(io_handles, args->handle - 1);
 
             if (handle->type == HANDLE_TYPE_FREE) {
                 return 0; // TODO proper error

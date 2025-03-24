@@ -1,5 +1,6 @@
 #include "cpu/mmu.mock.h"
 #include "cpu/ports.mock.h"
+#include "cpu/tss.mock.h"
 
 // cpu/mmu.h
 
@@ -57,4 +58,16 @@ void reset_cpu_ports_mock() {
     RESET_FAKE(port_byte_out);
     RESET_FAKE(port_word_in);
     RESET_FAKE(port_word_out);
+}
+
+// cpu/tss.h
+
+DEFINE_FAKE_VOID_FUNC(init_tss);
+DEFINE_FAKE_VALUE_FUNC(tss_entry_t *, tss_get_entry, size_t);
+DEFINE_FAKE_VOID_FUNC(tss_set_esp0, uint32_t);
+
+void reset_cpu_tss_mock() {
+    RESET_FAKE(init_tss);
+    RESET_FAKE(tss_get_entry);
+    RESET_FAKE(tss_set_esp0);
 }

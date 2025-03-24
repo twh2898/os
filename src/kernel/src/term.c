@@ -10,6 +10,8 @@
 #include "libc/proc.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
+#include "process.h"
+#include "process_manager.h"
 
 #define ERROR(MSG)                                \
     {                                             \
@@ -54,7 +56,7 @@ static void dump_buff() {
 }
 
 static void key_cb(uint8_t code, char c, keyboard_event_t event, keyboard_mod_t mod) {
-    if (event != KEY_EVENT_RELEASE && c) {
+    if (event == KEY_EVENT_PRESS && c) {
         if (cb_len(&keybuff) >= MAX_CHARS) {
             ERROR("key buffer overflow");
             printf("(%u out of %u)", cb_len(&keybuff), MAX_CHARS);
@@ -108,12 +110,23 @@ void term_init() {
     }
     command_ready = false;
 
-    ebus_handler_t handler;
-    handler.callback_fn = key_event_handler;
-    handler.event_id    = EBUS_EVENT_KEY;
-    if (ebus_register_handler(get_kernel_ebus(), &handler) < 1) {
-        PANIC("Failed to register keyboard event handler");
+    process_t * proc = kmalloc(sizeof(process_t));
+    if (!proc || process_create(proc)) {
+        return;
     }
+
+    process_set_entrypoint(proc, term_run);
+    proc->state = PROCESS_STATE_LOADED;
+
+    kernel_add_task(proc);
+
+    // ebus_handler_t handler;
+    // handler.callback_fn = key_event_handler;
+    // handler.event_id    = EBUS_EVENT_KEY;
+    // handler.pid         = 0;
+    // if (ebus_register_handler(get_kernel_ebus(), &handler) < 1) {
+    //     PANIC("Failed to register keyboard event handler");
+    // }
 }
 
 void term_update() {
@@ -174,9 +187,12 @@ void term_run() {
     vga_puts("> ");
 
     for (;;) {
+        ebus_event_t event;
+        int          ev = pull_event(EBUS_EVENT_KEY, &event);
+        if (ev == EBUS_EVENT_KEY) {
+            key_cb(event.key.keycode, event.key.c, event.key.event, event.key.mods);
+        }
         term_update();
-        ebus_cycle(get_kernel_ebus());
-        asm("hlt");
     }
 }
 

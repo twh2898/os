@@ -17,19 +17,31 @@ int sys_call_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
         case SYS_INT_PROC_EXIT: {
             struct _args {
                 uint8_t code;
-            } args = *(struct _args *)args_data;
-            printf("Proc exit with code %u\n", args.code);
-            kernel_exit();
+            } * args = (struct _args *)args_data;
+            printf("Proc exit with code %u\n", args->code);
+            process_t * proc = get_current_process();
+            enable_interrupts();
+            if (kernel_close_process(proc)) {
+                KPANIC("Kernel could not close process");
+            }
+            kernel_next_task();
+            KPANIC("Unexpected return from kernel_close_process");
         } break;
 
         case SYS_INT_PROC_ABORT: {
             struct _args {
                 uint8_t      code;
                 const char * msg;
-            } args = *(struct _args *)args_data;
-            printf("Proc abort with code %u\n", args.code);
-            puts(args.msg);
-            kernel_exit();
+            } * args = (struct _args *)args_data;
+            printf("Proc abort with code %u\n", args->code);
+            puts(args->msg);
+            process_t * proc = get_current_process();
+            enable_interrupts();
+            if (kernel_close_process(proc)) {
+                KPANIC("Kernel could not close process");
+            }
+            kernel_next_task();
+            KPANIC("Unexpected return from kernel_close_process");
         } break;
 
         case SYS_INT_PROC_PANIC: {
@@ -37,18 +49,18 @@ int sys_call_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
                 const char * msg;
                 const char * file;
                 unsigned int line;
-            } args = *(struct _args *)args_data;
+            } * args = (struct _args *)args_data;
             vga_color(VGA_FG_WHITE | VGA_BG_RED);
             vga_puts("[PANIC]");
-            if (args.file) {
+            if (args->file) {
                 vga_putc('[');
-                vga_puts(args.file);
+                vga_puts(args->file);
                 vga_puts("]:");
-                vga_putu(args.line);
+                vga_putu(args->line);
             }
-            if (args.msg) {
+            if (args->msg) {
                 vga_putc(' ');
-                vga_puts(args.msg);
+                vga_puts(args->msg);
             }
             vga_cursor_hide();
             asm("cli");
@@ -60,27 +72,60 @@ int sys_call_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
         case SYS_INT_PROC_REG_SIG: {
             struct _args {
                 signals_master_cb_t cb;
-            } args = *(struct _args *)args_data;
-            tmp_register_signals_cb(args.cb);
+            } * args = (struct _args *)args_data;
+            tmp_register_signals_cb(args->cb);
         } break;
 
         case SYS_INT_PROC_GETPID: {
             process_t * p = get_current_process();
-            if (p) {
-                res = p->pid;
+            if (!p) {
+                KPANIC("Failed to find current process");
             }
-            else {
-                res = -1;
-            }
+            res = p->pid;
         } break;
 
         case SYS_INT_PROC_QUEUE_EVENT: {
             struct _args {
                 ebus_event_t * event;
-            } args = *(struct _args *)args_data;
+            } * args = (struct _args *)args_data;
 
-            ebus_push(get_kernel_ebus(), args.event);
+            if (!args->event) {
+                return -1;
+            }
+
+            process_t * proc        = get_current_process();
+            args->event->source_pid = proc->pid;
+
+            ebus_push(get_kernel_ebus(), args->event);
         } break;
+
+        case SYS_INT_PROC_YIELD: {
+            struct _args {
+                int            filter;
+                ebus_event_t * event_out;
+            } * args = (struct _args *)args_data;
+
+            // TODO clear iret from stack?
+            process_t * proc   = get_current_process();
+            proc->filter_event = args->filter;
+            proc->state        = (args->filter ? PROCESS_STATE_WAITING : PROCESS_STATE_SUSPENDED);
+            // process_yield(proc, regs->esp, regs->eip, args->filter);
+            enable_interrupts();
+            process_t * next = pm_get_next(kernel_get_proc_man());
+            if (pm_resume_process(kernel_get_proc_man(), next->pid, 0)) {
+                KPANIC("Failed to resume process");
+            }
+            proc = get_current_process();
+            if (ebus_queue_size(&proc->event_queue) > 0) {
+                if (ebus_pop(&proc->event_queue, args->event_out)) {
+                    return -1;
+                }
+                if (args->event_out) {
+                    return args->event_out->event_id;
+                }
+            }
+            return 0;
+        };
     }
 
     return res;

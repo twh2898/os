@@ -14,42 +14,90 @@ halt:
     hlt
     jmp halt
 
-[extern register_kernel_exit]
+[extern tss_set_esp0]
+[extern tss_get_esp0]
 
-; void jump_kernel_mode(void * fn);
-global jump_kernel_mode
-jump_kernel_mode:
-    mov eax,   [esp+4]
-    mov [.cb], eax
+TCB_CR3      equ 0
+TCB_ESP      equ 4
+TCB_ESP0     equ 8
 
-    mov  eax, .exit
+; proc_t *
+active_task: dd  0
+
+; void set_active_task(proc_t * active)
+global set_active_task
+set_active_task:
+    ; ebp = args
+    push ebp,
+    mov ebp, esp
+    add ebp, 4
+
     push eax
 
-    mov  eax, cr3
-    push eax
+    ; eax = active
+    mov eax,           [ebp+4]
+    mov [active_task], eax
 
-    push ebp
-
-    push esp
-
-    call register_kernel_exit
-
-.exit:
-    call [.cb]
+    pop eax
+    pop ebp
 
     ret
 
-.cb: dd 0
+; proc_t * get_active_task(void)
+global get_active_task
+get_active_task:
+    mov eax, [active_task]
 
-; void jump_proc(uint32_t cr3, uint32_t esp, uint32_t call);
-global jump_proc
-jump_proc:
-    mov eax, [esp+4]  ; cr3
-    mov ebx, [esp+8]  ; esp
-    mov edx, [esp+12] ; call
+    ret
 
+; switch_task(proc_t * next)
+global switch_task
+switch_task:
+    ; ebp = args
+    push ebp
+    mov  ebp, esp
+    add  ebp, 8
+
+    push edi
+    push esi
+    push eax
+
+    ; edi = active
+    mov edi, [active_task]
+    ; esi = next
+    mov esi, [ebp]
+
+    ; store cr3
+    mov eax,           cr3
+    mov [edi+TCB_CR3], eax
+
+    ; store esp
+    mov [edi+TCB_ESP], esp
+
+    ; store esp0
+    call tss_get_esp0
+    mov  [edi+TCB_ESP0], eax
+
+.resume:
+    mov [active_task], esi
+
+    ; load esp0
+    mov  eax, [esi+TCB_ESP0]
+    push eax
+    call tss_set_esp0
+    pop  eax
+
+    ; load esp
+    mov esp, [esi+TCB_ESP]
+
+    ; load cr3
+    mov eax, [esi+TCB_CR3]
     mov cr3, eax
-    mov ebp, ebx
-    mov esp, ebx
 
-    jmp edx
+    pop eax
+    pop esi
+    pop edi
+
+    pop ebp
+
+    ret

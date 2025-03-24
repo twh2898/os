@@ -5,9 +5,12 @@
 #include <stdint.h>
 
 #include "cpu/mmu.h"
+#include "drivers/disk.h"
+#include "drivers/tar.h"
 #include "ebus.h"
 #include "memory_alloc.h"
 #include "process.h"
+#include "process_manager.h"
 
 typedef struct _kernel {
     uint32_t   ram_table_addr;
@@ -16,6 +19,8 @@ typedef struct _kernel {
     proc_man_t pm;
     memory_t   kernel_memory;
     ebus_t     event_bus;
+    disk_t *   disk;
+    tar_fs_t * tar;
 } kernel_t;
 
 /**
@@ -38,10 +43,36 @@ mmu_dir_t * get_kernel_dir();
  */
 mmu_table_t * get_kernel_table();
 
+disk_t *   kernel_get_disk();
+tar_fs_t * kernel_get_tar();
+
 process_t * get_current_process();
 
-ebus_t * get_kernel_ebus();
+ebus_t *     get_kernel_ebus();
+proc_man_t * kernel_get_proc_man();
+process_t *  kernel_find_pid(int pid);
 
 void tmp_register_signals_cb(signals_master_cb_t cb);
+
+// ebus_event_t * pull_event(int event_id);
+
+int kernel_add_task(process_t * proc);
+int kernel_next_task();
+int kernel_close_process(process_t * proc);
+
+typedef int (*_proc_call_t)(void * data);
+
+int kernel_call_as_proc(int pid, _proc_call_t fn, void * data);
+
+int kernel_switch_task(int next_pid);
+
+#ifdef TESTING
+#define NO_RETURN
+#else
+#define NO_RETURN _Noreturn
+#endif
+
+#define KPANIC(MSG) kernel_panic((MSG), __FILE__, __LINE__)
+NO_RETURN void kernel_panic(const char * msg, const char * file, unsigned int line);
 
 #endif // KERNEL_H

@@ -24,22 +24,35 @@ enum EBUS_EVENT {
     EBUS_EVENT_ANY = 0,
     EBUS_EVENT_TIMER,
     EBUS_EVENT_KEY,
+    EBUS_EVENT_TASK_SWITCH,
+    EBUS_EVENT_TASK_KILL,
 };
 
 typedef struct _ebus_event {
     int event_id;
+    int source_pid;
     union {
         struct {
             int      id;
             uint32_t time;
         } timer;
         struct {
+            // raw = 0x83
+            // keycode = 0x03
+            // event = PRESS
+            // mods = SHIFT + ALT
             uint8_t  event;
             uint8_t  mods;
             char     c;
             uint32_t keycode;
             uint32_t scancode;
         } key;
+        struct {
+            uint32_t next_task_pid;
+        } task_switch;
+        struct {
+            uint32_t task_pid;
+        } task_kill;
     };
 } ebus_event_t;
 
@@ -55,8 +68,6 @@ typedef struct _ebus_handler {
 typedef struct _ebus {
     arr_t handlers; // ebus_handler_t
     cb_t  queue;    // ebus_event_t
-
-    int enabled;
 
     int next_handler_id;
 } ebus_t;
@@ -77,7 +88,8 @@ int ebus_queue_size(ebus_t * bus);
 int  ebus_register_handler(ebus_t * bus, ebus_handler_t * handler);
 void ebus_unregister_handler(ebus_t * bus, int handler_id);
 
-void ebus_push(ebus_t * bus, ebus_event_t * event);
+int ebus_push(ebus_t * bus, ebus_event_t * event);
+int ebus_pop(ebus_t * bus, ebus_event_t * event_out);
 
 int ebus_cycle(ebus_t * bus);
 

@@ -4,8 +4,6 @@
 #include "test_common.h"
 
 extern "C" {
-#define _Noreturn
-
 #include "addr.h"
 #include "cpu/mmu.h"
 #include "libc/datastruct/array.h"
@@ -14,6 +12,7 @@ extern "C" {
 mmu_dir_t   dir;
 mmu_table_t table;
 process_t   proc;
+process_t   alt_proc;
 
 int custom_mmu_dir_set(mmu_dir_t * dir, size_t i, uint32_t addr, uint32_t flags) {
     if (!dir || i >= MMU_DIR_SIZE) {
@@ -51,6 +50,7 @@ protected:
         memset(&dir, 0, sizeof(dir));
         memset(&table, 0, sizeof(table));
         memset(&proc, 0, sizeof(proc));
+        memset(&alt_proc, 0, sizeof(alt_proc));
 
         temp_page.fill(0);
 
@@ -85,6 +85,28 @@ TEST_F(Process, process_create_FailCreateArray) {
     arr_create_fake.return_val     = -1;
 
     EXPECT_NE(0, process_create(&proc));
+    EXPECT_EQ(1, ram_page_free_fake.call_count);
+    ASSERT_RAM_ALLOC_BALANCED();
+}
+
+TEST_F(Process, process_create_FailCreateEbus) {
+    ram_page_alloc_fake.return_val = 0x2000;
+    ebus_create_fake.return_val    = -1;
+
+    EXPECT_NE(0, process_create(&proc));
+    EXPECT_EQ(1, ram_page_free_fake.call_count);
+    EXPECT_EQ(1, arr_free_fake.call_count);
+    ASSERT_RAM_ALLOC_BALANCED();
+}
+
+TEST_F(Process, process_create_FailMemoryInit) {
+    ram_page_alloc_fake.return_val = 0x2000;
+    memory_init_fake.return_val    = -1;
+
+    EXPECT_NE(0, process_create(&proc));
+    EXPECT_EQ(1, ram_page_free_fake.call_count);
+    EXPECT_EQ(1, arr_free_fake.call_count);
+    EXPECT_EQ(1, ebus_free_fake.call_count);
     ASSERT_RAM_ALLOC_BALANCED();
 }
 
@@ -96,6 +118,8 @@ TEST_F(Process, process_create_FailDirTempMap) {
 
     EXPECT_NE(0, process_create(&proc));
     EXPECT_EQ(1, ram_page_free_fake.call_count);
+    EXPECT_EQ(1, arr_free_fake.call_count);
+    EXPECT_EQ(1, ebus_free_fake.call_count);
     ASSERT_TEMP_MAP_BALANCE_OFFSET(1);
     ASSERT_RAM_ALLOC_BALANCED();
 }
@@ -204,6 +228,99 @@ TEST_F(Process, process_free) {
     EXPECT_EQ(expect_free_count, ram_page_free_fake.call_count);
     EXPECT_EQ(1, arr_free_fake.call_count);
     ASSERT_TEMP_MAP_BALANCED();
+}
+
+// Process Set Entrypoint
+
+TEST_F(Process, process_set_entrypoint_InvalidParameters) {
+    EXPECT_NE(0, process_set_entrypoint(0, 0));
+    EXPECT_NE(0, process_set_entrypoint(&proc, 0));
+    EXPECT_NE(0, process_set_entrypoint(0, (void *)1));
+    ASSERT_TEMP_MAP_BALANCED();
+}
+
+TEST_F(Process, process_set_entrypoint_AlreadyRunning) {
+    proc.state = PROCESS_STATE_SUSPENDED;
+    EXPECT_NE(0, process_set_entrypoint(&proc, 0));
+    EXPECT_NE(0, process_set_entrypoint(0, (void *)1));
+    EXPECT_NE(0, process_set_entrypoint(&proc, (void *)1));
+    ASSERT_TEMP_MAP_BALANCED();
+}
+
+TEST_F(Process, process_set_entrypoint_FailMapDir) {
+    paging_temp_map_fake.return_val = 0;
+    EXPECT_NE(0, process_set_entrypoint(&proc, (void *)1));
+    EXPECT_EQ(1, paging_temp_map_fake.call_count);
+    ASSERT_TEMP_MAP_BALANCE_OFFSET(1);
+}
+
+TEST_F(Process, process_set_entrypoint_FailMapTable) {
+    void * paging_temp_map_seq[2] = {(void *)2, 0};
+    SET_RETURN_SEQ(paging_temp_map, paging_temp_map_seq, 2);
+
+    EXPECT_NE(0, process_set_entrypoint(&proc, (void *)1));
+    EXPECT_EQ(2, paging_temp_map_fake.call_count);
+    ASSERT_TEMP_MAP_BALANCE_OFFSET(1);
+}
+
+TEST_F(Process, process_set_entrypoint_FailMapStack) {
+    void * paging_temp_map_seq[3] = {(void *)2, (void *)3, 0};
+    SET_RETURN_SEQ(paging_temp_map, paging_temp_map_seq, 3);
+
+    EXPECT_NE(0, process_set_entrypoint(&proc, (void *)1));
+    EXPECT_EQ(3, paging_temp_map_fake.call_count);
+    ASSERT_TEMP_MAP_BALANCE_OFFSET(1);
+}
+
+TEST_F(Process, process_set_entrypoint) {
+    paging_temp_map_fake.return_val = temp_page.data();
+    proc.esp                        = (int)temp_page.data() + temp_page.size() - 1;
+    EXPECT_EQ(0, process_set_entrypoint(&proc, (void *)3));
+
+    // TODO eip on stack
+
+    EXPECT_EQ((int)temp_page.data() + temp_page.size() - (4 * 5), proc.esp);
+}
+
+// Process Resume
+
+TEST_F(Process, process_resume_InvalidParameters) {
+    EXPECT_NE(0, process_resume(0, 0));
+    EXPECT_EQ(0, tss_set_esp0_fake.call_count);
+    EXPECT_EQ(0, mmu_change_dir_fake.call_count);
+    proc.state = PROCESS_STATE_DEAD;
+    EXPECT_NE(0, process_resume(0, 0));
+}
+
+TEST_F(Process, process_resume_ProcessDead) {
+    proc.state = PROCESS_STATE_DEAD;
+    EXPECT_NE(0, process_resume(&proc, 0));
+    proc.state = PROCESS_STATE_ERROR;
+    EXPECT_NE(0, process_resume(&proc, 0));
+}
+
+TEST_F(Process, process_resume_ProcessUnloaded) {
+    proc.state = PROCESS_STATE_LOADING;
+    EXPECT_NE(0, process_resume(&proc, 0));
+}
+
+static void customswitch_task(process_t *) {
+    ASSERT_EQ(PROCESS_STATE_RUNNING, proc.state);
+    ASSERT_EQ(PROCESS_STATE_SUSPENDED, alt_proc.state);
+}
+
+TEST_F(Process, process_resume) {
+    proc.esp                        = 1;
+    proc.esp0                       = 3;
+    proc.cr3                        = 4;
+    switch_task_fake.custom_fake    = customswitch_task;
+    proc.state                      = PROCESS_STATE_SUSPENDED;
+    alt_proc.state                  = PROCESS_STATE_RUNNING;
+    get_active_task_fake.return_val = &alt_proc;
+    EXPECT_EQ(0, process_resume(&proc, (ebus_event_t *)5));
+    ASSERT_EQ(1, switch_task_fake.call_count);
+    EXPECT_EQ(&proc, switch_task_fake.arg0_val);
+    EXPECT_EQ(PROCESS_STATE_RUNNING, alt_proc.state);
 }
 
 // Process Add Pages

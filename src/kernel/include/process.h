@@ -4,7 +4,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "ebus.h"
 #include "libc/datastruct/array.h"
+#include "memory_alloc.h"
 
 typedef void (*signals_master_cb_t)(int);
 
@@ -18,22 +20,36 @@ typedef struct _handle {
     int type;
 } handle_t;
 
+enum PROCESS_STATE {
+    PROCESS_STATE_STARTING = 0,
+    PROCESS_STATE_LOADING,
+    PROCESS_STATE_LOADED,
+    PROCESS_STATE_SUSPENDED,
+    PROCESS_STATE_WAITING,
+    PROCESS_STATE_RUNNING,
+    PROCESS_STATE_DEAD,
+    PROCESS_STATE_ERROR,
+};
+
 typedef struct _process {
+    uint32_t cr3;
+    uint32_t esp;
+    uint32_t esp0;
+
     uint32_t pid;
     uint32_t next_heap_page;
     uint32_t stack_page_count;
 
     // TODO heap & stack limits
 
-    uint32_t cr3;
-    uint32_t esp;
-    uint32_t esp0;
-
     signals_master_cb_t signals_callback;
+    arr_t               io_handles; // array<handle_t>
+    ebus_t              event_queue;
+    memory_t            memory;
 
-    arr_t io_handles; // array<handle_t>
-
-    struct _process * next_proc;
+    uint32_t           filter_event;
+    enum PROCESS_STATE state;
+    struct _process *  next_proc;
 } process_t;
 
 /**
@@ -55,6 +71,30 @@ int process_create(process_t * proc);
  * @return int 0 for success
  */
 int process_free(process_t * proc);
+
+/**
+ * @brief Set the entry point or eip of the process.
+ *
+ * This entrypoint is used when the process starts or is resumed.
+ *
+ * @param proc pointer to the process object
+ * @param entrypoint eip or address of the entrypoint or function
+ * @return int 0 for success
+ */
+int process_set_entrypoint(process_t * proc, void * entrypoint);
+
+/**
+ * @brief Activate and jump to the process.
+ *
+ * If the jump is successful this function will never return. Returning from
+ * this function signals an error. If this is the first call, the entrypoint is
+ * used. If this is resuming from a yield, the last eip will be used.
+ *
+ * @param proc pointer to the process object
+ * @param event ebus event to return from yield or 0
+ * @return int No Return, if this function returns it is an error
+ */
+int process_resume(process_t * proc, const ebus_event_t * event);
 
 /**
  * @brief Add `count` pages to the process heap.
@@ -104,15 +144,8 @@ int process_load_heap(process_t * proc, const char * buff, size_t size);
  */
 void set_next_pid(uint32_t next);
 
-// Old
-
-extern void set_first_task(process_t * next_proc);
-extern void switch_to_task(process_t * next_proc);
-
-typedef struct _proc_man {
-    process_t * idle_task;
-    process_t * task_begin;
-    process_t * curr_task;
-} proc_man_t;
+extern void        set_active_task(process_t * active);
+extern process_t * get_active_task(void);
+extern void        switch_task(process_t * proc);
 
 #endif // KERNEL_PROCESS_H

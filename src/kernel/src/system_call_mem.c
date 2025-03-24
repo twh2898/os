@@ -13,11 +13,11 @@ int sys_call_mem_cb(uint16_t int_no, void * args_data, registers_t * regs) {
         case SYS_INT_MEM_PAGE_ALLOC: {
             struct _args {
                 size_t count;
-            } args = *(struct _args *)args_data;
+            } * args = (struct _args *)args_data;
 
             process_t * curr_proc = get_current_process();
 
-            res = PTR2UINT(process_add_pages(curr_proc, args.count));
+            res = PTR2UINT(process_add_pages(curr_proc, args->count));
         } break;
     }
 

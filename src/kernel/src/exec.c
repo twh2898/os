@@ -2,7 +2,9 @@
 
 #include "cpu/mmu.h"
 #include "cpu/tss.h"
+#include "kernel.h"
 #include "libc/memory.h"
+#include "libc/proc.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
 #include "paging.h"
@@ -27,25 +29,14 @@ int command_exec(uint8_t * buff, size_t size, size_t argc, char ** argv) {
         return -1;
     }
 
-    puts("Go for call\n");
+    process_set_entrypoint(proc, UINT2PTR(VADDR_USER_MEM));
+    process_add_pages(proc, 32);
+    pm_add_proc(kernel_get_proc_man(), proc);
 
-    ff_t call = UINT2PTR(VADDR_USER_MEM);
+    int res = pm_resume_process(kernel_get_proc_man(), proc->pid, 0);
 
-    // mmu_change_dir(proc->cr3);
-
-    tss_get_entry(0)->esp0 = proc->esp0;
-    tss_get_entry(0)->cr3  = proc->cr3;
-    tss_get_entry(0)->esp  = proc->esp;
-
-    jump_proc(proc->cr3, proc->esp, VADDR_USER_MEM);
-
-    int res = call(argc, argv);
-
-    puts("Done\n");
-
+    pm_remove_proc(kernel_get_proc_man(), proc->pid);
     process_free(proc);
-
-    puts("All good!\n");
 
     return res;
 }
