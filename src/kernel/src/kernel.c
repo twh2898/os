@@ -37,10 +37,6 @@ static kernel_t __kernel;
 
 extern _Noreturn void halt(void);
 
-static void handle_launch(const ebus_event_t * event);
-static void handle_kill(const ebus_event_t * event);
-// static void init_idle_proc();
-static void idle();
 static void id_map_range(mmu_table_t * table, size_t start, size_t end);
 static void id_map_page(mmu_table_t * table, size_t page);
 static void cursor();
@@ -103,14 +99,6 @@ void kernel_main() {
     init_gdt();
     init_tss();
 
-    // if (process_create(&__kernel.proc)) {
-    //     KPANIC("Failed to create kernel process");
-    // }
-
-    // process_set_entrypoint(&__kernel.proc, idle);
-    // process_resume(&__kernel.proc, 0);
-    // halt();
-
     // Kernel process used for memory allocation
     __kernel.proc.next_heap_page = ADDR2PAGE(VADDR_RAM_BITMASKS) + ram_region_table_count();
     __kernel.proc.cr3            = PADDR_KERNEL_DIR;
@@ -146,18 +134,6 @@ void kernel_main() {
     if (ebus_create(&__kernel.event_bus, 4096)) {
         KPANIC("Failed to init ebus\n");
     }
-
-    ebus_handler_t launch_handler = {0};
-    launch_handler.callback_fn    = handle_launch;
-    launch_handler.event_id       = EBUS_EVENT_TASK_SWITCH;
-    launch_handler.pid            = 0;
-    ebus_register_handler(&__kernel.event_bus, &launch_handler);
-
-    ebus_handler_t kill_handler = {0};
-    kill_handler.callback_fn    = handle_kill;
-    kill_handler.event_id       = EBUS_EVENT_TASK_KILL;
-    launch_handler.pid          = 0;
-    ebus_register_handler(&__kernel.event_bus, &kill_handler);
 
     irq_install();
 
@@ -227,22 +203,6 @@ static void bar_task() {
     }
 }
 
-static void handle_launch(const ebus_event_t * event) {
-    printf("Start task %u\n", event->task_switch.next_task_pid);
-    process_t * proc = pm_find_pid(&__kernel.pm, event->task_switch.next_task_pid);
-    process_resume(proc, 0);
-}
-
-static void handle_kill(const ebus_event_t * event) {
-    printf("Kill task %u\n", event->task_switch.next_task_pid);
-    process_t * proc = pm_find_pid(&__kernel.pm, event->task_kill.task_pid);
-    if (pm_remove_proc(&__kernel.pm, proc->pid)) {
-        KPANIC("Failed to remove process from pm");
-    }
-
-    process_free(proc);
-}
-
 int kernel_switch_task(int next_pid) {
     return pm_resume_process(&__kernel.pm, next_pid, 0);
 }
@@ -275,14 +235,6 @@ void tmp_register_signals_cb(signals_master_cb_t cb) {
     get_active_task()->signals_callback = cb;
     printf("Attached master signal callback at %p\n", get_active_task()->signals_callback);
 }
-
-// ebus_event_t * pull_event(int event_id) {
-//     process_t * proc   = get_current_process();
-//     proc->filter_event = event_id;
-//     kernel_next_task();
-
-//     return 0;
-// }
 
 int kernel_add_task(process_t * proc) {
     return pm_add_proc(&__kernel.pm, proc);
