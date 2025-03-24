@@ -89,6 +89,13 @@ int sys_call_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
                 ebus_event_t * event;
             } * args = (struct _args *)args_data;
 
+            if (!args->event) {
+                return -1;
+            }
+
+            process_t * proc        = get_current_process();
+            args->event->source_pid = proc->pid;
+
             ebus_push(get_kernel_ebus(), args->event);
         } break;
 

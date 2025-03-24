@@ -15,7 +15,6 @@ NO_RETURN void proc_panic(const char * msg, const char * file, unsigned int line
 }
 
 void queue_event(ebus_event_t * event) {
-    event->source_pid = getpid();
     _sys_queue_event(event);
 }
 
