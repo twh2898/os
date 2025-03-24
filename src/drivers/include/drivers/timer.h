@@ -1,5 +1,5 @@
-#ifndef TIMER_H
-#define TIMER_H
+#ifndef DRIVER_TIMER_H
+#define DRIVER_TIMER_H
 
 #include <stdint.h>
 
@@ -28,4 +28,4 @@ uint32_t get_time_s();
 uint32_t get_time_ms();
 uint32_t get_time_ns();
 
-#endif // TIMER_H
+#endif // DRIVER_TIMER_H

@@ -1,5 +1,5 @@
-#ifndef RTC_H
-#define RTC_H
+#ifndef DRIVER_RTC_H
+#define DRIVER_RTC_H
 
 #include <stdint.h>
 
@@ -38,4 +38,4 @@ uint32_t time_s();
 
 rtc_time_t * rtc_time();
 
-#endif // RTC_H
+#endif // DRIVER_RTC_H
