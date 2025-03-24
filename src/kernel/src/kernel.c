@@ -256,18 +256,6 @@ int kernel_close_process(process_t * proc) {
         next = __kernel.pm.idle_task;
     }
 
-    ebus_event_t launch_event;
-    launch_event.event_id                  = EBUS_EVENT_TASK_SWITCH;
-    launch_event.task_switch.next_task_pid = next->pid;
-
-    queue_event(&launch_event);
-
-    ebus_event_t kill_event;
-    kill_event.event_id           = EBUS_EVENT_TASK_KILL;
-    kill_event.task_kill.task_pid = proc->pid;
-
-    queue_event(&kill_event);
-
     return 0;
 }
 
