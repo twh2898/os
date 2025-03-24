@@ -82,6 +82,4 @@ typedef enum keyboard_key {
 
 void init_keyboard();
 
-char keyboard_char(uint8_t code, bool shift);
-
 #endif // KEYBOARD_H

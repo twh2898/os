@@ -56,7 +56,7 @@ static void dump_buff() {
 }
 
 static void key_cb(uint8_t code, char c, keyboard_event_t event, keyboard_mod_t mod) {
-    if (event != KEY_EVENT_PRESS && c) {
+    if (event == KEY_EVENT_PRESS && c) {
         if (cb_len(&keybuff) >= MAX_CHARS) {
             ERROR("key buffer overflow");
             printf("(%u out of %u)", cb_len(&keybuff), MAX_CHARS);

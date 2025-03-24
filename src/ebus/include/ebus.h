@@ -37,6 +37,10 @@ typedef struct _ebus_event {
             uint32_t time;
         } timer;
         struct {
+            // raw = 0x83
+            // keycode = 0x03
+            // event = PRESS
+            // mods = SHIFT + ALT
             uint8_t  event;
             uint8_t  mods;
             char     c;
