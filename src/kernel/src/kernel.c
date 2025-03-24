@@ -355,13 +355,13 @@ static void cursor() {
 static void irq_install() {
     enable_interrupts();
     /* IRQ0: timer */
-    // init_timer(TIMER_FREQ_MS); // milliseconds
+    init_timer(TIMER_FREQ_MS); // milliseconds
     /* IRQ1: keyboard */
     init_keyboard();
     /* IRQ14: ata disk */
     init_ata();
     /* IRQ8: real time clock */
-    // init_rtc(RTC_RATE_1024_HZ);
+    init_rtc(RTC_RATE_1024_HZ);
 }
 
 static int kill(size_t argc, char ** argv) {
