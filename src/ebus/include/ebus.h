@@ -24,8 +24,6 @@ enum EBUS_EVENT {
     EBUS_EVENT_ANY = 0,
     EBUS_EVENT_TIMER,
     EBUS_EVENT_KEY,
-    EBUS_EVENT_TASK_SWITCH,
-    EBUS_EVENT_TASK_KILL,
 };
 
 typedef struct _ebus_event {
@@ -37,22 +35,12 @@ typedef struct _ebus_event {
             uint32_t time;
         } timer;
         struct {
-            // raw = 0x83
-            // keycode = 0x03
-            // event = PRESS
-            // mods = SHIFT + ALT
             uint8_t  event;
             uint8_t  mods;
             char     c;
             uint32_t keycode;
             uint32_t scancode;
         } key;
-        struct {
-            uint32_t next_task_pid;
-        } task_switch;
-        struct {
-            uint32_t task_pid;
-        } task_kill;
     };
 } ebus_event_t;
 
