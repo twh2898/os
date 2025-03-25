@@ -1,5 +1,5 @@
-#ifndef VGA_H
-#define VGA_H
+#ifndef DRIVER_VGA_H
+#define DRIVER_VGA_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -167,4 +167,4 @@ size_t vga_putu(unsigned int num);
  */
 size_t vga_putx(unsigned int num);
 
-#endif // VGA_H
+#endif // DRIVER_VGA_H
