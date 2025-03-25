@@ -160,21 +160,21 @@ void kernel_main() {
         KPANIC("Failed to open tar");
     }
 
-    process_t foo_proc;
-    if (process_create(&foo_proc)) {
+    process_t * foo_proc = kmalloc(sizeof(process_t));
+    if (process_create(foo_proc)) {
         KPANIC("Failed to create foo task");
     }
-    process_set_entrypoint(&foo_proc, foo_task);
-    foo_proc.state = PROCESS_STATE_LOADED;
-    pm_add_proc(&__kernel.pm, &foo_proc);
+    process_set_entrypoint(foo_proc, foo_task);
+    foo_proc->state = PROCESS_STATE_LOADED;
+    pm_add_proc(&__kernel.pm, foo_proc);
 
-    process_t bar_proc;
-    if (process_create(&bar_proc)) {
+    process_t * bar_proc = kmalloc(sizeof(process_t));
+    if (process_create(bar_proc)) {
         KPANIC("Failed to create bar task");
     }
-    process_set_entrypoint(&bar_proc, bar_task);
-    bar_proc.state = PROCESS_STATE_LOADED;
-    pm_add_proc(&__kernel.pm, &bar_proc);
+    process_set_entrypoint(bar_proc, bar_task);
+    bar_proc->state = PROCESS_STATE_LOADED;
+    pm_add_proc(&__kernel.pm, bar_proc);
 
     pm_resume_process(&__kernel.pm, __kernel.pm.idle_task->pid, 0);
 
