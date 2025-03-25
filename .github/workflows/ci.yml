@@ -81,6 +81,7 @@ jobs:
 
       - name: Create tag
         uses: actions/github-script@v5
+        if: "!contains(github.event.head_commit.message, 'NO RELEASE')"
         with:
           script: |
             github.rest.git.createRef({
