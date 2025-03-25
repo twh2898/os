@@ -24,6 +24,7 @@ enum EBUS_EVENT {
     EBUS_EVENT_ANY = 0,
     EBUS_EVENT_TIMER,
     EBUS_EVENT_KEY,
+    EBUS_EVENT_CUSTOM,
 };
 
 typedef struct _ebus_event {
@@ -41,6 +42,11 @@ typedef struct _ebus_event {
             uint32_t keycode;
             uint32_t scancode;
         } key;
+        struct {
+            int    id;
+            void * data;
+            size_t size;
+        } custom;
     };
 } ebus_event_t;
 
