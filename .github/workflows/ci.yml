@@ -62,31 +62,11 @@ jobs:
 
   increment_version:
     name: Increment Version
-    runs-on: ubuntu-latest
+    uses: twh2898/reusable-workflows/.github/workflows/increment_version.yml@main
     if: github.ref == 'refs/heads/main'
+    secrets: inherit
 
     needs: [test, lint]
 
     permissions:
       contents: write
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Get next version
-        uses: reecetech/version-increment@2024.10.1
-        id: version
-        with:
-          scheme: conventional_commits
-
-      - name: Create tag
-        uses: actions/github-script@v5
-        if: "!contains(github.event.head_commit.message, 'NO RELEASE')"
-        with:
-          script: |
-            github.rest.git.createRef({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: 'refs/tags/${{ steps.version.outputs.version }}',
-              sha: context.sha
-            })
