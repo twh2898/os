@@ -11,7 +11,7 @@ int arr_create(arr_t * arr, size_t size, size_t elem_size) {
         return -1;
     }
 
-    arr->data = kmalloc(size * elem_size);
+    arr->data = pmalloc(size * elem_size);
     if (!arr->data) {
         return -1;
     }
@@ -25,7 +25,7 @@ int arr_create(arr_t * arr, size_t size, size_t elem_size) {
 
 void arr_free(arr_t * arr) {
     if (arr && arr->data) {
-        kfree(arr->data);
+        pfree(arr->data);
         arr->data = 0;
     }
 }
@@ -119,7 +119,7 @@ static void * arr_at_no_limit(const arr_t * arr, size_t i) {
 
 static int grow_array(arr_t * arr) {
     size_t new_size = arr->size + (arr->size / 2);
-    void * new_data = krealloc(arr->data, new_size);
+    void * new_data = prealloc(arr->data, new_size);
     if (!new_data) {
         return -1;
     }

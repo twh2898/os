@@ -19,8 +19,8 @@ protected:
         arr_create(&arr, 3, 1);
         arr_size(&arr);
 
-        RESET_FAKE(kmalloc);
-        kmalloc_fake.custom_fake = malloc;
+        RESET_FAKE(pmalloc);
+        pmalloc_fake.custom_fake = malloc;
     }
 
     void TearDown() override {
@@ -42,15 +42,15 @@ TEST_F(Array, arr_create) {
     EXPECT_NE(0, arr_create(0, 0, 1));
     EXPECT_NE(0, arr_create(&arr, 1, 0));
     EXPECT_NE(0, arr_create(&arr, 0, 1));
-    EXPECT_EQ(0, kmalloc_fake.call_count);
-    EXPECT_EQ(0, kfree_fake.call_count);
+    EXPECT_EQ(0, pmalloc_fake.call_count);
+    EXPECT_EQ(0, pfree_fake.call_count);
 
     // Good args
     EXPECT_EQ(0, arr_create(&arr, 4, 1));
     EXPECT_EQ(0, arr_size(&arr));
 
-    ASSERT_EQ(1, kmalloc_fake.call_count);
-    EXPECT_EQ(4, kmalloc_fake.arg0_val);
+    ASSERT_EQ(1, pmalloc_fake.call_count);
+    EXPECT_EQ(4, pmalloc_fake.arg0_val);
 
     arr_free(&arr);
 
@@ -60,31 +60,31 @@ TEST_F(Array, arr_create) {
     EXPECT_EQ(0, arr_create(&arr, 4, 2));
     EXPECT_EQ(0, arr_size(&arr));
 
-    ASSERT_EQ(1, kmalloc_fake.call_count);
-    EXPECT_EQ(8, kmalloc_fake.arg0_val);
+    ASSERT_EQ(1, pmalloc_fake.call_count);
+    EXPECT_EQ(8, pmalloc_fake.arg0_val);
 
     arr_free(&arr);
 
     SetUp();
 
-    kmalloc_fake.custom_fake = 0;
-    kmalloc_fake.return_val  = 0;
+    pmalloc_fake.custom_fake = 0;
+    pmalloc_fake.return_val  = 0;
 
     // First malloc fails
     EXPECT_NE(0, arr_create(&arr, 4, 1));
-    EXPECT_EQ(1, kmalloc_fake.call_count);
-    EXPECT_EQ(4, kmalloc_fake.arg0_val);
+    EXPECT_EQ(1, pmalloc_fake.call_count);
+    EXPECT_EQ(4, pmalloc_fake.arg0_val);
 }
 
 TEST_F(Array, arr_free) {
     // Invalid parameters
     arr_free(0);
-    EXPECT_EQ(0, kfree_fake.call_count);
+    EXPECT_EQ(0, pfree_fake.call_count);
 
     void * data = arr.data;
     arr_free(&arr);
-    EXPECT_EQ(1, kfree_fake.call_count);
-    EXPECT_EQ(data, kfree_fake.arg0_val);
+    EXPECT_EQ(1, pfree_fake.call_count);
+    EXPECT_EQ(data, pfree_fake.arg0_val);
     EXPECT_EQ(0, arr.data);
 }
 
@@ -114,9 +114,9 @@ TEST_F(Array, arr_size) {
     EXPECT_EQ(0, arr_insert(&arr, 3, &c));
     EXPECT_EQ(4, arr_size(&arr));
 
-    ASSERT_EQ(1, krealloc_fake.call_count);
-    EXPECT_EQ(old_data, krealloc_fake.arg0_val);
-    EXPECT_EQ(4, krealloc_fake.arg1_val);
+    ASSERT_EQ(1, prealloc_fake.call_count);
+    EXPECT_EQ(old_data, prealloc_fake.arg0_val);
+    EXPECT_EQ(4, prealloc_fake.arg1_val);
 }
 
 TEST_F(Array, arr_data) {
@@ -263,8 +263,8 @@ TEST_F(Array, arr_insert) {
 TEST_F(Array, array_insert_grow_fails) {
     fill_array();
 
-    krealloc_fake.custom_fake = 0;
-    krealloc_fake.return_val  = 0;
+    prealloc_fake.custom_fake = 0;
+    prealloc_fake.return_val  = 0;
 
     char c = '1';
     EXPECT_NE(0, arr_insert(&arr, 0, &c));

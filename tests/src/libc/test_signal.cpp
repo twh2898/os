@@ -23,13 +23,13 @@ protected:
 TEST_F(Signal, register_signal) {
     // Invalid parameters
     EXPECT_NE(0, register_signal(0, 0));
-    EXPECT_EQ(0, kmalloc_fake.call_count);
+    EXPECT_EQ(0, pmalloc_fake.call_count);
     EXPECT_EQ(0, _sys_register_signals_fake.call_count);
 
     // Success
     EXPECT_EQ(0, register_signal(0, callback));
-    EXPECT_EQ(1, kmalloc_fake.call_count);
-    EXPECT_EQ(12, kmalloc_fake.arg0_val);
+    EXPECT_EQ(1, pmalloc_fake.call_count);
+    EXPECT_EQ(12, pmalloc_fake.arg0_val);
 
     signal_callback_t signal_callback = (signal_callback_t)_sys_register_signals_fake.arg0_val;
 
@@ -39,15 +39,15 @@ TEST_F(Signal, register_signal) {
     signal_callback(1);
     EXPECT_EQ(1, callback_fake.call_count);
 
-    RESET_FAKE(kmalloc);
-    kmalloc_fake.custom_fake = malloc;
+    RESET_FAKE(pmalloc);
+    pmalloc_fake.custom_fake = malloc;
 
     // Duplicate registered
     EXPECT_NE(0, register_signal(0, callback));
-    EXPECT_EQ(0, kmalloc_fake.call_count);
+    EXPECT_EQ(0, pmalloc_fake.call_count);
 
-    kmalloc_fake.custom_fake = 0;
-    kmalloc_fake.return_val  = 0;
+    pmalloc_fake.custom_fake = 0;
+    pmalloc_fake.return_val  = 0;
 
     // malloc fails
     EXPECT_NE(0, register_signal(1, callback));

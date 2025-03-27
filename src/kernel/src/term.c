@@ -340,9 +340,9 @@ static void exec_buff() {
 
     // Free parsed args
     for (size_t i = 0; i < argc; i++) {
-        kfree(argv[i]);
+        pfree(argv[i]);
     }
-    kfree(argv);
+    pfree(argv);
 }
 
 static bool is_ws(char c) {
@@ -412,7 +412,7 @@ static char ** parse_args(const char * line, size_t * out_len) {
     }
 
     *out_len      = len;
-    char ** args  = kmalloc(sizeof(char *) * len);
+    char ** args  = pmalloc(sizeof(char *) * len);
     size_t  arg_i = 0;
 
     while (*line) {
@@ -443,7 +443,7 @@ static char ** parse_args(const char * line, size_t * out_len) {
 
             line++;
 
-            args[arg_i] = kmalloc(sizeof(char) * next);
+            args[arg_i] = pmalloc(sizeof(char) * next);
             kmemcpy(args[arg_i], line, next - 1);
             args[arg_i][next - 1] = 0;
             arg_i++;
@@ -459,7 +459,7 @@ static char ** parse_args(const char * line, size_t * out_len) {
         }
 
         size_t word_len = line - start;
-        args[arg_i]     = kmalloc(sizeof(char) * word_len + 1);
+        args[arg_i]     = pmalloc(sizeof(char) * word_len + 1);
         kmemcpy(args[arg_i], start, word_len);
         args[arg_i][word_len] = 0;
         arg_i++;

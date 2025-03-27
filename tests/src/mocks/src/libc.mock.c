@@ -8,18 +8,18 @@
 
 // libc/memory.h
 
-DEFINE_FAKE_VALUE_FUNC(void *, kmalloc, size_t);
-DEFINE_FAKE_VALUE_FUNC(void *, krealloc, void *, size_t);
-DEFINE_FAKE_VOID_FUNC(kfree, void *);
+DEFINE_FAKE_VALUE_FUNC(void *, pmalloc, size_t);
+DEFINE_FAKE_VALUE_FUNC(void *, prealloc, void *, size_t);
+DEFINE_FAKE_VOID_FUNC(pfree, void *);
 
 void reset_libc_memory_mock(void) {
-    RESET_FAKE(kmalloc);
-    RESET_FAKE(krealloc);
-    RESET_FAKE(kfree);
+    RESET_FAKE(pmalloc);
+    RESET_FAKE(prealloc);
+    RESET_FAKE(pfree);
 
-    kmalloc_fake.custom_fake  = malloc;
-    krealloc_fake.custom_fake = realloc;
-    kfree_fake.custom_fake    = free;
+    pmalloc_fake.custom_fake  = malloc;
+    prealloc_fake.custom_fake = realloc;
+    pfree_fake.custom_fake    = free;
 }
 
 // libc/proc.h

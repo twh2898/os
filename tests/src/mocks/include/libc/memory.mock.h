@@ -7,9 +7,9 @@ extern "C" {
 #include "fff.h"
 #include "libc/memory.h"
 
-DECLARE_FAKE_VALUE_FUNC(void *, kmalloc, size_t);
-DECLARE_FAKE_VALUE_FUNC(void *, krealloc, void *, size_t);
-DECLARE_FAKE_VOID_FUNC(kfree, void *);
+DECLARE_FAKE_VALUE_FUNC(void *, pmalloc, size_t);
+DECLARE_FAKE_VALUE_FUNC(void *, prealloc, void *, size_t);
+DECLARE_FAKE_VOID_FUNC(pfree, void *);
 
 void reset_libc_memory_mock(void);
 
