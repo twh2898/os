@@ -18,6 +18,9 @@ extern _Noreturn void jump_proc(uint32_t cr3, uint32_t esp, uint32_t call);
 int command_exec(uint8_t * buff, size_t size, size_t argc, char ** argv) {
     process_t * proc = kmalloc(sizeof(process_t));
 
+    process_t * active = get_active_task();
+    set_active_task(&get_kernel()->proc);
+
     if (process_create(proc)) {
         puts("Failed to create process\n");
         return -1;
@@ -37,6 +40,8 @@ int command_exec(uint8_t * buff, size_t size, size_t argc, char ** argv) {
 
     pm_remove_proc(kernel_get_proc_man(), proc->pid);
     process_free(proc);
+
+    set_active_task(active);
 
     return res;
 }

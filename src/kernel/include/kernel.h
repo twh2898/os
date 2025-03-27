@@ -46,6 +46,8 @@ mmu_table_t * get_kernel_table();
 disk_t *   kernel_get_disk();
 tar_fs_t * kernel_get_tar();
 
+kernel_t * get_kernel();
+
 process_t * get_current_process();
 
 ebus_t *     get_kernel_ebus();

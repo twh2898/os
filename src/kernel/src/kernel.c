@@ -276,6 +276,10 @@ NO_RETURN void kernel_panic(const char * msg, const char * file, unsigned int li
     halt();
 }
 
+kernel_t * get_kernel() {
+    return &__kernel;
+}
+
 proc_man_t * kernel_get_proc_man() {
     return &__kernel.pm;
 }
