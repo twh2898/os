@@ -11,7 +11,7 @@ int __start(size_t argc, char ** argv) {
     int store = 0;
     len += printf("The last part is pointers %8p\n", &store);
 
-    void * data = kmalloc(10);
+    void * data = pmalloc(10);
 
     printf("\nMalloc memory got pointer %p\n", data);
     printf("Float number %f or shorter %3f or digits %.4f or lead %.04f\n", 3.14, 31.45, 3.14, 3.14);

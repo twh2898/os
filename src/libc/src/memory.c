@@ -9,14 +9,14 @@ void init_malloc(memory_t * memory) {
     __memory = memory;
 }
 
-void * kmalloc(size_t size) {
+void * pmalloc(size_t size) {
     return memory_alloc(__memory, size);
 }
 
-void * krealloc(void * ptr, size_t size) {
+void * prealloc(void * ptr, size_t size) {
     return memory_realloc(__memory, ptr, size);
 }
 
-void kfree(void * ptr) {
+void pfree(void * ptr) {
     memory_free(__memory, ptr);
 }

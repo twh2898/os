@@ -22,26 +22,26 @@ protected:
     }
 };
 
-TEST_F(LibC, kmalloc) {
-    void * ptr = kmalloc(12);
+TEST_F(LibC, pmalloc) {
+    void * ptr = pmalloc(12);
     EXPECT_EQ(1, memory_alloc_fake.call_count);
     EXPECT_EQ(&memory, memory_alloc_fake.arg0_val);
     EXPECT_EQ(12, memory_alloc_fake.arg1_val);
 }
 
-TEST_F(LibC, krealloc) {
+TEST_F(LibC, prealloc) {
     char buff[12];
 
-    void * ptr = krealloc(buff, 12);
+    void * ptr = prealloc(buff, 12);
     EXPECT_EQ(1, memory_realloc_fake.call_count);
     EXPECT_EQ(&memory, memory_realloc_fake.arg0_val);
     EXPECT_EQ(buff, memory_realloc_fake.arg1_val);
     EXPECT_EQ(12, memory_realloc_fake.arg2_val);
 }
 
-TEST_F(LibC, kfree) {
+TEST_F(LibC, pfree) {
     char buff[12];
-    kfree(buff);
+    pfree(buff);
 
     EXPECT_EQ(1, memory_free_fake.call_count);
     EXPECT_EQ(&memory, memory_free_fake.arg0_val);

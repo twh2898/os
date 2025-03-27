@@ -171,7 +171,7 @@ any pages after the region end should be 0).
 
 ## Paging Allocator (`memory.h`)
 
-Paging allocator (aka `kmalloc` and `kfree`) is responsible for connecting the
+Paging allocator (aka `pmalloc` and `pfree`) is responsible for connecting the
 physical memory allocator (ram) and page tables (mmu). This allocator keeps a
 linked list of tables, 1022 entries each.
 

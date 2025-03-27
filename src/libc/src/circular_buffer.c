@@ -11,7 +11,7 @@ int cb_create(cb_t * cb, size_t size, size_t elem_size) {
         return -1;
     }
 
-    cb->buff = kmalloc(size * elem_size);
+    cb->buff = pmalloc(size * elem_size);
     if (!cb->buff) {
         return -1;
     }
@@ -26,7 +26,7 @@ int cb_create(cb_t * cb, size_t size, size_t elem_size) {
 
 void cb_free(cb_t * cb) {
     if (cb && cb->buff) {
-        kfree(cb->buff);
+        pfree(cb->buff);
         cb->buff = 0;
     }
 }

@@ -4,6 +4,7 @@
 #include "cpu/ports.h"
 #include "debug.h"
 #include "drivers/rtc.h"
+#include "kernel.h"
 #include "libc/memory.h"
 #include "libc/proc.h"
 #include "libc/stdio.h"
