@@ -284,6 +284,18 @@ process_t * kernel_find_pid(int pid) {
     return pm_find_pid(&__kernel.pm, pid);
 }
 
+void * kmalloc(size_t size) {
+    return memory_alloc(&__kernel.kernel_memory, size);
+}
+
+void * krealloc(void * ptr, size_t size) {
+    return memory_realloc(&__kernel.kernel_memory, ptr, size);
+}
+
+void kfree(void * ptr) {
+    memory_free(&__kernel.kernel_memory, ptr);
+}
+
 static void cursor() {
     vga_cursor(3, 3);
 

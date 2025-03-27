@@ -1,5 +1,6 @@
 #include "io/file.h"
 
+#include "kernel.h"
 #include "libc/memory.h"
 #include "libk/sys_call.h"
 
