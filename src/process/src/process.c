@@ -23,6 +23,36 @@ int process_create(process_t * proc) {
         return -1;
     }
 
+    // Setup page directory
+    mmu_dir_t * dir = paging_temp_map(proc->cr3);
+
+    if (!dir) {
+        ram_page_free(proc->cr3);
+        return -1;
+    }
+
+    uint32_t kernel_table_addr = mmu_dir_get_addr((mmu_dir_t *)VADDR_KERNEL_DIR, 0);
+
+    // Copy first page table from kernel page directory
+    mmu_dir_clear(dir);
+    mmu_dir_set(dir, 0, kernel_table_addr, MMU_DIR_RW);
+
+    proc->esp  = VADDR_USER_STACK;
+    proc->esp0 = VADDR_ISR_STACK;
+
+    // Allocate pages for ISR stack + first page of user stack
+    if (paging_add_pages(dir, ADDR2PAGE(proc->esp), ADDR2PAGE(proc->esp0))) {
+        paging_temp_free(proc->cr3);
+        ram_page_free(proc->cr3);
+        return -1;
+    }
+
+    proc->pid              = next_pid();
+    proc->next_heap_page   = ADDR2PAGE(VADDR_USER_MEM);
+    proc->stack_page_count = 1;
+
+    paging_temp_free(proc->cr3);
+
     if (arr_create(&proc->io_handles, 1, sizeof(handle_t))) {
         ram_page_free(proc->cr3);
         return -1;
@@ -40,40 +70,6 @@ int process_create(process_t * proc) {
         ram_page_free(proc->cr3);
         return -1;
     }
-
-    // Setup page directory
-    mmu_dir_t * dir = paging_temp_map(proc->cr3);
-
-    if (!dir) {
-        ebus_free(&proc->event_queue);
-        arr_free(&proc->io_handles);
-        ram_page_free(proc->cr3);
-        return -1;
-    }
-
-    uint32_t kernel_table_addr = mmu_dir_get_addr((mmu_dir_t *)VADDR_KERNEL_DIR, 0);
-
-    // Copy first page table from kernel page directory
-    mmu_dir_clear(dir);
-    mmu_dir_set(dir, 0, kernel_table_addr, MMU_DIR_RW);
-
-    proc->esp  = VADDR_USER_STACK;
-    proc->esp0 = VADDR_ISR_STACK;
-
-    // Allocate pages for ISR stack + first page of user stack
-    if (paging_add_pages(dir, ADDR2PAGE(proc->esp), ADDR2PAGE(proc->esp0))) {
-        ebus_free(&proc->event_queue);
-        arr_free(&proc->io_handles);
-        paging_temp_free(proc->cr3);
-        ram_page_free(proc->cr3);
-        return -1;
-    }
-
-    proc->pid              = next_pid();
-    proc->next_heap_page   = ADDR2PAGE(VADDR_USER_MEM);
-    proc->stack_page_count = 1;
-
-    paging_temp_free(proc->cr3);
 
     return 0;
 }
