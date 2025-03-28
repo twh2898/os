@@ -32,7 +32,7 @@ run-debug:
 
 debug:
 	$(QEMU) -s -S $(QEMUFLAGS) &
-	$(GDB) -ex "target remote localhost:1234" -ex "symbol-file build/src/kernel/kernel.elf" -ex "b kernel_main" -ex "b isr_handler"
+	$(GDB) -ex "target remote localhost:1234" -ex "symbol-file build/src/kernel/kernel.elf" -ex "add-symbol-file build/src/apps/foo/foo.elf" -ex "b kernel_main" -ex "b isr_handler"
 
 boot-debug:
 	$(QEMU) -s -S $(QEMUFLAGS) &

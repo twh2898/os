@@ -42,6 +42,11 @@ typedef struct _process {
 
     // TODO heap & stack limits
 
+    char *  filepath;
+    int     argc;
+    char ** argv;
+    int     status_code;
+
     signals_master_cb_t signals_callback;
     arr_t               io_handles; // array<handle_t>
     ebus_t              event_queue;
