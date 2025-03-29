@@ -109,6 +109,20 @@ will exist the kernel stack for TSS / interrupts.
   - [ ] Copy kernel tables
   - [ ] Point malloc to here
 
+## Getting out of ebus
+
+I think ebus is slowing things down + it doesn't allow for any priority (as
+written). Some calls could be way faster passing control directly to the kernel
+or next / target process. Ebus could still be useful for cases where th event
+cannot be served and must buffer (io, key events, etc.) but exec should use
+system calls.
+
+Description of task and any relevant details / information.
+
+### Tasks
+
+- [ ] 
+
 ## _Template Task_
 
 Description of task and any relevant details / information.
