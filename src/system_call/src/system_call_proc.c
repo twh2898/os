@@ -7,6 +7,7 @@
 #include "ebus.h"
 #include "kernel.h"
 #include "libc/stdio.h"
+#include "libc/string.h"
 #include "libk/defs.h"
 #include "process.h"
 
@@ -125,7 +126,34 @@ int sys_call_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
                 }
             }
             return 0;
-        };
+        } break;
+
+        case SYS_INT_PROC_EXEC: {
+            struct _args {
+                int     argc;
+                char ** argv;
+            } * args = (struct _args *)args_data;
+
+            if (args->argc < 1) {
+                return -1;
+            }
+
+            char ** copy = kmalloc(sizeof(char *) * args->argc);
+            for (size_t i = 0; i < args->argc; i++) {
+                size_t len = kstrlen(args->argv[i]) + 1;
+                copy[i]    = kmalloc(len);
+                kmemcpy(&copy[i], &args->argv[i], len);
+
+                ebus_event_t event;
+                event.event_id  = EBUS_EVENT_EXEC;
+                event.exec.argc = args->argc;
+                event.exec.argv = copy;
+
+                ebus_push(get_kernel_ebus(), &event);
+                kernel_switch_task(get_kernel()->proc.pid);
+            }
+
+        } break;
     }
 
     return res;
