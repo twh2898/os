@@ -42,15 +42,11 @@ static void id_map_page(mmu_table_t * table, size_t page);
 static void cursor();
 static void irq_install();
 static int  kill(size_t argc, char ** argv);
-static int  try_switch(size_t argc, char ** argv);
 static void map_first_table(mmu_table_t * table);
 
 extern void jump_kernel_mode(void * fn);
 
 static int start_shell();
-
-static void foo_task();
-static void bar_task();
 
 void kernel_main() {
     init_vga(UINT2PTR(PADDR_VGA));
@@ -159,49 +155,11 @@ void kernel_main() {
         KPANIC("Failed to open tar");
     }
 
-    // process_t * foo_proc = kmalloc(sizeof(process_t));
-    // if (process_create(foo_proc)) {
-    //     KPANIC("Failed to create foo task");
-    // }
-    // process_set_entrypoint(foo_proc, foo_task);
-    // foo_proc->state = PROCESS_STATE_LOADED;
-    // pm_add_proc(&__kernel.pm, foo_proc);
-
-    // process_t * bar_proc = kmalloc(sizeof(process_t));
-    // if (process_create(bar_proc)) {
-    //     KPANIC("Failed to create bar task");
-    // }
-    // process_set_entrypoint(bar_proc, bar_task);
-    // bar_proc->state = PROCESS_STATE_LOADED;
-    // pm_add_proc(&__kernel.pm, bar_proc);
-
     start_shell();
 
     pm_resume_process(&__kernel.pm, __kernel.pm.idle_task->pid, 0);
 
     KPANIC("You shouldn't be here!");
-}
-
-static void foo_task() {
-    for (;;) {
-        // printf("foo %u\n", getpid());
-        ebus_event_t event;
-        int          ev = pull_event(EBUS_EVENT_KEY, &event);
-        // if (ev == EBUS_EVENT_KEY) {
-        //     printf("Foo got event %u\n", ev);
-        // }
-    }
-}
-
-static void bar_task() {
-    for (;;) {
-        // printf("bar %u\n", getpid());
-        ebus_event_t event;
-        int          ev = pull_event(EBUS_EVENT_ANY, &event);
-        // if (ev == EBUS_EVENT_KEY) {
-        //     printf("Bar got event %u\n", ev);
-        // }
-    }
 }
 
 static int start_shell() {
