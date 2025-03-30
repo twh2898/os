@@ -118,7 +118,7 @@ void kernel_main() {
     system_call_register(SYS_INT_FAMILY_STDIO, sys_call_tmp_stdio_cb);
 
     // Init kernel memory after system calls are registered
-    memory_init(&__kernel.kernel_memory, kernel_alloc_page);
+    memory_init(&__kernel.proc.memory, kernel_alloc_page);
 
     pm_create(&__kernel.pm);
 
@@ -130,7 +130,7 @@ void kernel_main() {
     pm_add_proc(&__kernel.pm, idle);
     // __kernel.pm.task_begin  = &__kernel.proc;
 
-    if (ebus_create(&__kernel.event_bus, 4096)) {
+    if (ebus_create(&__kernel.proc.event_queue, 4096)) {
         KPANIC("Failed to init ebus\n");
     }
 
@@ -223,7 +223,7 @@ process_t * get_current_process() {
 }
 
 ebus_t * get_kernel_ebus() {
-    return &__kernel.event_bus;
+    return &__kernel.proc.event_queue;
 }
 
 disk_t * kernel_get_disk() {
@@ -292,15 +292,15 @@ process_t * kernel_find_pid(int pid) {
 }
 
 void * kmalloc(size_t size) {
-    return memory_alloc(&__kernel.kernel_memory, size);
+    return memory_alloc(&__kernel.proc.memory, size);
 }
 
 void * krealloc(void * ptr, size_t size) {
-    return memory_realloc(&__kernel.kernel_memory, ptr, size);
+    return memory_realloc(&__kernel.proc.memory, ptr, size);
 }
 
 void kfree(void * ptr) {
-    memory_free(&__kernel.kernel_memory, ptr);
+    memory_free(&__kernel.proc.memory, ptr);
 }
 
 static void cursor() {

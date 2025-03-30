@@ -17,8 +17,6 @@ typedef struct _kernel {
     uint32_t   cr3;
     process_t  proc;
     proc_man_t pm;
-    memory_t   kernel_memory;
-    ebus_t     event_bus;
     disk_t *   disk;
     tar_fs_t * tar;
 } kernel_t;
