@@ -117,8 +117,6 @@ or next / target process. Ebus could still be useful for cases where th event
 cannot be served and must buffer (io, key events, etc.) but exec should use
 system calls.
 
-Description of task and any relevant details / information.
-
 ### Tasks
 
 - [ ] 

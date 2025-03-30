@@ -35,8 +35,16 @@ int _sys_io_tell(int handle) {
     return send_call(SYS_INT_IO_TELL, handle);
 }
 
-void * _sys_page_alloc(size_t count) {
-    return UINT2PTR(send_call(SYS_INT_MEM_PAGE_ALLOC, count));
+void * _sys_mem_malloc(size_t size) {
+    return UINT2PTR(send_call(SYS_INT_MEM_MALLOC, size));
+}
+
+void * _sys_mem_realloc(void * ptr, size_t size) {
+    return UINT2PTR(send_call(SYS_INT_MEM_REALLOC, ptr, size));
+}
+
+void _sys_mem_free(void * ptr) {
+    send_call(SYS_INT_MEM_FREE, ptr);
 }
 
 void _sys_proc_exit(uint8_t code) {

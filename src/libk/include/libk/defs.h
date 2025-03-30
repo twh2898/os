@@ -13,7 +13,9 @@
 #define SYS_INT_IO_SEEK  0x0104
 #define SYS_INT_IO_TELL  0x0105
 
-#define SYS_INT_MEM_PAGE_ALLOC 0x0203
+#define SYS_INT_MEM_MALLOC     0x0200
+#define SYS_INT_MEM_REALLOC    0x0201
+#define SYS_INT_MEM_FREE       0x0202
 
 #define SYS_INT_PROC_EXIT        0x0300
 #define SYS_INT_PROC_ABORT       0x0301

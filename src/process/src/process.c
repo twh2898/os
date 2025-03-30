@@ -64,7 +64,7 @@ int process_create(process_t * proc) {
         return -1;
     }
 
-    if (memory_init(&proc->memory, _sys_page_alloc)) {
+    if (memory_init(&proc->memory, kernel_alloc_page)) {
         ebus_free(&proc->event_queue);
         arr_free(&proc->io_handles);
         ram_page_free(proc->cr3);

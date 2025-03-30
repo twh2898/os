@@ -144,12 +144,6 @@ int sys_call_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
                 copy[i]    = kmalloc(len);
                 kmemcpy(&copy[i], &args->argv[i], len);
 
-                ebus_event_t event;
-                event.event_id  = EBUS_EVENT_EXEC;
-                event.exec.argc = args->argc;
-                event.exec.argv = copy;
-
-                ebus_push(get_kernel_ebus(), &event);
                 kernel_switch_task(get_kernel()->proc.pid);
             }
 

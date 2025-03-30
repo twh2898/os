@@ -54,6 +54,8 @@ ebus_t *     get_kernel_ebus();
 proc_man_t * kernel_get_proc_man();
 process_t *  kernel_find_pid(int pid);
 
+void * kernel_alloc_page(size_t count);
+
 void tmp_register_signals_cb(signals_master_cb_t cb);
 
 // ebus_event_t * pull_event(int event_id);

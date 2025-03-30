@@ -20,7 +20,9 @@ int _sys_io_write(int handle, const char * buff, size_t count);
 int _sys_io_seek(int handle, int pos, int seek);
 int _sys_io_tell(int handle);
 
-void * _sys_page_alloc(size_t count);
+void * _sys_mem_malloc(size_t size);
+void * _sys_mem_realloc(void * ptr, size_t size);
+void   _sys_mem_free(void * ptr);
 
 NO_RETURN void _sys_proc_exit(uint8_t code);
 NO_RETURN void _sys_proc_abort(uint8_t code, const char * msg);

@@ -118,8 +118,7 @@ void kernel_main() {
     system_call_register(SYS_INT_FAMILY_STDIO, sys_call_tmp_stdio_cb);
 
     // Init kernel memory after system calls are registered
-    memory_init(&__kernel.kernel_memory, _sys_page_alloc);
-    init_malloc(&__kernel.kernel_memory);
+    memory_init(&__kernel.kernel_memory, kernel_alloc_page);
 
     pm_create(&__kernel.pm);
 
@@ -201,6 +200,10 @@ static void bar_task() {
         //     printf("Bar got event %u\n", ev);
         // }
     }
+}
+
+void * kernel_alloc_page(size_t count) {
+    return process_add_pages(get_active_task(), count);
 }
 
 int kernel_switch_task(int next_pid) {
