@@ -15,7 +15,6 @@
 #include "drivers/timer.h"
 #include "drivers/vga.h"
 #include "exec.h"
-#include "idle.h"
 #include "io/file.h"
 #include "kernel/boot_params.h"
 #include "kernel/system_call.h"
@@ -46,7 +45,8 @@ static void map_first_table(mmu_table_t * table);
 
 extern void jump_kernel_mode(void * fn);
 
-static int start_shell();
+static void idle_loop();
+static int  start_shell();
 
 void kernel_main() {
     init_vga(UINT2PTR(PADDR_VGA));
@@ -120,15 +120,15 @@ void kernel_main() {
 
     pm_create(&__kernel.pm);
 
-    process_t * idle = init_idle();
-    // printf("Idle task pid is %u\n", idle->pid);
-    __kernel.pm.idle_task   = idle;
+    __kernel.pm.idle_task   = &__kernel.proc;
     __kernel.proc.next_proc = __kernel.pm.idle_task;
-    // pm_add_proc(&__kernel.pm, &__kernel.proc);
-    pm_add_proc(&__kernel.pm, idle);
-    // __kernel.pm.task_begin  = &__kernel.proc;
+    pm_add_proc(&__kernel.pm, &__kernel.proc);
 
     if (ebus_create(&__kernel.proc.event_queue, 4096)) {
+        KPANIC("Failed to init ebus\n");
+    }
+
+    if (ebus_create(&__kernel.event_queue, 4096)) {
         KPANIC("Failed to init ebus\n");
     }
 
@@ -159,7 +159,41 @@ void kernel_main() {
 
     pm_resume_process(&__kernel.pm, __kernel.pm.idle_task->pid, 0);
 
+    idle_loop();
+
     KPANIC("You shouldn't be here!");
+}
+
+static int ebus_cycle(ebus_t * bus) {
+    if (!bus) {
+        return -1;
+    }
+
+    while (cb_len(&bus->queue) > 0) {
+        ebus_event_t event;
+        if (cb_pop(&bus->queue, &event)) {
+            return -1;
+        }
+
+        // if (handle_event(bus, &event)) {
+        //     // Handler consumed event
+        //     continue;
+        // }
+
+        if (pm_push_event(kernel_get_proc_man(), &event)) {
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
+static void idle_loop() {
+    for (;;) {
+        ebus_cycle(get_kernel_ebus());
+        asm("hlt");
+        yield();
+    }
 }
 
 static int start_shell() {
@@ -221,7 +255,7 @@ process_t * get_current_process() {
 }
 
 ebus_t * get_kernel_ebus() {
-    return &__kernel.proc.event_queue;
+    return &__kernel.event_queue;
 }
 
 disk_t * kernel_get_disk() {

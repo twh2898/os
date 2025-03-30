@@ -28,7 +28,7 @@ process_t * pm_get_active(proc_man_t * pm) {
 }
 
 process_t * pm_find_pid(proc_man_t * pm, int pid) {
-    if (!pm || pid < 1) {
+    if (!pm || pid < 0) {
         return 0;
     }
 
@@ -56,7 +56,7 @@ int pm_add_proc(proc_man_t * pm, process_t * proc) {
 }
 
 int pm_remove_proc(proc_man_t * pm, int pid) {
-    if (!pm || pid < 1) {
+    if (!pm || pid < 0) {
         return -1;
     }
 
@@ -147,9 +147,15 @@ int pm_push_event(proc_man_t * pm, ebus_event_t * event) {
         return -1;
     }
 
+    process_t * active = get_active_task();
+
     for (size_t i = 0; i < arr_size(&pm->task_list); i++) {
         process_t * proc;
         arr_get(&pm->task_list, i, &proc);
+
+        if (proc->pid == active->pid) {
+            continue;
+        }
 
         if (proc->state <= PROCESS_STATE_LOADED || proc->state >= PROCESS_STATE_DEAD) {
             continue;
