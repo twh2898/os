@@ -459,7 +459,8 @@ static char ** parse_args(const char * line, size_t * out_len) {
         }
 
         size_t word_len = line - start;
-        args[arg_i]     = pmalloc(sizeof(char) * word_len + 1);
+        void * ptr      = pmalloc(sizeof(char) * word_len + 1);
+        args[arg_i]     = ptr;
         kmemcpy(args[arg_i], start, word_len);
         args[arg_i][word_len] = 0;
         arg_i++;
