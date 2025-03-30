@@ -1,3 +1,6 @@
+#include "shell.h"
+
+#include "commands.h"
 #include "drivers/keyboard.h"
 #include "ebus.h"
 #include "libc/datastruct/circular_buffer.h"
@@ -19,8 +22,6 @@
         term_last_ret = 1; \
     }
 
-typedef int (*command_cb_t)(size_t argc, char ** argv);
-
 typedef struct {
     const char * command;
     command_cb_t cb;
@@ -28,7 +29,6 @@ typedef struct {
 
 void term_update();
 void term_run();
-bool term_command_add(const char * command, command_cb_t cb);
 void set_command_lookup(command_cb_t command);
 
 #define MAX_CHARS 4095
@@ -54,6 +54,7 @@ int __start(size_t argc, char ** argv) {
     command_lookup = 0;
 
     term_command_add("help", help_cmd);
+    init_commands();
 
     if (cb_create(&keybuff, MAX_CHARS, 1)) {
         return 1;
