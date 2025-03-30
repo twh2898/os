@@ -125,7 +125,7 @@ void kernel_main() {
     pm_create(&__kernel.pm);
 
     process_t * idle = init_idle();
-    printf("Idle task pid is %u\n", idle->pid);
+    // printf("Idle task pid is %u\n", idle->pid);
     __kernel.pm.idle_task   = idle;
     __kernel.proc.next_proc = __kernel.pm.idle_task;
     // pm_add_proc(&__kernel.pm, &__kernel.proc);

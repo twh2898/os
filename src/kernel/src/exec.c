@@ -54,7 +54,9 @@ static void proc_entry() {
     process_t * proc = get_active_task();
     ff_t        fn   = UINT2PTR(VADDR_USER_MEM);
 
-    printf("Start task %s with %u args\n", proc->filepath, proc->argc);
+    // printf("Start task %s with %u args\n", proc->filepath, proc->argc);
+
+    // TODO get start function pointer from elf
 
     int res           = fn(proc->argc, proc->argv);
     proc->status_code = res;
