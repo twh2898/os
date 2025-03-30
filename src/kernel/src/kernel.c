@@ -126,12 +126,15 @@ void kernel_main() {
     printf("Idle task pid is %u\n", idle->pid);
     __kernel.pm.idle_task   = idle;
     __kernel.proc.next_proc = __kernel.pm.idle_task;
-    // pm_add_proc(&__kernel.pm, &__kernel.proc);
+    pm_add_proc(&__kernel.pm, &__kernel.proc);
     pm_add_proc(&__kernel.pm, idle);
-    // __kernel.pm.task_begin  = &__kernel.proc;
 
     if (ebus_create(&__kernel.proc.event_queue, 4096)) {
-        KPANIC("Failed to init ebus\n");
+        KPANIC("Failed to init kernel proc ebus\n");
+    }
+
+    if (ebus_create(&__kernel.event_queue, 4096)) {
+        KPANIC("Failed to init kernel ebus\n");
     }
 
     irq_install();
@@ -176,6 +179,25 @@ void kernel_main() {
     pm_add_proc(&__kernel.pm, bar_proc);
 
     pm_resume_process(&__kernel.pm, __kernel.pm.idle_task->pid, 0);
+
+    for (;;) {
+        ebus_event_t event;
+        int          eid = pull_event(EBUS_EVENT_MAKE_PROC, &event);
+
+        if (eid == EBUS_EVENT_MAKE_PROC) {
+            process_t * proc = kmalloc(sizeof(process_t));
+            if (process_create(proc)) {
+                puts("Failed to create process in kernel\n");
+                break;
+            }
+
+            ebus_event_t create_event            = {0};
+            create_event.event_id                = EBUS_EVENT_PROC_MADE;
+            create_event.proc_made.requester_pid = event.make_proc.requester_pid;
+            create_event.proc_made.new_proc_pid  = proc->pid;
+            queue_event(&create_event);
+        }
+    }
 
     KPANIC("You shouldn't be here!");
 }

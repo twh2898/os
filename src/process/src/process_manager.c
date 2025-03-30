@@ -28,7 +28,7 @@ process_t * pm_get_active(proc_man_t * pm) {
 }
 
 process_t * pm_find_pid(proc_man_t * pm, int pid) {
-    if (!pm || pid < 1) {
+    if (!pm || pid < 0) {
         return 0;
     }
 
@@ -56,7 +56,7 @@ int pm_add_proc(proc_man_t * pm, process_t * proc) {
 }
 
 int pm_remove_proc(proc_man_t * pm, int pid) {
-    if (!pm || pid < 1) {
+    if (!pm || pid < 0) {
         return -1;
     }
 
@@ -85,7 +85,7 @@ int pm_resume_process(proc_man_t * pm, int pid, ebus_event_t * event) {
     return process_resume(proc, event);
 }
 
-process_t * pm_get_next(proc_man_t * pm) {
+process_t * pm_get_next(proc_man_t * pm, int filter) {
     if (!pm) {
         return 0;
     }
@@ -109,7 +109,9 @@ process_t * pm_get_next(proc_man_t * pm) {
         }
 
         if (proc->state == PROCESS_STATE_LOADED || proc->state == PROCESS_STATE_SUSPENDED || proc->state == PROCESS_STATE_RUNNING) {
-            return proc;
+            if (!proc->filter_event || proc->filter_event == filter) {
+                return proc;
+            }
         }
 
         i++;

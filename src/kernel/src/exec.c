@@ -3,6 +3,7 @@
 #include "cpu/mmu.h"
 #include "cpu/tss.h"
 #include "kernel.h"
+#include "kernel/system_call.h"
 #include "libc/memory.h"
 #include "libc/proc.h"
 #include "libc/stdio.h"
@@ -17,12 +18,32 @@ static void proc_entry();
 static int  copy_args(process_t * proc, char * filepath, int argc, char ** argv);
 
 int command_exec(uint8_t * buff, size_t size, size_t argc, char ** argv) {
-    process_t * proc = kmalloc(sizeof(process_t));
+    ebus_event_t create_event            = {0};
+    create_event.event_id                = EBUS_EVENT_MAKE_PROC;
+    create_event.make_proc.requester_pid = get_active_task()->pid;
+    queue_event(&create_event);
 
-    if (process_create(proc)) {
-        puts("Failed to create process\n");
-        return -1;
+    ebus_event_t made_event;
+    for (;;) {
+        int res = pull_event(EBUS_EVENT_PROC_MADE, &made_event);
+        if (res < 0) {
+            puts("Failed to create process\n");
+            return -1;
+        }
+
+        if (made_event.event_id == EBUS_EVENT_PROC_MADE) {
+            if (made_event.proc_made.requester_pid == get_current_process()->pid) {
+                break;
+            }
+        }
     }
+
+    process_t * proc = kernel_find_pid(made_event.proc_made.new_proc_pid);
+
+    // if (process_create(proc)) {
+    //     puts("Failed to create process\n");
+    //     return -1;
+    // }
 
     if (process_load_heap(proc, buff, size)) {
         puts("Failed to load\n");

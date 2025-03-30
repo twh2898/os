@@ -24,6 +24,9 @@ enum EBUS_EVENT {
     EBUS_EVENT_ANY = 0,
     EBUS_EVENT_TIMER,
     EBUS_EVENT_KEY,
+    EBUS_EVENT_EXEC,
+    EBUS_EVENT_MAKE_PROC,
+    EBUS_EVENT_PROC_MADE,
     EBUS_EVENT_CUSTOM,
 };
 
@@ -42,6 +45,17 @@ typedef struct _ebus_event {
             uint32_t keycode;
             uint32_t scancode;
         } key;
+        struct {
+            int requester_pid;
+        } make_proc;
+        struct {
+            int requester_pid;
+            int new_proc_pid;
+        } proc_made;
+        struct {
+            size_t  argc;
+            char ** argv;
+        } exec;
         struct {
             int    id;
             void * data;

@@ -25,7 +25,7 @@ int sys_call_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
             if (kernel_close_process(proc)) {
                 KPANIC("Kernel could not close process");
             }
-            kernel_next_task();
+            // kernel_next_task();
             KPANIC("Unexpected return from kernel_close_process");
         } break;
 
@@ -41,7 +41,7 @@ int sys_call_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
             if (kernel_close_process(proc)) {
                 KPANIC("Kernel could not close process");
             }
-            kernel_next_task();
+            // kernel_next_task();
             KPANIC("Unexpected return from kernel_close_process");
         } break;
 
@@ -112,7 +112,7 @@ int sys_call_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
             proc->state        = (args->filter ? PROCESS_STATE_WAITING : PROCESS_STATE_SUSPENDED);
             // process_yield(proc, regs->esp, regs->eip, args->filter);
             enable_interrupts();
-            process_t * next = pm_get_next(kernel_get_proc_man());
+            process_t * next = pm_get_next(kernel_get_proc_man(), 0);
             if (pm_resume_process(kernel_get_proc_man(), next->pid, 0)) {
                 KPANIC("Failed to resume process");
             }
