@@ -1,4 +1,5 @@
 #include "libc/memory.h"
+#include "libc/proc.h"
 #include "libc/signal.h"
 #include "libc/stdio.h"
 
@@ -13,11 +14,16 @@ int __start(size_t argc, char ** argv) {
     puts("Welcome to shell!\n$ ");
 
     for (;;) {
-        if (i) {
-            i--;
-            puts("YAY!\n");
+        ebus_event_t event;
+        int          ev = pull_event(EBUS_EVENT_KEY, &event);
+        if (ev == EBUS_EVENT_KEY) {
+            puts("Key ");
         }
-        asm("hlt");
+        // if (i) {
+        //     i--;
+        //     puts("YAY!\n");
+        // }
+        // asm("hlt");
     }
 
     return 0;

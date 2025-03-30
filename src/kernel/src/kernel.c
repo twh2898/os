@@ -14,6 +14,7 @@
 #include "drivers/rtc.h"
 #include "drivers/timer.h"
 #include "drivers/vga.h"
+#include "exec.h"
 #include "idle.h"
 #include "io/file.h"
 #include "kernel/boot_params.h"
@@ -46,6 +47,8 @@ static int  try_switch(size_t argc, char ** argv);
 static void map_first_table(mmu_table_t * table);
 
 extern void jump_kernel_mode(void * fn);
+
+static int start_shell();
 
 static void foo_task();
 static void bar_task();
@@ -138,7 +141,7 @@ void kernel_main() {
 
     vga_puts("Welcome to kernel v" PROJECT_VERSION "\n");
 
-    term_init();
+    // term_init();
     if (arr_size(&__kernel.pm.task_list) == 0) {
         KPANIC("No process");
     }
@@ -159,21 +162,23 @@ void kernel_main() {
         KPANIC("Failed to open tar");
     }
 
-    process_t * foo_proc = kmalloc(sizeof(process_t));
-    if (process_create(foo_proc)) {
-        KPANIC("Failed to create foo task");
-    }
-    process_set_entrypoint(foo_proc, foo_task);
-    foo_proc->state = PROCESS_STATE_LOADED;
-    pm_add_proc(&__kernel.pm, foo_proc);
+    // process_t * foo_proc = kmalloc(sizeof(process_t));
+    // if (process_create(foo_proc)) {
+    //     KPANIC("Failed to create foo task");
+    // }
+    // process_set_entrypoint(foo_proc, foo_task);
+    // foo_proc->state = PROCESS_STATE_LOADED;
+    // pm_add_proc(&__kernel.pm, foo_proc);
 
-    process_t * bar_proc = kmalloc(sizeof(process_t));
-    if (process_create(bar_proc)) {
-        KPANIC("Failed to create bar task");
-    }
-    process_set_entrypoint(bar_proc, bar_task);
-    bar_proc->state = PROCESS_STATE_LOADED;
-    pm_add_proc(&__kernel.pm, bar_proc);
+    // process_t * bar_proc = kmalloc(sizeof(process_t));
+    // if (process_create(bar_proc)) {
+    //     KPANIC("Failed to create bar task");
+    // }
+    // process_set_entrypoint(bar_proc, bar_task);
+    // bar_proc->state = PROCESS_STATE_LOADED;
+    // pm_add_proc(&__kernel.pm, bar_proc);
+
+    start_shell();
 
     pm_resume_process(&__kernel.pm, __kernel.pm.idle_task->pid, 0);
 
@@ -200,6 +205,44 @@ static void bar_task() {
         //     printf("Bar got event %u\n", ev);
         // }
     }
+}
+
+static int start_shell() {
+    char * filename = "shell";
+
+    tar_stat_t stat;
+    if (!tar_stat_file(kernel_get_tar(), filename, &stat)) {
+        puts("Failed to find file\n");
+        return -1;
+    }
+
+    uint8_t * buff = kmalloc(stat.size);
+    if (!buff) {
+        return -1;
+    }
+
+    tar_fs_file_t * file = tar_file_open(kernel_get_tar(), filename);
+    if (!file) {
+        kfree(buff);
+        return -1;
+    }
+
+    if (!tar_file_read(file, buff, stat.size)) {
+        tar_file_close(file);
+        kfree(buff);
+        return -1;
+    }
+
+    if (command_exec(buff, stat.size, 1, &filename)) {
+        tar_file_close(file);
+        kfree(buff);
+        return -1;
+    }
+
+    tar_file_close(file);
+    kfree(buff);
+
+    return 0;
 }
 
 void * kernel_alloc_page(size_t count) {
