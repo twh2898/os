@@ -118,30 +118,28 @@ void kernel_main() {
     // Init kernel memory after system calls are registered
     memory_init(&__kernel.proc.memory, kernel_alloc_page);
 
-    pm_create(&__kernel.pm);
-
-    __kernel.pm.idle_task   = &__kernel.proc;
-    __kernel.proc.next_proc = __kernel.pm.idle_task;
-    pm_add_proc(&__kernel.pm, &__kernel.proc);
-
-    if (ebus_create(&__kernel.proc.event_queue, 4096)) {
-        KPANIC("Failed to init ebus\n");
-    }
-
+    // Create ebus for kernel (target of queue_event)
     if (ebus_create(&__kernel.event_queue, 4096)) {
         KPANIC("Failed to init ebus\n");
     }
 
+    // Create process manager
+    pm_create(&__kernel.pm);
+
+    // Setup kernel process and add it to pm
+    __kernel.pm.idle_task   = &__kernel.proc;
+    __kernel.proc.next_proc = __kernel.pm.idle_task;
+    pm_add_proc(&__kernel.pm, &__kernel.proc);
+
+    // Create ebus for kernel proc
+    if (ebus_create(&__kernel.proc.event_queue, 4096)) {
+        KPANIC("Failed to init ebus\n");
+    }
+
+    // Init drivers and hardware interrupts
     irq_install();
 
     vga_puts("Welcome to kernel v" PROJECT_VERSION "\n");
-
-    // term_init();
-    if (arr_size(&__kernel.pm.task_list) == 0) {
-        KPANIC("No process");
-    }
-
-    commands_init();
 
     ramdisk_create(4096);
 
