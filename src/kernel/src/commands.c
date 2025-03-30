@@ -23,7 +23,6 @@
 #include "paging.h"
 #include "process.h"
 #include "ram.h"
-#include "term.h"
 
 bool debug = false;
 
@@ -179,7 +178,7 @@ static int sleep_cmd(size_t argc, char ** argv) {
 }
 
 static int ret_cmd(size_t argc, char ** argv) {
-    printf("Last command exit code was %u\n", term_last_ret);
+    // printf("Last command exit code was %u\n", term_last_ret);
     return 0;
 }
 
@@ -777,32 +776,32 @@ static int command_lookup(size_t argc, char ** argv) {
 }
 
 void commands_init() {
-    set_command_lookup(command_lookup);
+    // set_command_lookup(command_lookup);
 
-    term_command_add("currdir", currdir);
-    term_command_add("pid", currproc);
-    term_command_add("hotswap", hotswap);
-    term_command_add("procswap", procswap);
+    // term_command_add("currdir", currdir);
+    // term_command_add("pid", currproc);
+    // term_command_add("hotswap", hotswap);
+    // term_command_add("procswap", procswap);
 
-    term_command_add("clear", clear_cmd);
-    term_command_add("echo", echo_cmd);
-    term_command_add("debug", debug_cmd);
-    term_command_add("atoi", atoi_cmd);
-    term_command_add("outb", port_out_cmd);
-    term_command_add("inb", port_in_cmd);
-    term_command_add("time", time_cmd);
-    term_command_add("sleep", sleep_cmd);
-    term_command_add("ret", ret_cmd);
-    // term_command_add("format", format_cmd);
-    // term_command_add("mount", mount_cmd);
-    // term_command_add("unmount", unmount_cmd);
-    // term_command_add("mem", mem_cmd);
-    term_command_add("ls", ls_cmd);
-    term_command_add("stat", stat_cmd);
-    // term_command_add("status", status_cmd);
-    term_command_add("read", fs_read_cmd);
-    term_command_add("cat", fs_cat_cmd);
-    // term_command_add("read", disk_read_cmd);
-    term_command_add("write", disk_write_cmd);
-    term_command_add("size", disk_size_cmd);
+    // term_command_add("clear", clear_cmd);
+    // term_command_add("echo", echo_cmd);
+    // term_command_add("debug", debug_cmd);
+    // term_command_add("atoi", atoi_cmd);
+    // term_command_add("outb", port_out_cmd);
+    // term_command_add("inb", port_in_cmd);
+    // term_command_add("time", time_cmd);
+    // term_command_add("sleep", sleep_cmd);
+    // term_command_add("ret", ret_cmd);
+    // // term_command_add("format", format_cmd);
+    // // term_command_add("mount", mount_cmd);
+    // // term_command_add("unmount", unmount_cmd);
+    // // term_command_add("mem", mem_cmd);
+    // term_command_add("ls", ls_cmd);
+    // term_command_add("stat", stat_cmd);
+    // // term_command_add("status", status_cmd);
+    // term_command_add("read", fs_read_cmd);
+    // term_command_add("cat", fs_cat_cmd);
+    // // term_command_add("read", disk_read_cmd);
+    // term_command_add("write", disk_write_cmd);
+    // term_command_add("size", disk_size_cmd);
 }

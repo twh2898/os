@@ -19,6 +19,30 @@ process_t * init_idle() {
     return proc;
 }
 
+static int ebus_cycle(ebus_t * bus) {
+    if (!bus) {
+        return -1;
+    }
+
+    while (cb_len(&bus->queue) > 0) {
+        ebus_event_t event;
+        if (cb_pop(&bus->queue, &event)) {
+            return -1;
+        }
+
+        // if (handle_event(bus, &event)) {
+        //     // Handler consumed event
+        //     continue;
+        // }
+
+        if (pm_push_event(kernel_get_proc_man(), &event)) {
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
 static void idle_loop() {
     for (;;) {
         // printf("idle %u\n", getpid());

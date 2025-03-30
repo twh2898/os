@@ -32,7 +32,6 @@
 #include "process.h"
 #include "process_manager.h"
 #include "ram.h"
-#include "term.h"
 
 static kernel_t __kernel;
 
@@ -147,8 +146,6 @@ void kernel_main() {
     }
 
     commands_init();
-
-    term_command_add("exit", kill);
 
     ramdisk_create(4096);
 
