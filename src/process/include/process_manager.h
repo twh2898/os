@@ -17,7 +17,6 @@ int pm_create(proc_man_t * pm);
 
 // TODO pm_free
 
-process_t * pm_get_active(proc_man_t * pm);
 process_t * pm_find_pid(proc_man_t * pm, int pid);
 
 int pm_add_proc(proc_man_t * pm, process_t * proc);

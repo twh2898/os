@@ -18,15 +18,6 @@ int pm_create(proc_man_t * pm) {
     return 0;
 }
 
-process_t * pm_get_active(proc_man_t * pm) {
-    if (!pm) {
-        return 0;
-    }
-
-    // TODO this is redundant now
-    return get_active_task();
-}
-
 process_t * pm_find_pid(proc_man_t * pm, int pid) {
     if (!pm || pid < 0) {
         return 0;
