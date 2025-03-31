@@ -117,7 +117,7 @@ a system call to launch a new process from it's filename and args.
 - [ ] PWD for shell
 - [ ] System call to launch program from filename and args
 
-## Process Control
+## Process End
 
 Add code to handle a process closing or crashing. It should stop and remove the
 process from the process manager, free the memory and any ram pages allocated.
@@ -134,6 +134,17 @@ The exit modes are "natural" (return from main), "exit" (call to exit()),
 - [ ] Remove from process manager
 - [ ] Free process
 - [ ] Any signals that may be relevant
+
+## Task Scheduler
+
+Create a task scheduler and add a yield to most / all system calls.
+
+### Tasks
+
+- [ ] Choose what task to run next
+  - [ ] Resume process with all events in queue before switching task
+  - [ ] Task priority
+- [ ] Yield for all system calls
 
 ## _Template Task_
 
