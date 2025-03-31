@@ -162,34 +162,21 @@ void kernel_main() {
     KPANIC("You shouldn't be here!");
 }
 
-static int ebus_cycle(ebus_t * bus) {
-    if (!bus) {
-        return -1;
-    }
-
-    while (cb_len(&bus->queue) > 0) {
-        ebus_event_t event;
-        if (cb_pop(&bus->queue, &event)) {
-            return -1;
-        }
-
-        // if (handle_event(bus, &event)) {
-        //     // Handler consumed event
-        //     continue;
-        // }
-
-        if (pm_push_event(kernel_get_proc_man(), &event)) {
-            return -1;
-        }
-    }
-
-    return 0;
-}
-
 static void idle_loop() {
     for (;;) {
-        ebus_cycle(get_kernel_ebus());
         asm("hlt");
+
+        while (cb_len(&__kernel.event_queue.queue) > 0) {
+            ebus_event_t event;
+            if (cb_pop(&__kernel.event_queue.queue, &event)) {
+                KPANIC("Failed to pop from event queue");
+            }
+
+            if (pm_push_event(kernel_get_proc_man(), &event)) {
+                KPANIC("Failed to push event to process manager");
+            }
+        }
+
         yield();
     }
 }
