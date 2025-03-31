@@ -17,7 +17,6 @@
 #include "exec.h"
 #include "io/file.h"
 #include "kernel/boot_params.h"
-#include "kernel/system_call.h"
 #include "kernel/system_call_io.h"
 #include "kernel/system_call_mem.h"
 #include "kernel/system_call_proc.h"
@@ -31,6 +30,7 @@
 #include "process.h"
 #include "process_manager.h"
 #include "ram.h"
+#include "system_call.h"
 
 static kernel_t __kernel;
 

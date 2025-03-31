@@ -1,4 +1,4 @@
-#include "kernel/system_call.h"
+#include "system_call.h"
 
 #include "cpu/isr.h"
 #include "drivers/vga.h"
