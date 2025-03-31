@@ -172,7 +172,7 @@ static void idle_loop() {
                 KPANIC("Failed to pop from event queue");
             }
 
-            if (pm_push_event(kernel_get_proc_man(), &event)) {
+            if (pm_push_event(&__kernel.pm, &event)) {
                 KPANIC("Failed to push event to process manager");
             }
         }

@@ -93,22 +93,6 @@ section once they are finished.
   - [x] sys_call.h
 - [ ] Move drivers and other os level code out of kernel (only keep essentials)
 
-## TSS / Process
-
-In an effort to reach ring 3, there are a few required systems to setup.
-
-TSS needs a kernel stack. The space between the vga page and kernel code, there
-will exist the kernel stack for TSS / interrupts.
-
-### Tasks
-
-- [ ] Setup kernel stack pages bellow VGA memory
-  - [ ] Assign TSS
-- [ ] Function to create a new process struct
-  - [ ] Create page directory
-  - [ ] Copy kernel tables
-  - [ ] Point malloc to here
-
 ## Getting out of ebus
 
 I think ebus is slowing things down + it doesn't allow for any priority (as
@@ -119,7 +103,19 @@ system calls.
 
 ### Tasks
 
-- [ ] 
+- [ ]
+
+## IO
+
+Now that shell is working, it needs a way to load and execute programs. Start
+with a function that can list a directory, store a cwd in the shell and add
+a system call to launch a new process from it's filename and args.
+
+### Tasks
+
+- [ ] System call to list dir
+- [ ] PWD for shell
+- [ ] System call to launch program from filename and args
 
 ## _Template Task_
 
@@ -130,6 +126,22 @@ Description of task and any relevant details / information.
 - [ ] Sub task list
 
 # Completed
+
+## TSS / Process
+
+In an effort to reach ring 3, there are a few required systems to setup.
+
+TSS needs a kernel stack. The space between the vga page and kernel code, there
+will exist the kernel stack for TSS / interrupts.
+
+### Tasks
+
+- [x] Setup kernel stack pages bellow VGA memory
+  - [x] Assign TSS
+- [x] Function to create a new process struct
+  - [x] Create page directory
+  - [x] Copy kernel tables
+  - [x] Point malloc to here
 
 ## Physical Allocator
 
