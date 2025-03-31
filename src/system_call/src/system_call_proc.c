@@ -15,6 +15,9 @@ int sys_call_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
     int res = 0;
 
     switch (int_no) {
+
+        // TODO this isn't fully updated with task switching
+
         case SYS_INT_PROC_EXIT: {
             struct _args {
                 uint8_t code;
@@ -28,6 +31,8 @@ int sys_call_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
             kernel_next_task();
             KPANIC("Unexpected return from kernel_close_process");
         } break;
+
+        // TODO this isn't fully updated with task switching
 
         case SYS_INT_PROC_ABORT: {
             struct _args {
