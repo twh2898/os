@@ -7,6 +7,7 @@
 #include "ebus.h"
 #include "exec.h"
 #include "kernel.h"
+#include "libc/proc.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
 #include "libk/defs.h"
@@ -26,10 +27,14 @@ int sys_call_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
             printf("Proc exit with code %u\n", args->code);
             process_t * proc = get_current_process();
             enable_interrupts();
-            if (kernel_close_process(proc)) {
-                KPANIC("Kernel could not close process");
-            }
-            kernel_next_task();
+
+            ebus_event_t event           = {0};
+            event.event_id               = EBUS_EVENT_PROC_CLOSE;
+            event.proc_close.pid         = get_active_task()->pid;
+            event.proc_close.status_code = args->code;
+
+            queue_event(&event);
+            kernel_switch_task(get_kernel()->proc.pid);
             KPANIC("Unexpected return from kernel_close_process");
         } break;
 
@@ -44,10 +49,14 @@ int sys_call_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
             puts(args->msg);
             process_t * proc = get_current_process();
             enable_interrupts();
-            if (kernel_close_process(proc)) {
-                KPANIC("Kernel could not close process");
-            }
-            kernel_next_task();
+
+            ebus_event_t event           = {0};
+            event.event_id               = EBUS_EVENT_PROC_CLOSE;
+            event.proc_close.pid         = get_active_task()->pid;
+            event.proc_close.status_code = args->code;
+
+            queue_event(&event);
+            kernel_switch_task(get_kernel()->proc.pid);
             KPANIC("Unexpected return from kernel_close_process");
         } break;
 
@@ -145,6 +154,9 @@ int sys_call_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
                 return -1;
             }
 
+            char * copy_filename = kmalloc(kstrlen(args->filename) + 1);
+            kmemcpy(copy_filename, args->filename, sizeof(args->filename) + 1);
+
             char ** copy = kmalloc(sizeof(char *) * args->argc);
             for (size_t i = 0; i < args->argc; i++) {
                 size_t len = kstrlen(args->argv[i]) + 1;
@@ -152,7 +164,23 @@ int sys_call_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
                 kmemcpy(&copy[i], &args->argv[i], len);
             }
 
-            return kernel_exec(args->filename, args->argc, copy);
+            ebus_event_t event  = {0};
+            event.event_id      = EBUS_EVENT_EXEC;
+            event.exec.filename = copy_filename;
+            event.exec.argc     = args->argc;
+            event.exec.argv     = copy;
+
+            queue_event(&event);
+
+            for (;;) {
+                ebus_event_t event;
+
+                int eid = pull_event(EBUS_EVENT_PROC_MADE, &event);
+
+                if (eid == EBUS_EVENT_PROC_MADE) {
+                    return event.proc_made.pid;
+                }
+            }
         } break;
     }
 

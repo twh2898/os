@@ -172,8 +172,35 @@ static void idle_loop() {
                 KPANIC("Failed to pop from event queue");
             }
 
-            if (pm_push_event(&__kernel.pm, &event)) {
-                KPANIC("Failed to push event to process manager");
+            switch (event.event_id) {
+                case EBUS_EVENT_EXEC: {
+                    int pid = kernel_exec(event.exec.filename, event.exec.argc, event.exec.argv);
+                    if (pid > 0) {
+                        ebus_event_t proc_event  = {0};
+                        proc_event.event_id      = EBUS_EVENT_PROC_MADE;
+                        proc_event.proc_made.pid = pid;
+                        if (ebus_push(&__kernel.event_queue, &proc_event)) {
+                            KPANIC("Ebus push failed");
+                        }
+                    }
+                } break;
+
+                case EBUS_EVENT_PROC_CLOSE: {
+                    process_t * proc = kernel_find_pid(event.proc_close.pid);
+                    if (!proc) {
+                        KPANIC("Failed to find pid");
+                    }
+                    if (pm_remove_proc(&__kernel.pm, proc->pid)) {
+                        KPANIC("Failed to remove process from pm");
+                    }
+                    process_free(proc);
+                } break;
+
+                default: {
+                    if (pm_push_event(&__kernel.pm, &event)) {
+                        KPANIC("Failed to push event to process manager");
+                    }
+                } break;
             }
         }
 

@@ -19,6 +19,8 @@ static int  copy_args(process_t * proc, char * filepath, int argc, char ** argv)
 int command_exec(uint8_t * buff, size_t size, size_t argc, char ** argv) {
     process_t * proc = kmalloc(sizeof(process_t));
 
+    process_t * active = get_active_task();
+
     if (process_create(proc)) {
         puts("Failed to create process\n");
         return -1;
