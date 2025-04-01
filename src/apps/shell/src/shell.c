@@ -48,11 +48,7 @@ static size_t buff_read(const cb_t * cb, uint8_t * data, size_t count);
 static size_t buff_remove(cb_t * cb, size_t count);
 static void   exec_buff();
 
-static command_cb_t command_lookup;
-
 int __start(size_t argc, char ** argv) {
-    command_lookup = 0;
-
     term_command_add("help", help_cmd);
     init_commands();
 
@@ -197,10 +193,6 @@ bool term_command_add(const char * command, command_cb_t cb) {
     return true;
 }
 
-void set_command_lookup(command_cb_t lookup) {
-    command_lookup = lookup;
-}
-
 static size_t buff_read(const cb_t * cb, uint8_t * data, size_t count) {
     if (!cb || !data || !count) {
         return 0;
@@ -298,17 +290,16 @@ static void exec_buff() {
         term_last_ret = command(argc, argv);
     }
 
-    // Try command lookup
-    else if (command_lookup) {
-        command_ready++;
-        term_last_ret = command_lookup(argc, argv);
-        command_ready--;
-    }
-
     // No match was found
     else {
-        printf("Unknown command '%s'\n", argv[0]);
-        term_last_ret = 1;
+        int pid = popen(argv[0], argc, argv);
+        if (pid < 0) {
+            printf("Unknown command '%s'\n", argv[0]);
+            term_last_ret = 1;
+        }
+        else {
+            printf("Running command %u\n", pid);
+        }
     }
 
     // Free parsed args

@@ -31,6 +31,9 @@ void queue_event(ebus_event_t * event);
 int  pull_event(int filter, ebus_event_t * event_out);
 void yield(void);
 
+// return pid
+int popen(const char * filename, size_t argc, char ** argv);
+
 int getpid(void);
 
 #endif // LIBC_PROC_H

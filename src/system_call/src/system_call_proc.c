@@ -5,6 +5,7 @@
 #include "defs.h"
 #include "drivers/vga.h"
 #include "ebus.h"
+#include "exec.h"
 #include "kernel.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
@@ -16,7 +17,7 @@ int sys_call_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
 
     switch (int_no) {
 
-        // TODO this isn't fully updated with task switching
+            // TODO this isn't fully updated with task switching
 
         case SYS_INT_PROC_EXIT: {
             struct _args {
@@ -32,7 +33,7 @@ int sys_call_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
             KPANIC("Unexpected return from kernel_close_process");
         } break;
 
-        // TODO this isn't fully updated with task switching
+            // TODO this isn't fully updated with task switching
 
         case SYS_INT_PROC_ABORT: {
             struct _args {
@@ -135,8 +136,9 @@ int sys_call_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
 
         case SYS_INT_PROC_EXEC: {
             struct _args {
-                int     argc;
-                char ** argv;
+                const char * filename;
+                size_t       argc;
+                char **      argv;
             } * args = (struct _args *)args_data;
 
             if (args->argc < 1) {
@@ -148,10 +150,9 @@ int sys_call_proc_cb(uint16_t int_no, void * args_data, registers_t * regs) {
                 size_t len = kstrlen(args->argv[i]) + 1;
                 copy[i]    = kmalloc(len);
                 kmemcpy(&copy[i], &args->argv[i], len);
-
-                kernel_switch_task(get_kernel()->proc.pid);
             }
 
+            return kernel_exec(args->filename, args->argc, copy);
         } break;
     }
 

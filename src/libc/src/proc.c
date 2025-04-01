@@ -26,6 +26,13 @@ void yield() {
     _sys_yield(0, 0);
 }
 
+int popen(const char * filename, size_t argc, char ** argv) {
+    if (argc < 1 || !argv) {
+        return -1;
+    }
+    return _sys_proc_exec(filename, argc, argv);
+}
+
 int getpid(void) {
     return _sys_proc_getpid();
 }

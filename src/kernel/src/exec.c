@@ -47,7 +47,7 @@ int command_exec(uint8_t * buff, size_t size, size_t argc, char ** argv) {
     // pm_remove_proc(kernel_get_proc_man(), proc->pid);
     // process_free(proc);
 
-    return 0;
+    return proc->pid;
 }
 
 static void proc_entry() {

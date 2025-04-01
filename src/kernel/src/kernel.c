@@ -181,9 +181,7 @@ static void idle_loop() {
     }
 }
 
-static int start_shell() {
-    char * filename = "shell";
-
+int kernel_exec(const char * filename, size_t argc, char ** argv) {
     tar_stat_t stat;
     if (!tar_stat_file(kernel_get_tar(), filename, &stat)) {
         puts("Failed to find file\n");
@@ -207,7 +205,9 @@ static int start_shell() {
         return -1;
     }
 
-    if (command_exec(buff, stat.size, 1, &filename)) {
+    int pid = command_exec(buff, stat.size, argc, argv);
+
+    if (pid < 0) {
         tar_file_close(file);
         kfree(buff);
         return -1;
@@ -216,7 +216,12 @@ static int start_shell() {
     tar_file_close(file);
     kfree(buff);
 
-    return 0;
+    return pid;
+}
+
+static int start_shell() {
+    char * filename = "shell";
+    return kernel_exec(filename, 1, &filename);
 }
 
 void * kernel_alloc_page(size_t count) {
