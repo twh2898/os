@@ -19,6 +19,8 @@ enum HANDLE_TYPE {
 typedef struct _handle {
     int id;
     int type;
+
+    size_t cursor;
 } handle_t;
 
 enum PROCESS_STATE {

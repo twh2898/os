@@ -7,6 +7,7 @@
 #include "process.h"
 
 static handle_t * get_free_handle(process_t * proc);
+static handle_t * find_handler(process_t * proc, int handle_id);
 
 int sys_call_io_dir_cb(uint16_t int_no, void * args_data, registers_t * regs) {
     process_t * proc       = get_current_process();
@@ -29,7 +30,9 @@ int sys_call_io_dir_cb(uint16_t int_no, void * args_data, registers_t * regs) {
                 return 0;
             }
 
-            handle->type = HANDLE_TYPE_DIR; // TODO type by path prefix
+            handle->type   = HANDLE_TYPE_DIR; // TODO type by path prefix
+            handle->cursor = 0;
+
             return handle->id;
         } break;
 
@@ -38,14 +41,10 @@ int sys_call_io_dir_cb(uint16_t int_no, void * args_data, registers_t * regs) {
                 int handle;
             } * args = (struct _args *)args_data;
 
-            if (args->handle > arr_size(io_handles)) {
-                return 0; // TODO proper error
-            }
+            handle_t * handle = find_handler(proc, args->handle);
 
-            handle_t * handle = arr_at(io_handles, args->handle - 1);
-
-            if (handle->type == HANDLE_TYPE_FREE) {
-                return 0; // TODO proper error
+            if (!handle) {
+                return 0;
             }
 
             handle->type = HANDLE_TYPE_FREE;
@@ -59,17 +58,17 @@ int sys_call_io_dir_cb(uint16_t int_no, void * args_data, registers_t * regs) {
                 void * dir_entry;
             } * args = (struct _args *)args_data;
 
-            if (args->handle > arr_size(io_handles)) {
-                return 0; // TODO proper error
+            if (!args->dir_entry) {
+                return 0;
             }
 
-            handle_t * handle = arr_at(io_handles, args->handle - 1);
+            handle_t * handle = find_handler(proc, args->handle);
 
-            if (handle->type == HANDLE_TYPE_FREE) {
-                return 0; // TODO proper error
+            if (!handle) {
+                return 0;
             }
 
-            // TODO
+            // TODO ACTUALLY DO THE READ
         } break;
 
         case SYS_INT_IO_DIR_SEEK: {
@@ -79,17 +78,13 @@ int sys_call_io_dir_cb(uint16_t int_no, void * args_data, registers_t * regs) {
                 int seek;
             } * args = (struct _args *)args_data;
 
-            if (args->handle > arr_size(io_handles)) {
-                return 0; // TODO proper error
+            handle_t * handle = find_handler(proc, args->handle);
+
+            if (!handle) {
+                return 0;
             }
 
-            handle_t * handle = arr_at(io_handles, args->handle - 1);
-
-            if (handle->type == HANDLE_TYPE_FREE) {
-                return 0; // TODO proper error
-            }
-
-            // TODO
+            // TODO ACTUALLY DO THE SEEK
         } break;
 
         case SYS_INT_IO_DIR_TELL: {
@@ -97,17 +92,13 @@ int sys_call_io_dir_cb(uint16_t int_no, void * args_data, registers_t * regs) {
                 int handle;
             } * args = (struct _args *)args_data;
 
-            if (args->handle > arr_size(io_handles)) {
-                return 0; // TODO proper error
+            handle_t * handle = find_handler(proc, args->handle);
+
+            if (!handle) {
+                return 0;
             }
 
-            handle_t * handle = arr_at(io_handles, args->handle - 1);
-
-            if (handle->type == HANDLE_TYPE_FREE) {
-                return 0; // TODO proper error
-            }
-
-            // TODO
+            // TODO ACTUALLY DO THE TELL
         } break;
     }
 
@@ -126,12 +117,32 @@ static handle_t * get_free_handle(process_t * proc) {
     }
 
     handle_t new_handle;
-    new_handle.id   = arr_size(io_handles) + 1; // index at 1
+    new_handle.id   = arr_size(io_handles);
     new_handle.type = HANDLE_TYPE_FREE;
 
     if (arr_insert(io_handles, arr_size(io_handles), &new_handle)) {
         return 0;
     }
 
-    return arr_at(io_handles, arr_size(io_handles) - 1);
+    return arr_at(io_handles, arr_size(io_handles));
+}
+
+static handle_t * find_handler(process_t * proc, int handle_id) {
+    if (!proc || handle_id < 0) {
+        return 0;
+    }
+
+    arr_t * io_handles = &proc->io_handles;
+
+    if (handle_id > arr_size(io_handles)) {
+        return 0;
+    }
+
+    handle_t * handle = arr_at(io_handles, handle_id);
+
+    if (handle->type != HANDLE_TYPE_DIR) {
+        return 0;
+    }
+
+    return handle;
 }

@@ -30,7 +30,9 @@ int sys_call_io_file_cb(uint16_t int_no, void * args_data, registers_t * regs) {
                 return 0;
             }
 
-            handle->type = HANDLE_TYPE_FILE; // TODO type by path prefix
+            handle->type   = HANDLE_TYPE_FILE; // TODO type by path prefix
+            handle->cursor = 0;
+
             return handle->id;
         } break;
 
@@ -68,7 +70,7 @@ int sys_call_io_file_cb(uint16_t int_no, void * args_data, registers_t * regs) {
                 return 0;
             }
 
-            // TODO
+            // TODO ACTUALLY DO THE READ
         } break;
 
         case SYS_INT_IO_FILE_WRITE: {
@@ -89,6 +91,7 @@ int sys_call_io_file_cb(uint16_t int_no, void * args_data, registers_t * regs) {
                 return 0;
             }
 
+            // TODO ACTUALLY DO THE WRITE
             KPANIC("File write is not yet implemented");
         } break;
 
@@ -105,7 +108,7 @@ int sys_call_io_file_cb(uint16_t int_no, void * args_data, registers_t * regs) {
                 return 0;
             }
 
-            // TODO
+            // TODO ACTUALLY DO THE SEEK
         } break;
 
         case SYS_INT_IO_FILE_TELL: {
@@ -119,7 +122,7 @@ int sys_call_io_file_cb(uint16_t int_no, void * args_data, registers_t * regs) {
                 return 0;
             }
 
-            // TODO
+            // TODO ACTUALLY DO THE TELL
         } break;
     }
 
@@ -138,14 +141,14 @@ static handle_t * get_free_handle(process_t * proc) {
     }
 
     handle_t new_handle;
-    new_handle.id   = arr_size(io_handles) + 1; // index at 1
+    new_handle.id   = arr_size(io_handles);
     new_handle.type = HANDLE_TYPE_FREE;
 
     if (arr_insert(io_handles, arr_size(io_handles), &new_handle)) {
         return 0;
     }
 
-    return arr_at(io_handles, arr_size(io_handles) - 1);
+    return arr_at(io_handles, arr_size(io_handles));
 }
 
 static handle_t * find_handler(process_t * proc, int handle_id) {
@@ -159,7 +162,7 @@ static handle_t * find_handler(process_t * proc, int handle_id) {
         return 0;
     }
 
-    handle_t * handle = arr_at(io_handles, handle_id - 1);
+    handle_t * handle = arr_at(io_handles, handle_id);
 
     if (handle->type != HANDLE_TYPE_FILE) {
         return 0;
