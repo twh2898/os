@@ -89,3 +89,47 @@ size_t _sys_putc(char c) {
 size_t _sys_puts(const char * str) {
     return send_call(SYS_INT_STDIO_PUTS, str);
 }
+
+file_t _sys_io_file_open(const char * path, const char * mode) {
+    return send_call(SYS_INT_IO_FILE_OPEN, path, mode);
+}
+
+void _sys_io_file_close(file_t fp) {
+    send_call(SYS_INT_IO_FILE_CLOSE, fp);
+}
+
+int _sys_io_file_read(file_t fp, size_t size, size_t count, char * buff) {
+    return send_call(SYS_INT_IO_FILE_READ, fp, size, count, buff);
+}
+
+int _sys_io_file_write(file_t fp, size_t size, size_t count, const char * buff) {
+    return send_call(SYS_INT_IO_FILE_WRITE, fp, size, count, buff);
+}
+
+int _sys_io_file_seek(file_t fp, int offset, int origin) {
+    return send_call(SYS_INT_IO_FILE_SEEK, fp, offset, origin);
+}
+
+int _sys_io_file_tell(file_t fp) {
+    return send_call(SYS_INT_IO_FILE_TELL, fp);
+}
+
+dir_t _sys_io_dir_open(const char * path) {
+    return send_call(SYS_INT_IO_DIR_OPEN, path);
+}
+
+void _sys_io_dir_close(dir_t dp) {
+    send_call(SYS_INT_IO_DIR_CLOSE, dp);
+}
+
+int _sys_io_dir_read(dir_t dp, void * dir_entry) {
+    return send_call(SYS_INT_IO_DIR_READ, dp, dir_entry);
+}
+
+int _sys_io_dir_seek(dir_t dp, int offset, int origin) {
+    return send_call(SYS_INT_IO_DIR_SEEK, dp, offset, origin);
+}
+
+int _sys_io_dir_tell(dir_t dp) {
+    return send_call(SYS_INT_IO_DIR_TELL, dp);
+}

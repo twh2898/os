@@ -39,4 +39,21 @@ int  _sys_yield(int filter, ebus_event_t * event_out);
 size_t _sys_putc(char c);
 size_t _sys_puts(const char * str);
 
+typedef int file_t;
+
+file_t _sys_io_file_open(const char * path, const char * mode);
+void   _sys_io_file_close(file_t fp);
+int    _sys_io_file_read(file_t fp, size_t size, size_t count, char * buff);
+int    _sys_io_file_write(file_t fp, size_t size, size_t count, const char * buff);
+int    _sys_io_file_seek(file_t fp, int offset, int origin);
+int    _sys_io_file_tell(file_t fp);
+
+typedef int dir_t;
+
+dir_t _sys_io_dir_open(const char * path);
+void  _sys_io_dir_close(dir_t);
+int   _sys_io_dir_read(dir_t, void * dir_entry);
+int   _sys_io_dir_seek(dir_t, int offset, int origin);
+int   _sys_io_dir_tell(dir_t);
+
 #endif // LIBK_SYS_CALL_H

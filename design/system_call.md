@@ -37,6 +37,17 @@ An interrupt id is an 8 bit family + an 8 bit id.
 | Tmp Std I/O     | 0x1000 | `size_t putc(char c)`                                                |
 |                 | 0x1001 | `size_t puts(const char * str)`                                      |
 |                 | 0x1002 | `size_t vprintf(const char * fmt, va_list params)`                   |
+| File I/O        | 0x1101 | `file_t fopen(const char * path, const char * mode)`                 |
+|                 | 0x1102 | `void fclose(file_t)`                                                |
+|                 | 0x1103 | `int fread(file_t, size_t size, size_t count, char * buff)`          |
+|                 | 0x1104 | `int fwrite(file_t, size_t size, size_t count, const char * buff)`   |
+|                 | 0x1105 | `int fseek(file_t, int offset, int origin)`                          |
+|                 | 0x1105 | `int ftell(file_t)`                                                  |
+| Dir I/O         | 0x1201 | `dir_t dir_open(const char * path)`                                  |
+|                 | 0x1202 | `void dir_close(dir_t)`                                              |
+|                 | 0x1203 | `int dir_read(dir_t, void * dir_entry)`                              |
+|                 | 0x1205 | `int dir_seek(dir_t, int offset, int origin)`                        |
+|                 | 0x1205 | `int dir_tell(dir_t)`                                                |
 
 # System Signals
 
