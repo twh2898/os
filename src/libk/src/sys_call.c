@@ -98,11 +98,11 @@ void _sys_io_file_close(file_t fp) {
     send_call(SYS_INT_IO_FILE_CLOSE, fp);
 }
 
-int _sys_io_file_read(file_t fp, size_t size, size_t count, char * buff) {
+size_t _sys_io_file_read(file_t fp, size_t size, size_t count, void * buff) {
     return send_call(SYS_INT_IO_FILE_READ, fp, size, count, buff);
 }
 
-int _sys_io_file_write(file_t fp, size_t size, size_t count, const char * buff) {
+size_t _sys_io_file_write(file_t fp, size_t size, size_t count, const void * buff) {
     return send_call(SYS_INT_IO_FILE_WRITE, fp, size, count, buff);
 }
 

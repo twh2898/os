@@ -1,5 +1,7 @@
 #include "libc/file.h"
 
+#include "libk/sys_call.h"
+
 file_t file_open(const char * path, const char * mode) {
     return _sys_io_file_open(path, mode);
 }
@@ -8,11 +10,11 @@ void file_close(file_t fp) {
     _sys_io_file_close(fp);
 }
 
-int file_read(file_t fp, size_t size, size_t count, char * buff) {
+size_t file_read(file_t fp, size_t size, size_t count, void * buff) {
     return _sys_io_file_read(fp, size, count, buff);
 }
 
-int file_write(file_t fp, size_t size, size_t count, const char * buff) {
+size_t file_write(file_t fp, size_t size, size_t count, const void * buff) {
     return _sys_io_file_write(fp, size, count, buff);
 }
 

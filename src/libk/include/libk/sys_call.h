@@ -43,8 +43,8 @@ typedef int file_t;
 
 file_t _sys_io_file_open(const char * path, const char * mode);
 void   _sys_io_file_close(file_t fp);
-int    _sys_io_file_read(file_t fp, size_t size, size_t count, char * buff);
-int    _sys_io_file_write(file_t fp, size_t size, size_t count, const char * buff);
+size_t _sys_io_file_read(file_t fp, size_t size, size_t count, void * buff);
+size_t _sys_io_file_write(file_t fp, size_t size, size_t count, const void * buff);
 int    _sys_io_file_seek(file_t fp, int offset, int origin);
 int    _sys_io_file_tell(file_t fp);
 

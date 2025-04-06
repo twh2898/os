@@ -1,5 +1,7 @@
 #include "libc/dir.h"
 
+#include "libk/sys_call.h"
+
 dir_t dir_open(const char * path) {
     return _sys_io_dir_open(path);
 }
