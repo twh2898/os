@@ -29,7 +29,7 @@ int sys_call_io_dir_cb(uint16_t int_no, void * args_data, registers_t * regs) {
                 return 0;
             }
 
-            handle->type = HANDLE_TYPE_FILE; // TODO type by path prefix
+            handle->type = HANDLE_TYPE_DIR; // TODO type by path prefix
             return handle->id;
         } break;
 

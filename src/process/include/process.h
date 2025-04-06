@@ -13,6 +13,7 @@ typedef void (*signals_master_cb_t)(int);
 enum HANDLE_TYPE {
     HANDLE_TYPE_FREE = 0,
     HANDLE_TYPE_FILE,
+    HANDLE_TYPE_DIR,
 };
 
 typedef struct _handle {
