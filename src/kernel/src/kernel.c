@@ -18,6 +18,8 @@
 #include "io/file.h"
 #include "kernel/boot_params.h"
 #include "kernel/system_call_io.h"
+#include "kernel/system_call_io_dir.h"
+#include "kernel/system_call_io_file.h"
 #include "kernel/system_call_mem.h"
 #include "kernel/system_call_proc.h"
 #include "kernel/system_call_stdio.h"
@@ -114,6 +116,9 @@ void kernel_main() {
     system_call_register(SYS_INT_FAMILY_MEM, sys_call_mem_cb);
     system_call_register(SYS_INT_FAMILY_PROC, sys_call_proc_cb);
     system_call_register(SYS_INT_FAMILY_STDIO, sys_call_tmp_stdio_cb);
+    system_call_register(SYS_INT_FAMILY_STDIO, sys_call_tmp_stdio_cb);
+    system_call_register(SYS_INT_FAMILY_IO_FILE, sys_call_io_file_cb);
+    system_call_register(SYS_INT_FAMILY_IO_DIR, sys_call_io_dir_cb);
 
     // Init kernel memory after system calls are registered
     memory_init(&__kernel.proc.memory, kernel_alloc_page);

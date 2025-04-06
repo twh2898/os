@@ -3,6 +3,12 @@
 
 typedef int dir_t;
 
+enum DIR_SEEK_ORIGIN {
+    DIR_SEEK_ORIGIN_CURSOR,
+    DIR_SEEK_ORIGIN_START,
+    DIR_SEEK_ORIGIN_END,
+};
+
 typedef struct _dir_entry {
     const char * name;
 } dir_entry_t;

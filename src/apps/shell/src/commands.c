@@ -1,5 +1,6 @@
 #include "commands.h"
 
+#include "libc/dir.h"
 #include "libc/proc.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
@@ -29,6 +30,39 @@ static int echo_cmd(size_t argc, char ** argv) {
     return 0;
 }
 
+static int ls_cmd(size_t argc, char ** argv) {
+    dir_t dir = dir_open("/");
+    if (!dir) {
+        puts("Failed to open dir\n");
+        return 1;
+    }
+
+    dir_seek(dir, 0, DIR_SEEK_ORIGIN_END);
+    int n_files = dir_tell(dir);
+
+    if (!n_files) {
+        puts("Empty directory\n");
+        dir_close(dir);
+        return 0;
+    }
+
+    for (int i = 0; i < n_files; i++) {
+        dir_entry_t d_entry;
+        if (!dir_read(dir, &d_entry)) {
+            printf("Failed to read file %d\n", i);
+            dir_close(dir);
+            return 1;
+        }
+        puts(d_entry.name);
+        putc('\n');
+    }
+
+    dir_close(dir);
+
+    return 0;
+}
+
 void init_commands() {
     term_command_add("echo", echo_cmd);
+    term_command_add("ls", ls_cmd);
 }
