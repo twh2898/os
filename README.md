@@ -126,38 +126,3 @@ make test_cov DARK_MODE=ON
 make lint
 make format
 ```
-
-### Format drive.img
-
-After creating the drive image with `make drive.img` you can format and mount it
-using the following.
-
-Setup file as drive
-
-```sh
-modprobe nbd max_part=63
-qemu-nbd -c /dev/nbd0 drive.img
-```
-
-Format drive
-
-```sh
-fdisk /dev/nbd0
-mkfs.fat -F32 /dev/nbd0p1
-```
-
-Fdisk commands should be `onp1  w`
-
-Mount the drive
-
-```sh
-mount /dev/nbd0p1 drive
-```
-
-Unmount the drive
-
-```sh
-umount drive
-qemu-nbd -d /dev/nbd0
-rmmod nbd
-```
