@@ -141,18 +141,18 @@ static handle_t * get_free_handle(process_t * proc) {
     }
 
     handle_t new_handle;
-    new_handle.id   = arr_size(io_handles);
+    new_handle.id   = arr_size(io_handles) + 1;
     new_handle.type = HANDLE_TYPE_FREE;
 
     if (arr_insert(io_handles, arr_size(io_handles), &new_handle)) {
         return 0;
     }
 
-    return arr_at(io_handles, arr_size(io_handles));
+    return arr_at(io_handles, arr_size(io_handles) - 1);
 }
 
 static handle_t * find_handler(process_t * proc, int handle_id) {
-    if (!proc || handle_id < 0) {
+    if (!proc || handle_id <= 0) {
         return 0;
     }
 
@@ -162,7 +162,7 @@ static handle_t * find_handler(process_t * proc, int handle_id) {
         return 0;
     }
 
-    handle_t * handle = arr_at(io_handles, handle_id);
+    handle_t * handle = arr_at(io_handles, handle_id - 1);
 
     if (handle->type != HANDLE_TYPE_FILE) {
         return 0;
