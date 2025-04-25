@@ -25,13 +25,19 @@ add_subdirectory(shell)
 message("App targets are ${APPS_TARGETS}")
 
 add_custom_command(
-    OUTPUT ${APPS_BASE_DIR}/a.txt
-    COMMAND cp -r ${CMAKE_SOURCE_DIR}/drive/* ${APPS_BASE_DIR}
+    OUTPUT ${APPS_BASE_DIR}/data/
+    COMMAND rm -rf ${APPS_BASE_DIR}/data/
+    COMMAND mkdir -p ${APPS_BASE_DIR}/data/
+    COMMAND cp -r ${CMAKE_SOURCE_DIR}/drive/* ${APPS_BASE_DIR}/data
+    DEPENDS ${CMAKE_SOURCE_DIR}/drive/
 )
+
+add_custom_target(apps_data
+    DEPENDS ${APPS_BASE_DIR}/data/)
 
 add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/apps.tar
     COMMAND tar -cf ${CMAKE_BINARY_DIR}/apps.tar *
-    DEPENDS ${APPS_TARGETS} ${APPS_BASE_DIR}/a.txt
+    DEPENDS ${APPS_TARGETS} apps_data
     WORKING_DIRECTORY ${APPS_BASE_DIR})
 
 add_custom_target(apps_image ALL
