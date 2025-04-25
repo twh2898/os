@@ -1,6 +1,7 @@
 #include "commands.h"
 
 #include "libc/dir.h"
+#include "libc/file.h"
 #include "libc/proc.h"
 #include "libc/stdio.h"
 #include "libc/string.h"
@@ -62,7 +63,26 @@ static int ls_cmd(size_t argc, char ** argv) {
     return 0;
 }
 
+static int cat_cmd(size_t argc, char ** argv) {
+    if (argc < 2) {
+        printf("Usage: %s <filename>\n", argv[0]);
+        return -1;
+    }
+
+    file_t file = file_open(argv[1], "r");
+
+    char c;
+    while (file_read(file, 1, 1, &c)) {
+        putc(c);
+    }
+
+    file_close(file);
+
+    return 0;
+}
+
 void init_commands() {
     term_command_add("echo", echo_cmd);
     term_command_add("ls", ls_cmd);
+    term_command_add("cat", cat_cmd);
 }

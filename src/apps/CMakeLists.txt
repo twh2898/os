@@ -24,9 +24,14 @@ add_subdirectory(shell)
 
 message("App targets are ${APPS_TARGETS}")
 
+add_custom_command(
+    OUTPUT ${APPS_BASE_DIR}/a.txt
+    COMMAND cp -r ${CMAKE_SOURCE_DIR}/drive/* ${APPS_BASE_DIR}
+)
+
 add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/apps.tar
     COMMAND tar -cf ${CMAKE_BINARY_DIR}/apps.tar *
-    DEPENDS ${APPS_TARGETS}
+    DEPENDS ${APPS_TARGETS} ${APPS_BASE_DIR}/a.txt
     WORKING_DIRECTORY ${APPS_BASE_DIR})
 
 add_custom_target(apps_image ALL
